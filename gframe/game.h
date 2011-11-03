@@ -7,10 +7,12 @@
 #include "materials.h"
 #include "client_card.h"
 #include "client_field.h"
+#include "deck_con.h"
 #include "network.h"
 #include "deck_manager.h"
 #include <string>
 #include "../ocgcore/mtrandom.h"
+#include <unordered_map>
 
 namespace ygo {
 
@@ -51,7 +53,7 @@ public:
 	void MainLoop();
 	void BuildProjectionMatrix(irr::core::matrix4& mProjection, f32 left, f32 right, f32 bottom, f32 top, f32 znear, f32 zfar);
 	void SetStaticText(irr::gui::IGUIStaticText* pControl, u32 cWidth, irr::gui::CGUITTFont* font, wchar_t* text);
-	void RefreshDeck();
+	void RefreshDeck(irr::gui::IGUIComboBox* cbDeck);
 	void DrawSelectionLine(irr::video::S3DVertex* vec, bool strip, int width, float* cv);
 	void DrawBackGround();
 	void DrawCards();
@@ -63,6 +65,7 @@ public:
 	void HideElement(irr::gui::IGUIElement* element, bool set_action = false);
 	void PopupElement(irr::gui::IGUIElement* element, int hideframe = 0);
 	void WaitFrameSignal(int frame);
+	void DrawThumb(int code, position2di pos, std::unordered_map<int, int>* lflist);
 	void DrawDeckBd();
 	
 	int LocalPlayer(int player);
@@ -138,6 +141,7 @@ public:
 	
 	DuelInfo dInfo;
 	ClientField dField;
+	DeckBuilder deckBuilder;
 	irr::IrrlichtDevice* device;
 	irr::video::IVideoDriver* driver;
 	irr::scene::ISceneManager* smgr;
@@ -166,6 +170,9 @@ public:
 	irr::gui::IGUICheckBox* chkRandomPos;
 	irr::gui::IGUICheckBox* chkAutoChain;
 	irr::gui::IGUICheckBox* chkWaitChain;
+	irr::gui::IGUIListBox* lstLog;
+	irr::gui::IGUIButton* btnClearLog;
+	irr::gui::IGUIButton* btnSaveLog;
 	//main menu
 	irr::gui::IGUIWindow* wModeSelection;
 	irr::gui::IGUITabControl* wModes;
@@ -228,12 +235,6 @@ public:
 	irr::gui::IGUIStaticText *stCardPos[5];
 	irr::gui::IGUIScrollBar *scrCardList;
 	irr::gui::IGUIButton* btnSelectOK;
-	//log
-	irr::gui::IGUIWindow* wDuelLog;
-	irr::gui::IGUIListBox* lstLog;
-	irr::gui::IGUIButton* btnClearLog;
-	irr::gui::IGUIButton* btnSaveLog;
-	irr::gui::IGUIButton* btnHideLog;
 	//announce number
 	irr::gui::IGUIWindow* wANNumber;
 	irr::gui::IGUIComboBox* cbANNumber;
@@ -265,6 +266,31 @@ public:
 	irr::gui::IGUIButton* btnBP;
 	irr::gui::IGUIButton* btnM2;
 	irr::gui::IGUIButton* btnEP;
+	//deck edit
+	irr::gui::IGUIStaticText* wDeckEdit;
+	irr::gui::IGUIComboBox* cbDBLFList;
+	irr::gui::IGUIComboBox* cbDBDecks;
+	irr::gui::IGUIButton* btnClearDeck;
+	irr::gui::IGUIButton* btnSaveDeck;
+	irr::gui::IGUIButton* btnSaveDeckAs;
+	irr::gui::IGUIButton* btnDBExit;
+	irr::gui::IGUIEditBox* ebDeckname;
+	//category
+	irr::gui::IGUIStaticText* wFilter;
+	irr::gui::IGUIComboBox* cbCardType;
+	irr::gui::IGUIComboBox* cbCardType2;
+	irr::gui::IGUIComboBox* cbCardClass;
+	irr::gui::IGUIComboBox* cbRace;
+	irr::gui::IGUIComboBox* cbAttribute;
+	irr::gui::IGUIEditBox* ebStar;
+	irr::gui::IGUIEditBox* ebAttack;
+	irr::gui::IGUIEditBox* ebDefence;
+	irr::gui::IGUIButton* btnEffectFilter;
+	irr::gui::IGUIButton* btnStartFilter;
+	irr::gui::IGUIButton* btnResultFilter;
+	irr::gui::IGUIWindow* wCategories;
+	irr::gui::IGUICheckBox* chkCategory[32];
+	irr::gui::IGUIButton* btnCategoryOK;
 };
 
 }
@@ -280,7 +306,6 @@ public:
 
 #define BUTTON_SAVE_LOG				100
 #define BUTTON_CLEAR_LOG			101
-#define BUTTON_HIDE_LOG				102
 #define BUTTON_LAN_START_SERVER		110
 #define BUTTON_LAN_CANCEL_SERVER	111
 #define BUTTON_LAN_CONNECT			112
@@ -321,4 +346,15 @@ public:
 #define BUTTON_BP					180
 #define BUTTON_M2					181
 #define BUTTON_EP					182
+#define BUTTON_CATEGORY_OK			200
+#define COMBOBOX_DBLFLIST			201
+#define COMBOBOX_DBDECKS			202
+#define BUTTON_CLEAR_DECK			203
+#define BUTTON_SAVE_DECK			204
+#define BUTTON_SAVE_DECK_AS			205
+#define BUTTON_DBEXIT				206
+#define COMBOBOX_MAINTYPE			210
+#define BUTTON_EFFECT_FILTER		211
+#define BUTTON_START_FILTER			212
+#define BUTTON_RESULT_FILTER		213
 #endif // GAME_H

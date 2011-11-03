@@ -36,7 +36,11 @@ void ImageManager::ClearImage() {
 	for(auto tit = tMap.begin(); tit != tMap.end(); ++tit) {
 		driver->removeTexture(tit->second);
 	}
+	for(auto tit = tThumb.begin(); tit != tThumb.end(); ++tit) {
+		driver->removeTexture(tit->second);
+	}
 	tMap.clear();
+	tThumb.clear();
 }
 irr::video::ITexture* ImageManager::GetTexture(int code) {
 	if(code == 0)

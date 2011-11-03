@@ -59,23 +59,23 @@ bool DeckManager::CheckLFList(Deck& deck, int lfindex) {
 	if(deck.maincount < 40 || deck.maincount > 60 || deck.extracount > 15 || deck.sidecount > 15)
 		return false;
 	for(int i = 0; i < deck.maincount; ++i) {
-		ccount[deck.main[i]]++;
-		dc = ccount[deck.main[i]];
-		auto it = list->find(deck.main[i]);
+		ccount[deck.main[i]->first]++;
+		dc = ccount[deck.main[i]->first];
+		auto it = list->find(deck.main[i]->first);
 		if(dc > 3 || (it != list->end() && dc > it->second))
 			return false;
 	}
 	for(int i = 0; i < deck.extracount; ++i) {
-		ccount[deck.extra[i]]++;
-		dc = ccount[deck.extra[i]];
-		auto it = list->find(deck.extra[i]);
+		ccount[deck.extra[i]->first]++;
+		dc = ccount[deck.extra[i]->first];
+		auto it = list->find(deck.extra[i]->first);
 		if(dc > 3 || (it != list->end() && dc > it->second))
 			return false;
 	}
 	for(int i = 0; i < deck.sidecount; ++i) {
-		ccount[deck.side[i]]++;
-		dc = ccount[deck.side[i]];
-		auto it = list->find(deck.side[i]);
+		ccount[deck.side[i]->first]++;
+		dc = ccount[deck.side[i]->first];
+		auto it = list->find(deck.side[i]->first);
 		if(dc > 3 || (it != list->end() && dc > it->second))
 			return false;
 	}
@@ -94,15 +94,15 @@ void DeckManager::LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec) {
 		if(cd.type & TYPE_TOKEN)
 			continue;
 		else if(cd.type & 0x802040 && deck.extracount < 15) {
-			deck.extra[deck.extracount++] = code;
+			deck.extra[deck.extracount++] = mainGame->dataManager.GetCodePointer(code);
 		} else if(deck.maincount < 60) {
-			deck.main[deck.maincount++] = code;
+			deck.main[deck.maincount++] = mainGame->dataManager.GetCodePointer(code);
 		}
 	}
 	for(int i = 0; i < sidec; ++i) {
 		code = dbuf[mainc + i];
 		if(deck.sidecount < 15)
-			deck.side[deck.sidecount++] = code;
+			deck.side[deck.sidecount++] = mainGame->dataManager.GetCodePointer(code);
 	}
 }
 bool DeckManager::LoadDeck(const wchar_t* file) {

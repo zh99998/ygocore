@@ -17,7 +17,7 @@ bool DataManager::LoadDates(const char* file) {
 	const char* sql = "select * from datas,texts where datas.id=texts.id";
 	if(sqlite3_prepare_v2(pDB, sql, -1, &pStmt, 0) != SQLITE_OK)
 		return Error(pDB);
-	CardData cd;
+	CardDataC cd;
 	CardString cs;
 	for(int i = 0; i < 16; ++i) cs.desc[i] = 0;
 	int step = 0, len = 0;
@@ -35,6 +35,7 @@ bool DataManager::LoadDates(const char* file) {
 			cd.level = sqlite3_column_int(pStmt, 7);
 			cd.race = sqlite3_column_int(pStmt, 8);
 			cd.attribute = sqlite3_column_int(pStmt, 9);
+			cd.category = sqlite3_column_int(pStmt, 10);
 			_datas.insert(std::make_pair(cd.code, cd));
 			len = DecodeUTF8((const char*)sqlite3_column_text(pStmt, 12), strBuffer);
 			if(len) {
@@ -115,8 +116,11 @@ bool DataManager::GetData(int code, CardData* pData) {
 	auto cdit = _datas.find(code);
 	if(cdit == _datas.end())
 		return false;
-	*pData = cdit->second;
+	*pData = *((CardData*)&cdit->second);
 	return true;
+}
+code_pointer DataManager::GetCodePointer(int code) {
+	return _datas.find(code);
 }
 bool DataManager::GetString(int code, CardString* pStr) {
 	auto csit = _strings.find(code);

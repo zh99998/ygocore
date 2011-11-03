@@ -31,6 +31,7 @@ bool Game::Initialize() {
 	ignore_chain = false;
 	is_building = false;
 	dField.device = device;
+	deckBuilder.device = device;
 	memset(&dInfo, 0, sizeof(DuelInfo));
 	netManager.local_addr = NetManager::GetLocalAddress();
 	netManager.send_buffer_ptr = &netManager.send_buf[2];
@@ -123,11 +124,12 @@ bool Game::Initialize() {
 	lstReplayList->setItemHeight(18);
 	btnLoadReplay = env->addButton(rect<s32>(180, 200, 280, 225), tabReplay, BUTTON_LOAD_REPLAY, L"载入录像");
 	env->addStaticText(L"昵称：", rect<s32>(10, 30, 90, 50), false, false, wModeSelection);
-	ebUsername = env->addEditBox(L"", rect<s32>(80, 25, 280, 50), true, wModeSelection);
+	ebUsername = env->addEditBox(L"", rect<s32>(80, 25, 260, 50), true, wModeSelection);
 	ebUsername->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
-	cbDeckSel = env->addComboBox(rect<s32>(300, 25, 400, 50), wModeSelection, -1);
-	RefreshDeck();
-	btnDeckEdit = env->addButton(rect<s32>(410, 25, 470, 50), wModeSelection, BUTTON_DECK_EDIT, L"编辑");
+	env->addStaticText(L"卡组：", rect<s32>(270, 30, 350, 50), false, false, wModeSelection);
+	cbDeckSel = env->addComboBox(rect<s32>(320, 25, 470, 50), wModeSelection, -1);
+	RefreshDeck(cbDeckSel);
+	btnDeckEdit = env->addButton(rect<s32>(410, 55, 470, 80), wModeSelection, BUTTON_DECK_EDIT, L"编辑");
 	stModeStatus = env->addStaticText(L"", rect<s32>(20, 360, 350, 380), false, false, wModeSelection);
 	btnModeExit = env->addButton(rect<s32>(380, 355, 470, 380), wModeSelection, BUTTON_MODE_EXIT, L"退出");
 	//img
@@ -157,10 +159,9 @@ bool Game::Initialize() {
 	btnEP->setVisible(false);
 	//tab
 	wInfos = env->addTabControl(rect<s32>(1, 275, 301, 639), 0, true);
-	//wInfos->setVisible(false);
-	irr::gui::IGUITab* tabInfo = wInfos->addTab(L"卡片信息");
-	irr::gui::IGUITab* tabSystem = wInfos->addTab(L"系统");
+	wInfos->setVisible(false);
 	//info
+	irr::gui::IGUITab* tabInfo = wInfos->addTab(L"卡片信息");
 	stName = env->addStaticText(L"", rect<s32>(10, 10, 287, 32), true, false, tabInfo, -1, false);
 	stName->setOverrideFont(textFont);
 	stName->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
@@ -170,7 +171,14 @@ bool Game::Initialize() {
 	stDataInfo->setOverrideColor(SColor(255, 0, 0, 255));
 	stText = env->addStaticText(L"", rect<s32>(15, 83, 296, 324), false, true, tabInfo, -1, false);
 	stText->setOverrideFont(textFont);
+	//log
+	irr::gui::IGUITab* tabLog =  wInfos->addTab(L"决斗记录");
+	lstLog = env->addListBox(rect<s32>(10, 10, 290, 290), tabLog, -1, false);
+	lstLog->setItemHeight(18);
+	btnClearLog = env->addButton(rect<s32>(40, 300, 140, 325), tabLog, BUTTON_CLEAR_LOG, L"清除记录");
+	btnSaveLog = env->addButton(rect<s32>(160, 300, 260, 325), tabLog, BUTTON_SAVE_LOG, L"保存记录");
 	//system
+	irr::gui::IGUITab* tabSystem = wInfos->addTab(L"系统设定");
 	chkAutoPos = env->addCheckBox(false, rect<s32>(20, 20, 280, 45), tabSystem, -1, L"自动选择卡片位置");
 	chkAutoPos->setChecked(true);
 	chkRandomPos = env->addCheckBox(false, rect<s32>(40, 50, 300, 75), tabSystem, -1, L"↑随机选择位置");
@@ -235,20 +243,10 @@ bool Game::Initialize() {
 		stCardPos[i]->setBackgroundColor(0xffffffff);
 		stCardPos[i]->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 		btnCardSelect[i] = irr::gui::CGUIImageButton::addImageButton(env, rect<s32>(30 + 125 * i, 55, 150 + 125 * i, 225), wCardSelect, BUTTON_CARD_0 + i);
-		btnCardSelect[i]->setImageScale(core::vector2df(0.6f, 0.6f));		
+		btnCardSelect[i]->setImageScale(core::vector2df(0.6f, 0.6f));
 	}
 	scrCardList = env->addScrollBar(true, rect<s32>(30, 235, 650, 255), wCardSelect, SCROLL_CARD_SELECT);
 	btnSelectOK = env->addButton(rect<s32>(300, 265, 380, 290), wCardSelect, BUTTON_CARD_SEL_OK, L"确定");
-	//log
-	wDuelLog = env->addWindow(rect<s32>(522, 438, 1022, 638), false, L"");
-	wDuelLog->getCloseButton()->setVisible(false);
-	wDuelLog->setDrawBackground(false);
-	wDuelLog->setVisible(false);
-	env->addStaticText(L"", rect<s32>(0, 0, 500, 200), true, false, wDuelLog, -1, true)->setBackgroundColor(0xc0c0c0ff);
-	lstLog = env->addListBox(rect<s32>(10, 10, 490, 160), wDuelLog, -1, false);
-	lstLog->setItemHeight(18);
-	btnClearLog = env->addButton(rect<s32>(150, 165, 250, 190), wDuelLog, BUTTON_CLEAR_LOG, L"清除记录");
-	btnHideLog = env->addButton(rect<s32>(250, 165, 350, 190), wDuelLog, BUTTON_HIDE_LOG, L"隐藏");
 	//announce number
 	wANNumber = env->addWindow(rect<s32>(550, 200, 780, 295), false, L"");
 	wANNumber->getCloseButton()->setVisible(false);
@@ -299,6 +297,62 @@ bool Game::Initialize() {
 	btnRepos = env->addButton(rect<s32>(1, 106, 99, 126), wCmdMenu, BUTTON_CMD_REPOS, L"反转召唤");
 	btnAttack = env->addButton(rect<s32>(1, 127, 99, 147), wCmdMenu, BUTTON_CMD_ATTACK, L"攻击");
 	btnShowList = env->addButton(rect<s32>(1, 148, 99, 168), wCmdMenu, BUTTON_CMD_SHOWLIST, L"查看列表");
+	//deck edit
+	wDeckEdit = env->addStaticText(L"", rect<s32>(309, 8, 605, 130), true, false, 0, -1, true);
+	wDeckEdit->setVisible(false);
+	env->addStaticText(L"禁限卡表：", rect<s32>(10, 9, 100, 29), false, false, wDeckEdit);
+	cbDBLFList = env->addComboBox(rect<s32>(80, 5, 220, 30), wDeckEdit, COMBOBOX_DBLFLIST);
+	env->addStaticText(L"卡组列表：", rect<s32>(10, 39, 100, 59), false, false, wDeckEdit);
+	cbDBDecks = env->addComboBox(rect<s32>(80, 35, 220, 60), wDeckEdit, COMBOBOX_DBDECKS);
+	for(int i = 0; i < deckManager._lfList.size(); ++i)
+		cbDBLFList->addItem(deckManager._lfList[i].listName);
+	for(int i = 0; i < cbDeckSel->getItemCount(); ++i)
+		cbDBDecks->addItem(cbDeckSel->getItem(i));
+	btnSaveDeck = env->addButton(rect<s32>(225, 35, 290, 60), wDeckEdit, BUTTON_SAVE_DECK, L"保存");
+	ebDeckname = env->addEditBox(L"", rect<s32>(80, 65, 220, 90), true, wDeckEdit, -1);
+	ebDeckname->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	btnSaveDeckAs = env->addButton(rect<s32>(225, 65, 290, 90), wDeckEdit, BUTTON_SAVE_DECK_AS, L"另存");
+	btnClearDeck = env->addButton(rect<s32>(225, 95, 290, 116), wDeckEdit, BUTTON_CLEAR_DECK, L"清空");
+	btnDBExit = env->addButton(rect<s32>(10, 95, 110, 116), wDeckEdit, BUTTON_DBEXIT, L"退出编辑");
+	//filters
+	wFilter = env->addStaticText(L"", rect<s32>(610, 8, 1017, 130), true, false, 0, -1, true);
+	wFilter->setVisible(false);
+	env->addStaticText(L"卡种：", rect<s32>(10, 10, 70, 30), false, false, wFilter);
+	cbCardType = env->addComboBox(rect<s32>(60, 8, 120, 28), wFilter, COMBOBOX_MAINTYPE);
+	cbCardType->addItem(L"(无)");
+	cbCardType->addItem(L"怪兽");
+	cbCardType->addItem(L"魔法");
+	cbCardType->addItem(L"陷阱");
+	cbCardType2 = env->addComboBox(rect<s32>(130, 8, 190, 28), wFilter, -1);
+	env->addStaticText(L"系列：", rect<s32>(200, 10, 270, 30), false, false, wFilter);
+	cbCardClass = env->addComboBox(rect<s32>(250, 8, 380, 28), wFilter, -1);
+	cbCardClass->addItem(L"(无)", 0);
+	for(auto ssit = dataManager._seriesStrings.begin(); ssit != dataManager._seriesStrings.end(); ++ssit)
+		cbCardClass->addItem(ssit->second, ssit->first);
+	env->addStaticText(L"种族：", rect<s32>(10, 35, 70, 55), false, false, wFilter);
+	cbAttribute = env->addComboBox(rect<s32>(60, 33, 190, 53), wFilter, -1);
+	env->addStaticText(L"种族：", rect<s32>(200, 35, 270, 55), false, false, wFilter);
+	cbRace = env->addComboBox(rect<s32>(250, 33, 380, 53), wFilter, -1);
+	env->addStaticText(L"攻击：", rect<s32>(10, 60, 70, 80), false, false, wFilter);
+	ebAttack = env->addEditBox(L"", rect<s32>(60, 58, 190, 78), true, wFilter);
+	ebAttack->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	env->addStaticText(L"守备：", rect<s32>(200, 60, 270, 80), false, false, wFilter);
+	ebDefence = env->addEditBox(L"", rect<s32>(250, 58, 380, 78), true, wFilter);
+	ebDefence->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	env->addStaticText(L"星数：", rect<s32>(10, 85, 70, 105), false, false, wFilter);
+	ebStar = env->addEditBox(L"", rect<s32>(60, 83, 130, 103), true, wFilter);
+	ebStar->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	btnEffectFilter = env->addButton(rect<s32>(140, 83, 190, 103),wFilter,BUTTON_EFFECT_FILTER,L"效果");
+	btnStartFilter = env->addButton(rect<s32>(220, 90, 280, 115),wFilter,BUTTON_START_FILTER,L"搜索");
+	btnResultFilter = env->addButton(rect<s32>(290, 90, 400, 115),wFilter,BUTTON_RESULT_FILTER,L"结果中搜索");
+	wCategories = env->addWindow(rect<s32>(630, 80, 1000, 290), false, dataManager.strBuffer);
+	wCategories->getCloseButton()->setVisible(false);
+	wCategories->setDrawTitlebar(false);
+	wCategories->setDraggable(false);
+	wCategories->setVisible(false);
+	btnCategoryOK = env->addButton(rect<s32>(135, 175, 235, 200), wCategories, BUTTON_CATEGORY_OK, L"确定");
+	for(int i = 0; i < 32; ++i)
+		chkCategory[i] = env->addCheckBox(false, recti(10 + (i % 4) * 90, 10 + (i / 4) * 20, 100 + (i % 4) * 90, 30 + (i / 4) * 20), wCategories, -1, L"啊啊啊啊");
 	device->setEventReceiver(&dField);
 	return true;
 }
@@ -332,8 +386,9 @@ void Game::MainLoop() {
 			smgr->drawAll();
 			driver->setMaterial(irr::video::IdentityMaterial);
 			driver->clearZBuffer();
+		} else if(is_building) {
+			DrawDeckBd();
 		}
-		//DrawDeckBd();
 		DrawGUI();
 		DrawSpec();
 		if(signalFrame > 0) {
@@ -402,8 +457,8 @@ void Game::SetStaticText(irr::gui::IGUIStaticText* pControl, u32 cWidth, irr::gu
 	dataManager.strBuffer[pbuffer] = 0;
 	pControl->setText(dataManager.strBuffer);
 }
-void Game::RefreshDeck() {
-	cbDeckSel->clear();
+void Game::RefreshDeck(irr::gui::IGUIComboBox* cbDeck) {
+	cbDeck->clear();
 #ifdef _WIN32
 	WIN32_FIND_DATAW fdataw;
 	HANDLE fh = FindFirstFileW(L"./deck/*.ydk", &fdataw);
@@ -415,7 +470,7 @@ void Game::RefreshDeck() {
 			while(*pf) pf++;
 			while(*pf != L'.') pf--;
 			*pf = 0;
-			cbDeckSel->addItem(fdataw.cFileName);
+			cbDeck->addItem(fdataw.cFileName);
 		}
 	} while(FindNextFileW(fh, &fdataw));
 	FindClose(fh);

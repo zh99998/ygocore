@@ -192,7 +192,7 @@ int Game::EngineThread(void* pd) {
 	if(!mainGame->netManager.hInfo.no_shuffle_deck) {
 		for(int i = 0; i < mainGame->deckManager.deckhost.maincount; ++i) {
 			int swap = mainGame->rnd.real() * mainGame->deckManager.deckhost.maincount;
-			int tmp = mainGame->deckManager.deckhost.main[i];
+			auto tmp = mainGame->deckManager.deckhost.main[i];
 			mainGame->deckManager.deckhost.main[i] = mainGame->deckManager.deckhost.main[swap];
 			mainGame->deckManager.deckhost.main[swap] = tmp;
 		}
@@ -200,7 +200,7 @@ int Game::EngineThread(void* pd) {
 	if(!mainGame->netManager.hInfo.no_shuffle_deck) {
 		for(int i = 0; i < mainGame->deckManager.deckclient.maincount; ++i) {
 			int swap = mainGame->rnd.real() * mainGame->deckManager.deckclient.maincount;
-			int tmp = mainGame->deckManager.deckclient.main[i];
+			auto tmp = mainGame->deckManager.deckclient.main[i];
 			mainGame->deckManager.deckclient.main[i] = mainGame->deckManager.deckclient.main[swap];
 			mainGame->deckManager.deckclient.main[swap] = tmp;
 		}
@@ -215,13 +215,13 @@ int Game::EngineThread(void* pd) {
 	set_player_info(pdInfo->pDuel, 0, hi.start_lp, hi.start_hand, hi.draw_count);
 	set_player_info(pdInfo->pDuel, 1, hi.start_lp, hi.start_hand, hi.draw_count);
 	for(int i = mainGame->deckManager.deckhost.maincount - 1; i >= 0; --i)
-		new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.main[i], pdInfo->is_first_turn ? 0 : 1, pdInfo->is_first_turn ? 0 : 1, LOCATION_DECK, 0, 0);
+		new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.main[i]->first, pdInfo->is_first_turn ? 0 : 1, pdInfo->is_first_turn ? 0 : 1, LOCATION_DECK, 0, 0);
 	for(int i = mainGame->deckManager.deckhost.extracount - 1; i >= 0; --i)
-		new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.extra[i], pdInfo->is_first_turn ? 0 : 1, pdInfo->is_first_turn ? 0 : 1, LOCATION_EXTRA, 0, 0);
+		new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.extra[i]->first, pdInfo->is_first_turn ? 0 : 1, pdInfo->is_first_turn ? 0 : 1, LOCATION_EXTRA, 0, 0);
 	for(int i = mainGame->deckManager.deckclient.maincount - 1; i >= 0; --i)
-		new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.main[i], pdInfo->is_first_turn ? 1 : 0, pdInfo->is_first_turn ? 1 : 0, LOCATION_DECK, 0, 0);
+		new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.main[i]->first, pdInfo->is_first_turn ? 1 : 0, pdInfo->is_first_turn ? 1 : 0, LOCATION_DECK, 0, 0);
 	for(int i = mainGame->deckManager.deckclient.extracount - 1; i >= 0; --i)
-		new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.extra[i], pdInfo->is_first_turn ? 1 : 0, pdInfo->is_first_turn ? 1 : 0, LOCATION_EXTRA, 0, 0);
+		new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.extra[i]->first, pdInfo->is_first_turn ? 1 : 0, pdInfo->is_first_turn ? 1 : 0, LOCATION_EXTRA, 0, 0);
 	char* pbuf = mainGame->netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_START);
 	NetManager::WriteInt32(pbuf, 0);

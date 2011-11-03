@@ -2,6 +2,7 @@
 #define DECKMANAGER_H
 
 #include "config.h"
+#include "client_card.h"
 #include <unordered_map>
 #include <vector>
 
@@ -12,11 +13,11 @@ struct LFList {
 	std::unordered_map<int, int>* content;
 };
 struct Deck {
-	int main[60];
+	code_pointer main[60];
 	int maincount;
-	int extra[15];
+	code_pointer extra[15];
 	int extracount;
-	int side[15];
+	code_pointer side[15];
 	int sidecount;
 };
 

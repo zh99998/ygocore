@@ -303,11 +303,11 @@ int NetManager::JoinThread(void* adr) {
 	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.maincount + mainGame->deckManager.deckhost.extracount);
 	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.sidecount);
 	for(int i = 0; i < mainGame->deckManager.deckhost.maincount; ++i)
-		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.main[i]);
+		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.main[i]->first);
 	for(int i = 0; i < mainGame->deckManager.deckhost.extracount; ++i)
-		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.extra[i]);
+		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.extra[i]->first);
 	for(int i = 0; i < mainGame->deckManager.deckhost.sidecount; ++i)
-		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.side[i]);
+		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.side[i]->first);
 	mainGame->netManager.SendtoRemote(mainGame->netManager.send_buf, pbuf - mainGame->netManager.send_buf);
 	int result = recv(mainGame->netManager.sRemote, mainGame->netManager.recv_buf, 4096, 0);
 	if(result == SOCKET_ERROR || mainGame->netManager.recv_buf[2] != MSG_WAITING) {

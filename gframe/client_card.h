@@ -4,7 +4,7 @@
 #include "config.h"
 #include <vector>
 #include <set>
-#include <map>
+#include <unordered_map>
 
 namespace ygo {
 
@@ -19,11 +19,24 @@ struct CardData {
 	int attack;
 	int defence;
 };
+struct CardDataC {
+	unsigned int code;
+	unsigned int alias;
+	unsigned int setcode;
+	unsigned int type;
+	unsigned int level;
+	unsigned int attribute;
+	unsigned int race;
+	int attack;
+	int defence;
+	unsigned int category;
+};
 struct CardString {
 	wchar_t* name;
 	wchar_t* text;
 	wchar_t* desc[16];
 };
+typedef std::unordered_map<unsigned int, CardDataC>::iterator code_pointer;
 
 struct ClientCard {
 public:

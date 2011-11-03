@@ -2,7 +2,9 @@
 #define DECK_CON_H
 
 #include "config.h"
-#include <set>
+#include <unordered_map>
+#include <vector>
+#include "client_card.h"
 
 namespace ygo {
 
@@ -12,6 +14,8 @@ public:
 	
 	irr::IrrlichtDevice* device;
 	wchar_t deckname[64];
+	std::unordered_map<int, int>* filterList;
+	std::vector<code_pointer> results;
 };
 
 }

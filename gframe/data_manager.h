@@ -17,6 +17,7 @@ public:
 	bool LoadDates(const char* file);
 	bool Error(sqlite3* pDB, sqlite3_stmt* pStmt = 0);
 	bool GetData(int code, CardData* pData);
+	code_pointer GetCodePointer(int code);
 	bool GetString(int code, CardString* pStr);
 	const wchar_t* GetName(int code);
 	const wchar_t* GetText(int code);
@@ -28,7 +29,7 @@ public:
 	const wchar_t* GetNumString(int num);
 	static int DecodeUTF8(const char * src, wchar_t * wstr);
 
-	std::unordered_map<unsigned int, CardData> _datas;
+	std::unordered_map<unsigned int, CardDataC> _datas;
 	std::unordered_map<unsigned int, CardString> _strings;
 	std::unordered_map<unsigned int, wchar_t*> _sysStrings;
 	std::unordered_map<unsigned int, wchar_t*> _counterStrings;

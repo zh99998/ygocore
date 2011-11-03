@@ -514,32 +514,69 @@ void Game::WaitFrameSignal(int frame) {
 	signalFrame = frame;
 	frameSignal.Wait();
 }
+void Game::DrawThumb(int code, position2di pos, std::unordered_map<int, int>* lflist) {
+	driver->draw2DImage(imageManager.GetTextureThumb(code), pos);
+	if(lflist->count(code)) {
+		switch((*lflist)[code]) {
+		case 0:
+			driver->draw2DImage(imageManager.tLim, recti(pos.X, pos.Y, pos.X + 20, pos.Y + 20), recti(0, 0, 64, 64), 0, 0, true);
+			break;
+		case 1:
+			driver->draw2DImage(imageManager.tLim, recti(pos.X, pos.Y, pos.X + 20, pos.Y + 20), recti(64, 0, 128, 64), 0, 0, true);
+			break;
+		case 2:
+			driver->draw2DImage(imageManager.tLim, recti(pos.X, pos.Y, pos.X + 20, pos.Y + 20), recti(0, 64, 64, 128), 0, 0, true);
+			break;
+		}
+	}
+}
 void Game::DrawDeckBd() {
 	//main deck
-	driver->draw2DRectangle(recti(310, 7, 410, 27), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
-	driver->draw2DRectangleOutline(recti(309, 6, 410, 27));
-	textFont->draw(L"主卡组：　", recti(315, 7, 410, 27), 0xffffffff, false, true);
-	driver->draw2DRectangle(recti(310, 30, 810, 305), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
-	driver->draw2DRectangleOutline(recti(309, 29, 810, 305));
-	for(int i = 0; i < 15; ++i)
-		driver->draw2DImage(imageManager.GetTextureThumb(98558751), position2di(314 + i * 32, 33));
-	for(int i = 0; i < 3; ++i)
-		driver->draw2DImage(imageManager.GetTextureThumb(98558751), position2di(314, 101 + i * 68));
+	driver->draw2DRectangle(recti(310, 137, 410, 157), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangleOutline(recti(309, 136, 410, 157));
+	textFont->draw(L"主卡组：", recti(315, 137, 410, 157), 0xffffffff, false, true);
+	numFont->draw(dataManager.numStrings[deckManager.deckhost.maincount], recti(380, 138, 440, 158), 0xffffffff, false, true);
+	driver->draw2DRectangle(recti(310, 160, 797, 436), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangleOutline(recti(309, 159, 797, 436));
+	int lx;
+	float dx;
+	if(deckManager.deckhost.maincount <= 40) {
+		dx = 436.0f / 9;
+		lx = 10;
+	} else {
+		lx = (deckManager.deckhost.maincount - 41) / 4 + 11;
+		dx = 436.0f / (lx - 1);
+	}
+	for(int i = 0; i < deckManager.deckhost.maincount; ++i)
+		DrawThumb(deckManager.deckhost.main[i]->first, position2di(314 + (i % lx) * dx, 164 + (i / lx) * 68), deckBuilder.filterList);
 	//extra deck
-	driver->draw2DRectangle(recti(310, 310, 410, 330), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
-	driver->draw2DRectangleOutline(recti(309, 309, 410, 330));
-	textFont->draw(L"额外卡组：", recti(315, 310, 410, 330), 0xffffffff, false, true);
-	driver->draw2DRectangle(recti(310, 333, 810, 403), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
-	driver->draw2DRectangleOutline(recti(309, 332, 810, 403));
-	for(int i = 0; i < 15; ++i)
-		driver->draw2DImage(imageManager.GetTextureThumb(98558751), position2di(314 + i * 32, 336));
+	driver->draw2DRectangle(recti(310, 440, 410, 460), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
+	driver->draw2DRectangleOutline(recti(309, 439, 410, 460));
+	textFont->draw(L"额外卡组：", recti(315, 440, 410, 460), 0xffffffff, false, true);
+	numFont->draw(dataManager.numStrings[deckManager.deckhost.extracount], recti(380, 441, 440, 461), 0xffffffff, false, true);
+	driver->draw2DRectangle(recti(310, 463, 797, 533), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
+	driver->draw2DRectangleOutline(recti(309, 462, 797, 533));
+	if(deckManager.deckhost.extracount <= 10)
+		dx = 436.0f / 9;
+	else dx = 436.0f / (deckManager.deckhost.extracount - 1);
+	for(int i = 0; i < deckManager.deckhost.extracount; ++i)
+		DrawThumb(deckManager.deckhost.extra[i]->first, position2di(314 + i * dx, 466), deckBuilder.filterList);
 	//side deck
-	driver->draw2DRectangle(recti(310, 408, 410, 428), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
-	driver->draw2DRectangleOutline(recti(309, 407, 410, 428));
-	textFont->draw(L"副卡组：　", recti(315, 408, 410, 428), 0xffffffff, false, true);
-	driver->draw2DRectangle(recti(310, 431, 810, 501), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
-	driver->draw2DRectangleOutline(recti(309, 430, 810, 501));
-	for(int i = 0; i < 15; ++i)
-		driver->draw2DImage(imageManager.GetTextureThumb(98558751), position2di(314 + i * 32, 434));
+	driver->draw2DRectangle(recti(310, 537, 410, 557), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
+	driver->draw2DRectangleOutline(recti(309, 536, 410, 557));
+	textFont->draw(L"副卡组：", recti(315, 537, 410, 557), 0xffffffff, false, true);
+	numFont->draw(dataManager.numStrings[deckManager.deckhost.sidecount], recti(380, 538, 440, 558), 0xffffffff, false, true);
+	driver->draw2DRectangle(recti(310, 560, 797, 630), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
+	driver->draw2DRectangleOutline(recti(309, 559, 797, 630));
+	if(deckManager.deckhost.sidecount <= 10)
+		dx = 436.0f / 9;
+	else dx = 436.0f / (deckManager.deckhost.sidecount - 1);
+	for(int i = 0; i < deckManager.deckhost.sidecount; ++i)
+		DrawThumb(deckManager.deckhost.side[i]->first, position2di(314 + i * dx, 564), deckBuilder.filterList);
+	driver->draw2DRectangle(recti(805, 137, 905, 157), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangleOutline(recti(804, 136, 905, 157));
+	textFont->draw(L"筛选结果：", recti(810, 137, 905, 157), 0xffffffff, false, true);
+	driver->draw2DRectangle(recti(805, 160, 1017, 630), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangleOutline(recti(804, 159, 1017, 630));
 }
 }

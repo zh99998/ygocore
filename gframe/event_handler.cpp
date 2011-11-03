@@ -19,10 +19,6 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				mainGame->lstLog->clear();
 				break;
 			}
-			case BUTTON_HIDE_LOG: {
-				mainGame->HideElement(mainGame->wDuelLog);
-				break;
-			}
 			case BUTTON_MODE_EXIT: {
 				mainGame->netManager.CancelHost();
 				mainGame->device->closeDevice();
@@ -90,6 +86,28 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				break;
 			}
 			case BUTTON_DECK_EDIT: {
+				if(mainGame->cbDeckSel->getSelected() == -1)
+					break;
+				if(!mainGame->deckManager.LoadDeck(mainGame->cbDeckSel->getItem(mainGame->cbDeckSel->getSelected()))) {
+					mainGame->stModeStatus->setText(L"无法载入卡组");
+					break;
+				}
+				mainGame->HideElement(mainGame->wModeSelection);
+				mainGame->is_building = true;
+				mainGame->wInfos->setVisible(true);
+				mainGame->wCardImg->setVisible(true);
+				mainGame->wDeckEdit->setVisible(true);
+				mainGame->wFilter->setVisible(true);
+				mainGame->deckBuilder.filterList = mainGame->deckManager._lfList[mainGame->cbLFlist->getSelected()].content;;
+				mainGame->cbDBLFList->setSelected(mainGame->cbLFlist->getSelected());
+				mainGame->device->setEventReceiver(&mainGame->deckBuilder);
+				mainGame->cbCardType->setSelected(0);
+				mainGame->cbCardClass->setSelected(0);
+				mainGame->cbAttribute->setSelected(0);
+				mainGame->cbRace->setSelected(0);
+				mainGame->ebAttack->setText(L"");
+				mainGame->ebDefence->setText(L"");
+				mainGame->ebStar->setText(L"");
 				break;
 			}
 			case BUTTON_MSG_OK: {
@@ -1051,6 +1069,8 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 						mcard = 0;
 				} else mcard = 0;
 			}
+			if(hovered_location == LOCATION_HAND && (mainGame->dInfo.is_shuffling || mainGame->dInfo.curMsg == MSG_SHUFFLE_HAND))
+				mcard = 0;
 			if(mcard != hovered_card) {
 				if(hovered_card) {
 					if(hovered_card->location == LOCATION_HAND) {
@@ -1066,7 +1086,7 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				if(mcard) {
 					if(mcard != clicked_card)
 						mainGame->wCmdMenu->setVisible(false);
-					if(hovered_location == LOCATION_HAND && !mainGame->dInfo.is_shuffling && mainGame->dInfo.curMsg != MSG_SHUFFLE_HAND) {
+					if(hovered_location == LOCATION_HAND) {
 						mcard->is_hovered = true;
 						MoveCard(mcard, 5);
 					}
