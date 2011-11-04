@@ -42,6 +42,7 @@ public:
 	static wchar_t racBuffer[128];
 	static wchar_t tpBuffer[128];
 	static const wchar_t* unknown_string;
+	static const wchar_t* effect_strings[];
 	static const wchar_t* FormatLocation(int location);
 	static const wchar_t* FormatAttribute(int attribute);
 	static const wchar_t* FormatRace(int race);

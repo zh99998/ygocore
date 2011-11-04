@@ -23,7 +23,7 @@ void ImageManager::SetDevice(irr::IrrlichtDevice* dev) {
 	device = dev;
 	driver = dev->getVideoDriver();
 }
-void ImageManager::ClearImage() {
+void ImageManager::ClearTexture() {
 	mainGame->matManager.mCard.setTexture(0, 0);
 	mainGame->imgCard->setImage(0);
 	mainGame->btnPSAU->setImage();
@@ -41,6 +41,13 @@ void ImageManager::ClearImage() {
 	}
 	tMap.clear();
 	tThumb.clear();
+}
+void ImageManager::RemoveTexture(int code) {
+	auto tit = tMap.find(code);
+	if(tit != tMap.end()) {
+		driver->removeTexture(tit->second);
+		tMap.erase(tit);
+	}
 }
 irr::video::ITexture* ImageManager::GetTexture(int code) {
 	if(code == 0)

@@ -102,12 +102,27 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				mainGame->cbDBLFList->setSelected(mainGame->cbLFlist->getSelected());
 				mainGame->device->setEventReceiver(&mainGame->deckBuilder);
 				mainGame->cbCardType->setSelected(0);
+				mainGame->cbCardType2->setSelected(0);
 				mainGame->cbCardClass->setSelected(0);
 				mainGame->cbAttribute->setSelected(0);
 				mainGame->cbRace->setSelected(0);
 				mainGame->ebAttack->setText(L"");
 				mainGame->ebDefence->setText(L"");
 				mainGame->ebStar->setText(L"");
+				mainGame->cbCardType2->setEnabled(false);
+				mainGame->cbAttribute->setEnabled(false);
+				mainGame->cbRace->setEnabled(false);
+				mainGame->ebAttack->setEnabled(false);
+				mainGame->ebDefence->setEnabled(false);
+				mainGame->ebStar->setEnabled(false);
+				mainGame->deckBuilder.filter_effect = 0;
+				mainGame->deckBuilder.result_string[0] = L'0';
+				mainGame->deckBuilder.result_string[1] = 0;
+				mainGame->deckBuilder.results.clear();
+				mainGame->deckBuilder.is_draging = false;
+				mainGame->cbDBDecks->setSelected(mainGame->cbDeckSel->getSelected());
+				for(int i = 0; i < 32; ++i)
+					mainGame->chkCategory[i]->setChecked(false);
 				break;
 			}
 			case BUTTON_MSG_OK: {

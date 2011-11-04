@@ -190,16 +190,16 @@ int Game::EngineThread(void* pd) {
 		pdInfo->is_first_turn = false;
 	}
 	if(!mainGame->netManager.hInfo.no_shuffle_deck) {
-		for(int i = 0; i < mainGame->deckManager.deckhost.maincount; ++i) {
-			int swap = mainGame->rnd.real() * mainGame->deckManager.deckhost.maincount;
+		for(int i = 0; i < mainGame->deckManager.deckhost.main.size(); ++i) {
+			int swap = mainGame->rnd.real() * mainGame->deckManager.deckhost.main.size();
 			auto tmp = mainGame->deckManager.deckhost.main[i];
 			mainGame->deckManager.deckhost.main[i] = mainGame->deckManager.deckhost.main[swap];
 			mainGame->deckManager.deckhost.main[swap] = tmp;
 		}
 	}
 	if(!mainGame->netManager.hInfo.no_shuffle_deck) {
-		for(int i = 0; i < mainGame->deckManager.deckclient.maincount; ++i) {
-			int swap = mainGame->rnd.real() * mainGame->deckManager.deckclient.maincount;
+		for(int i = 0; i < mainGame->deckManager.deckclient.main.size(); ++i) {
+			int swap = mainGame->rnd.real() * mainGame->deckManager.deckclient.main.size();
 			auto tmp = mainGame->deckManager.deckclient.main[i];
 			mainGame->deckManager.deckclient.main[i] = mainGame->deckManager.deckclient.main[swap];
 			mainGame->deckManager.deckclient.main[swap] = tmp;
@@ -214,13 +214,13 @@ int Game::EngineThread(void* pd) {
 	HostInfo& hi = mainGame->netManager.hInfo;
 	set_player_info(pdInfo->pDuel, 0, hi.start_lp, hi.start_hand, hi.draw_count);
 	set_player_info(pdInfo->pDuel, 1, hi.start_lp, hi.start_hand, hi.draw_count);
-	for(int i = mainGame->deckManager.deckhost.maincount - 1; i >= 0; --i)
+	for(int i = mainGame->deckManager.deckhost.main.size() - 1; i >= 0; --i)
 		new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.main[i]->first, pdInfo->is_first_turn ? 0 : 1, pdInfo->is_first_turn ? 0 : 1, LOCATION_DECK, 0, 0);
-	for(int i = mainGame->deckManager.deckhost.extracount - 1; i >= 0; --i)
+	for(int i = mainGame->deckManager.deckhost.extra.size() - 1; i >= 0; --i)
 		new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.extra[i]->first, pdInfo->is_first_turn ? 0 : 1, pdInfo->is_first_turn ? 0 : 1, LOCATION_EXTRA, 0, 0);
-	for(int i = mainGame->deckManager.deckclient.maincount - 1; i >= 0; --i)
+	for(int i = mainGame->deckManager.deckclient.main.size() - 1; i >= 0; --i)
 		new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.main[i]->first, pdInfo->is_first_turn ? 1 : 0, pdInfo->is_first_turn ? 1 : 0, LOCATION_DECK, 0, 0);
-	for(int i = mainGame->deckManager.deckclient.extracount - 1; i >= 0; --i)
+	for(int i = mainGame->deckManager.deckclient.extra.size() - 1; i >= 0; --i)
 		new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.extra[i]->first, pdInfo->is_first_turn ? 1 : 0, pdInfo->is_first_turn ? 1 : 0, LOCATION_EXTRA, 0, 0);
 	char* pbuf = mainGame->netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_START);
@@ -236,7 +236,12 @@ int Game::EngineThread(void* pd) {
 	mainGame->SendGameMessage(1, mainGame->netManager.send_buffer_ptr, 29);
 	mainGame->RefreshExtra(0);
 	mainGame->RefreshExtra(1);
-	start_duel(pdInfo->pDuel, 0);
+	int opt = 0;
+	if(mainGame->netManager.hInfo.no_chain_hint)
+		opt |= DUEL_NO_CHAIN_HINT;
+	if(mainGame->netManager.hInfo.attack_ft)
+		opt |= DUEL_ATTACK_FIRST_TURN;
+	start_duel(pdInfo->pDuel, opt);
 	Proceed(pd);
 	end_duel(pdInfo->pDuel);
 	shutdown(mainGame->netManager.sListen, SD_BOTH);
@@ -258,7 +263,7 @@ int Game::EngineThread(void* pd) {
 		mainGame->btnM2->setVisible(false);
 		mainGame->btnEP->setVisible(false);
 		mainGame->ShowElement(mainGame->wModeSelection);
-		mainGame->imageManager.ClearImage();
+		mainGame->imageManager.ClearTexture();
 		mainGame->gMutex.Unlock();
 	}
 	return 0;
@@ -934,7 +939,7 @@ int Game::RecvThread(void* pd) {
 		mainGame->btnM2->setVisible(false);
 		mainGame->btnEP->setVisible(false);
 		mainGame->ShowElement(mainGame->wModeSelection);
-		mainGame->imageManager.ClearImage();
+		mainGame->imageManager.ClearTexture();
 		mainGame->gMutex.Unlock();
 	}
 	return 0;
@@ -1464,11 +1469,17 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 				mainGame->dInfo.responseB[1] = 0x8;
 				filter = (mainGame->dField.selectable_field >> 24) & 0x1f;
 			}
-			if (filter & 0x4) mainGame->dInfo.responseB[2] = 2;
-			else if (filter & 0x2) mainGame->dInfo.responseB[2] = 1;
-			else if (filter & 0x8) mainGame->dInfo.responseB[2] = 3;
-			else if (filter & 0x1) mainGame->dInfo.responseB[2] = 0;
-			else if (filter & 0x10) mainGame->dInfo.responseB[2] = 4;
+			if(mainGame->chkRandomPos->isChecked()) {
+				mainGame->dInfo.responseB[2] = mainGame->rnd.real() * 5;
+				while(!(filter & (1 << mainGame->dInfo.responseB[2])))
+					mainGame->dInfo.responseB[2] = mainGame->rnd.real() * 5;
+			} else {
+				if (filter & 0x4) mainGame->dInfo.responseB[2] = 2;
+				else if (filter & 0x2) mainGame->dInfo.responseB[2] = 1;
+				else if (filter & 0x8) mainGame->dInfo.responseB[2] = 3;
+				else if (filter & 0x1) mainGame->dInfo.responseB[2] = 0;
+				else if (filter & 0x10) mainGame->dInfo.responseB[2] = 4;
+			}
 			mainGame->dField.selectable_field = 0;
 			mainGame->SetResponseB(3);
 			mainGame->localResponse.Set();

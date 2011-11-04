@@ -267,6 +267,10 @@ int NetManager::ListenThread(void* np) {
 		mainGame->imgCard->setImage(mainGame->imageManager.tCover);
 		mainGame->wCardImg->setVisible(true);
 		mainGame->wInfos->setVisible(true);
+		mainGame->stName->setText(L"");
+		mainGame->stInfo->setText(L"");
+		mainGame->stDataInfo->setText(L"");
+		mainGame->stText->setText(L"");
 		mainGame->stModeStatus->setText(L"");
 		mainGame->dInfo.engLen = 0;
 		mainGame->dInfo.msgLen = 0;
@@ -300,13 +304,13 @@ int NetManager::JoinThread(void* adr) {
 		return 0;
 	}
 	char* pbuf = mainGame->netManager.send_buf;
-	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.maincount + mainGame->deckManager.deckhost.extracount);
-	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.sidecount);
-	for(int i = 0; i < mainGame->deckManager.deckhost.maincount; ++i)
+	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.main.size() + mainGame->deckManager.deckhost.extra.size());
+	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.side.size());
+	for(int i = 0; i < mainGame->deckManager.deckhost.main.size(); ++i)
 		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.main[i]->first);
-	for(int i = 0; i < mainGame->deckManager.deckhost.extracount; ++i)
+	for(int i = 0; i < mainGame->deckManager.deckhost.extra.size(); ++i)
 		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.extra[i]->first);
-	for(int i = 0; i < mainGame->deckManager.deckhost.sidecount; ++i)
+	for(int i = 0; i < mainGame->deckManager.deckhost.side.size(); ++i)
 		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.side[i]->first);
 	mainGame->netManager.SendtoRemote(mainGame->netManager.send_buf, pbuf - mainGame->netManager.send_buf);
 	int result = recv(mainGame->netManager.sRemote, mainGame->netManager.recv_buf, 4096, 0);
@@ -329,6 +333,10 @@ int NetManager::JoinThread(void* adr) {
 	mainGame->imgCard->setImage(mainGame->imageManager.tCover);
 	mainGame->wCardImg->setVisible(true);
 	mainGame->wInfos->setVisible(true);
+	mainGame->stName->setText(L"");
+	mainGame->stInfo->setText(L"");
+	mainGame->stDataInfo->setText(L"");
+	mainGame->stText->setText(L"");
 	mainGame->lstServerList->clear();
 	mainGame->stModeStatus->setText(L"");
 	mainGame->dInfo.engLen = 0;

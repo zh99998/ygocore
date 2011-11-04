@@ -315,36 +315,49 @@ bool Game::Initialize() {
 	btnClearDeck = env->addButton(rect<s32>(225, 95, 290, 116), wDeckEdit, BUTTON_CLEAR_DECK, L"清空");
 	btnDBExit = env->addButton(rect<s32>(10, 95, 110, 116), wDeckEdit, BUTTON_DBEXIT, L"退出编辑");
 	//filters
-	wFilter = env->addStaticText(L"", rect<s32>(610, 8, 1017, 130), true, false, 0, -1, true);
+	wFilter = env->addStaticText(L"", rect<s32>(610, 8, 1020, 130), true, false, 0, -1, true);
 	wFilter->setVisible(false);
-	env->addStaticText(L"卡种：", rect<s32>(10, 10, 70, 30), false, false, wFilter);
-	cbCardType = env->addComboBox(rect<s32>(60, 8, 120, 28), wFilter, COMBOBOX_MAINTYPE);
+	env->addStaticText(L"卡种：", rect<s32>(10, 5, 70, 25), false, false, wFilter);
+	cbCardType = env->addComboBox(rect<s32>(60, 3, 120, 23), wFilter, COMBOBOX_MAINTYPE);
 	cbCardType->addItem(L"(无)");
 	cbCardType->addItem(L"怪兽");
 	cbCardType->addItem(L"魔法");
 	cbCardType->addItem(L"陷阱");
-	cbCardType2 = env->addComboBox(rect<s32>(130, 8, 190, 28), wFilter, -1);
-	env->addStaticText(L"系列：", rect<s32>(200, 10, 270, 30), false, false, wFilter);
-	cbCardClass = env->addComboBox(rect<s32>(250, 8, 380, 28), wFilter, -1);
+	cbCardType2 = env->addComboBox(rect<s32>(130, 3, 190, 23), wFilter, -1);
+	cbCardType2->addItem(L"(无)", 0);
+	env->addStaticText(L"系列：", rect<s32>(200, 5, 270, 25), false, false, wFilter);
+	cbCardClass = env->addComboBox(rect<s32>(250, 3, 380, 23), wFilter, -1);
 	cbCardClass->addItem(L"(无)", 0);
 	for(auto ssit = dataManager._seriesStrings.begin(); ssit != dataManager._seriesStrings.end(); ++ssit)
 		cbCardClass->addItem(ssit->second, ssit->first);
-	env->addStaticText(L"种族：", rect<s32>(10, 35, 70, 55), false, false, wFilter);
-	cbAttribute = env->addComboBox(rect<s32>(60, 33, 190, 53), wFilter, -1);
-	env->addStaticText(L"种族：", rect<s32>(200, 35, 270, 55), false, false, wFilter);
-	cbRace = env->addComboBox(rect<s32>(250, 33, 380, 53), wFilter, -1);
-	env->addStaticText(L"攻击：", rect<s32>(10, 60, 70, 80), false, false, wFilter);
-	ebAttack = env->addEditBox(L"", rect<s32>(60, 58, 190, 78), true, wFilter);
+	env->addStaticText(L"属性：", rect<s32>(10, 28, 70, 48), false, false, wFilter);
+	cbAttribute = env->addComboBox(rect<s32>(60, 26, 190, 46), wFilter, -1);
+	cbAttribute->addItem(L"(无)", 0);
+	for(int filter = 0x1; filter != 0x80; filter <<= 1)
+		cbAttribute->addItem(DataManager::FormatAttribute(filter), filter);
+	env->addStaticText(L"种族：", rect<s32>(200, 28, 270, 48), false, false, wFilter);
+	cbRace = env->addComboBox(rect<s32>(250, 26, 380, 46), wFilter, -1);
+	cbRace->addItem(L"(无)", 0);
+	for(int filter = 0x1; filter != 0x400000; filter <<= 1)
+		cbRace->addItem(DataManager::FormatRace(filter), filter);
+	env->addStaticText(L"攻击：", rect<s32>(10, 51, 70, 71), false, false, wFilter);
+	ebAttack = env->addEditBox(L"", rect<s32>(60, 49, 190, 69), true, wFilter);
 	ebAttack->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
-	env->addStaticText(L"守备：", rect<s32>(200, 60, 270, 80), false, false, wFilter);
-	ebDefence = env->addEditBox(L"", rect<s32>(250, 58, 380, 78), true, wFilter);
+	env->addStaticText(L"守备：", rect<s32>(10, 74, 70, 94), false, false, wFilter);
+	ebDefence = env->addEditBox(L"", rect<s32>(60, 72, 190, 92), true, wFilter);
 	ebDefence->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
-	env->addStaticText(L"星数：", rect<s32>(10, 85, 70, 105), false, false, wFilter);
-	ebStar = env->addEditBox(L"", rect<s32>(60, 83, 130, 103), true, wFilter);
+	env->addStaticText(L"限制：", rect<s32>(200, 51, 270, 71), false, false, wFilter);
+	cbLimit = env->addComboBox(rect<s32>(250, 49, 330, 69), wFilter, -1);
+	cbLimit->addItem(L"(无)");
+	cbLimit->addItem(L"禁止");
+	cbLimit->addItem(L"限制");
+	cbLimit->addItem(L"准限制");
+	env->addStaticText(L"星数：", rect<s32>(200, 74, 270, 94), false, false, wFilter);
+	ebStar = env->addEditBox(L"", rect<s32>(250, 72, 330, 92), true, wFilter);
 	ebStar->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
-	btnEffectFilter = env->addButton(rect<s32>(140, 83, 190, 103),wFilter,BUTTON_EFFECT_FILTER,L"效果");
-	btnStartFilter = env->addButton(rect<s32>(220, 90, 280, 115),wFilter,BUTTON_START_FILTER,L"搜索");
-	btnResultFilter = env->addButton(rect<s32>(290, 90, 400, 115),wFilter,BUTTON_RESULT_FILTER,L"结果中搜索");
+	btnEffectFilter = env->addButton(rect<s32>(340, 49, 390, 92), wFilter, BUTTON_EFFECT_FILTER, L"效果");
+	btnStartFilter = env->addButton(rect<s32>(220, 96, 280, 119), wFilter, BUTTON_START_FILTER, L"搜索");
+	btnResultFilter = env->addButton(rect<s32>(290, 96, 400, 119), wFilter, BUTTON_RESULT_FILTER, L"结果中搜索");
 	wCategories = env->addWindow(rect<s32>(630, 80, 1000, 290), false, dataManager.strBuffer);
 	wCategories->getCloseButton()->setVisible(false);
 	wCategories->setDrawTitlebar(false);
@@ -352,7 +365,11 @@ bool Game::Initialize() {
 	wCategories->setVisible(false);
 	btnCategoryOK = env->addButton(rect<s32>(135, 175, 235, 200), wCategories, BUTTON_CATEGORY_OK, L"确定");
 	for(int i = 0; i < 32; ++i)
-		chkCategory[i] = env->addCheckBox(false, recti(10 + (i % 4) * 90, 10 + (i / 4) * 20, 100 + (i % 4) * 90, 30 + (i / 4) * 20), wCategories, -1, L"啊啊啊啊");
+		chkCategory[i] = env->addCheckBox(false, recti(10 + (i % 4) * 90, 10 + (i / 4) * 20, 100 + (i % 4) * 90, 30 + (i / 4) * 20), wCategories, -1, DataManager::effect_strings[i]);
+	scrFilter = env->addScrollBar(false, recti(999, 161, 1019, 629), 0, SCROLL_FILTER);
+	scrFilter->setLargeStep(10);
+	scrFilter->setSmallStep(1);
+	scrFilter->setVisible(false);
 	device->setEventReceiver(&dField);
 	return true;
 }

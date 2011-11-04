@@ -13,12 +13,9 @@ struct LFList {
 	std::unordered_map<int, int>* content;
 };
 struct Deck {
-	code_pointer main[60];
-	int maincount;
-	code_pointer extra[15];
-	int extracount;
-	code_pointer side[15];
-	int sidecount;
+	std::vector<code_pointer> main;
+	std::vector<code_pointer> extra;
+	std::vector<code_pointer> side;
 };
 
 class DeckManager {
@@ -31,6 +28,7 @@ public:
 	bool CheckLFList(Deck& deck, int lfindex);
 	void LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec);
 	bool LoadDeck(const wchar_t* file);
+	void SaveDeck(Deck& deck, const wchar_t* name);
 };
 
 }

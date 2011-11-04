@@ -531,52 +531,91 @@ void Game::DrawThumb(int code, position2di pos, std::unordered_map<int, int>* lf
 	}
 }
 void Game::DrawDeckBd() {
+	wchar_t textBuffer[32];
 	//main deck
 	driver->draw2DRectangle(recti(310, 137, 410, 157), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
 	driver->draw2DRectangleOutline(recti(309, 136, 410, 157));
 	textFont->draw(L"主卡组：", recti(315, 137, 410, 157), 0xffffffff, false, true);
-	numFont->draw(dataManager.numStrings[deckManager.deckhost.maincount], recti(380, 138, 440, 158), 0xffffffff, false, true);
+	numFont->draw(dataManager.numStrings[deckManager.deckhost.main.size()], recti(380, 138, 440, 158), 0xffffffff, false, true);
 	driver->draw2DRectangle(recti(310, 160, 797, 436), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
 	driver->draw2DRectangleOutline(recti(309, 159, 797, 436));
 	int lx;
 	float dx;
-	if(deckManager.deckhost.maincount <= 40) {
+	if(deckManager.deckhost.main.size() <= 40) {
 		dx = 436.0f / 9;
 		lx = 10;
 	} else {
-		lx = (deckManager.deckhost.maincount - 41) / 4 + 11;
+		lx = (deckManager.deckhost.main.size() - 41) / 4 + 11;
 		dx = 436.0f / (lx - 1);
 	}
-	for(int i = 0; i < deckManager.deckhost.maincount; ++i)
+	for(int i = 0; i < deckManager.deckhost.main.size(); ++i) {
 		DrawThumb(deckManager.deckhost.main[i]->first, position2di(314 + (i % lx) * dx, 164 + (i / lx) * 68), deckBuilder.filterList);
+		if(deckBuilder.hovered_pos == 1 && deckBuilder.hovered_seq == i)
+			driver->draw2DRectangleOutline(recti(313 + (i % lx) * dx, 163 + (i / lx) * 68, 359 + (i % lx) * dx, 228 + (i / lx) * 68));
+	}
 	//extra deck
 	driver->draw2DRectangle(recti(310, 440, 410, 460), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 439, 410, 460));
 	textFont->draw(L"额外卡组：", recti(315, 440, 410, 460), 0xffffffff, false, true);
-	numFont->draw(dataManager.numStrings[deckManager.deckhost.extracount], recti(380, 441, 440, 461), 0xffffffff, false, true);
+	numFont->draw(dataManager.numStrings[deckManager.deckhost.extra.size()], recti(380, 441, 440, 461), 0xffffffff, false, true);
 	driver->draw2DRectangle(recti(310, 463, 797, 533), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 462, 797, 533));
-	if(deckManager.deckhost.extracount <= 10)
+	if(deckManager.deckhost.extra.size() <= 10)
 		dx = 436.0f / 9;
-	else dx = 436.0f / (deckManager.deckhost.extracount - 1);
-	for(int i = 0; i < deckManager.deckhost.extracount; ++i)
+	else dx = 436.0f / (deckManager.deckhost.extra.size() - 1);
+	for(int i = 0; i < deckManager.deckhost.extra.size(); ++i) {
 		DrawThumb(deckManager.deckhost.extra[i]->first, position2di(314 + i * dx, 466), deckBuilder.filterList);
+		if(deckBuilder.hovered_pos == 2 && deckBuilder.hovered_seq == i)
+			driver->draw2DRectangleOutline(recti(313 + i * dx, 465, 359 + i * dx, 531));
+	}
 	//side deck
 	driver->draw2DRectangle(recti(310, 537, 410, 557), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 536, 410, 557));
 	textFont->draw(L"副卡组：", recti(315, 537, 410, 557), 0xffffffff, false, true);
-	numFont->draw(dataManager.numStrings[deckManager.deckhost.sidecount], recti(380, 538, 440, 558), 0xffffffff, false, true);
+	numFont->draw(dataManager.numStrings[deckManager.deckhost.side.size()], recti(380, 538, 440, 558), 0xffffffff, false, true);
 	driver->draw2DRectangle(recti(310, 560, 797, 630), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 559, 797, 630));
-	if(deckManager.deckhost.sidecount <= 10)
+	if(deckManager.deckhost.side.size() <= 10)
 		dx = 436.0f / 9;
-	else dx = 436.0f / (deckManager.deckhost.sidecount - 1);
-	for(int i = 0; i < deckManager.deckhost.sidecount; ++i)
+	else dx = 436.0f / (deckManager.deckhost.side.size() - 1);
+	for(int i = 0; i < deckManager.deckhost.side.size(); ++i) {
 		DrawThumb(deckManager.deckhost.side[i]->first, position2di(314 + i * dx, 564), deckBuilder.filterList);
-	driver->draw2DRectangle(recti(805, 137, 905, 157), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
-	driver->draw2DRectangleOutline(recti(804, 136, 905, 157));
-	textFont->draw(L"筛选结果：", recti(810, 137, 905, 157), 0xffffffff, false, true);
-	driver->draw2DRectangle(recti(805, 160, 1017, 630), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
-	driver->draw2DRectangleOutline(recti(804, 159, 1017, 630));
+		if(deckBuilder.hovered_pos == 3 && deckBuilder.hovered_seq == i)
+			driver->draw2DRectangleOutline(recti(313 + i * dx, 563, 359 + i * dx, 629));
+	}
+	driver->draw2DRectangle(recti(805, 137, 915, 157), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangleOutline(recti(804, 136, 915, 157));
+	textFont->draw(L"查找结果：", recti(810, 137, 915, 157), 0xffffffff, false, true);
+	numFont->draw(deckBuilder.result_string, recti(875, 137, 935, 157), 0xffffffff, false, true);
+	driver->draw2DRectangle(recti(805, 160, 1020, 630), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangleOutline(recti(804, 159, 1020, 630));
+	for(int i = 0; i < 7 && i + mainGame->scrFilter->getPos() < deckBuilder.results.size(); ++i) {
+		code_pointer ptr = deckBuilder.results[i + mainGame->scrFilter->getPos()];
+		if(deckBuilder.hovered_pos == 4 && deckBuilder.hovered_seq == i)
+			driver->draw2DRectangle(0x80000000, recti(806, 164 + i * 66, 1019, 230 + i * 66));
+		DrawThumb(ptr->first, position2di(810, 165 + i * 66), deckBuilder.filterList);
+		if(ptr->second.type & TYPE_MONSTER) {
+			swprintf(textBuffer, L"%s", dataManager.GetName(ptr->first));
+			textFont->draw(textBuffer, recti(860, 165 + i * 66, 955, 185 + i * 66), 0xffffffff, false, true);
+			swprintf(textBuffer, L"%s/%s ★%d", DataManager::FormatAttribute(ptr->second.attribute),
+			         DataManager::FormatRace(ptr->second.race), ptr->second.level);
+			textFont->draw(textBuffer, recti(860, 187 + i * 66, 955, 207 + i * 66), 0xffffffff, false, true);
+			if(ptr->second.attack < 0 && ptr->second.defence < 0)
+				swprintf(textBuffer, L"?/?");
+			else if(ptr->second.attack < 0)
+				swprintf(textBuffer, L"?/%d", ptr->second.defence);
+			else if(ptr->second.defence < 0)
+				swprintf(textBuffer, L"%d/?", ptr->second.attack);
+			else swprintf(textBuffer, L"%d/%d", ptr->second.attack, ptr->second.defence);
+			textFont->draw(textBuffer, recti(860, 209 + i * 66, 955, 229 + i * 66), 0xffffffff, false, true);
+		} else {
+			swprintf(textBuffer, L"%s", dataManager.GetName(ptr->first));
+			textFont->draw(textBuffer, recti(860, 165 + i * 66, 955, 185 + i * 66), 0xffffffff, false, true);
+			textFont->draw(DataManager::FormatType(ptr->second.type), recti(860, 187 + i * 66, 955, 207 + i * 66), 0xffffffff, false, true);
+		}
+	}
+	if(deckBuilder.is_draging) {
+		DrawThumb(deckBuilder.draging_pointer->first, position2di(deckBuilder.dragx - 22, deckBuilder.dragy - 32), deckBuilder.filterList);
+	}
 }
 }

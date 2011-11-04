@@ -1,6 +1,7 @@
 #include "deck_manager.h"
 #include "data_manager.h"
 #include "game.h"
+#include <algorithm>
 
 extern ygo::Game* mainGame;
 
@@ -56,23 +57,23 @@ bool DeckManager::CheckLFList(Deck& deck, int lfindex) {
 	std::unordered_map<int, int> ccount;
 	std::unordered_map<int, int>* list = _lfList[lfindex].content;
 	int dc = 0, dec = 0;
-	if(deck.maincount < 40 || deck.maincount > 60 || deck.extracount > 15 || deck.sidecount > 15)
+	if(deck.main.size() < 40 || deck.main.size() > 60 || deck.extra.size() > 15 || deck.side.size() > 15)
 		return false;
-	for(int i = 0; i < deck.maincount; ++i) {
+	for(int i = 0; i < deck.main.size(); ++i) {
 		ccount[deck.main[i]->first]++;
 		dc = ccount[deck.main[i]->first];
 		auto it = list->find(deck.main[i]->first);
 		if(dc > 3 || (it != list->end() && dc > it->second))
 			return false;
 	}
-	for(int i = 0; i < deck.extracount; ++i) {
+	for(int i = 0; i < deck.extra.size(); ++i) {
 		ccount[deck.extra[i]->first]++;
 		dc = ccount[deck.extra[i]->first];
 		auto it = list->find(deck.extra[i]->first);
 		if(dc > 3 || (it != list->end() && dc > it->second))
 			return false;
 	}
-	for(int i = 0; i < deck.sidecount; ++i) {
+	for(int i = 0; i < deck.side.size(); ++i) {
 		ccount[deck.side[i]->first]++;
 		dc = ccount[deck.side[i]->first];
 		auto it = list->find(deck.side[i]->first);
@@ -82,9 +83,9 @@ bool DeckManager::CheckLFList(Deck& deck, int lfindex) {
 	return true;
 }
 void DeckManager::LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec) {
-	deck.maincount = 0;
-	deck.extracount = 0;
-	deck.sidecount = 0;
+	deck.main.clear();
+	deck.extra.clear();
+	deck.side.clear();
 	int code;
 	CardData cd;
 	for(int i = 0; i < mainc; ++i) {
@@ -93,17 +94,20 @@ void DeckManager::LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec) {
 			continue;
 		if(cd.type & TYPE_TOKEN)
 			continue;
-		else if(cd.type & 0x802040 && deck.extracount < 15) {
-			deck.extra[deck.extracount++] = mainGame->dataManager.GetCodePointer(code);
-		} else if(deck.maincount < 60) {
-			deck.main[deck.maincount++] = mainGame->dataManager.GetCodePointer(code);
+		else if(cd.type & 0x802040 && deck.extra.size() < 15) {
+			deck.extra.push_back(mainGame->dataManager.GetCodePointer(code));
+		} else if(deck.main.size() < 60) {
+			deck.main.push_back(mainGame->dataManager.GetCodePointer(code));
 		}
 	}
 	for(int i = 0; i < sidec; ++i) {
 		code = dbuf[mainc + i];
-		if(deck.sidecount < 15)
-			deck.side[deck.sidecount++] = mainGame->dataManager.GetCodePointer(code);
+		if(deck.side.size() < 15)
+			deck.side.push_back(mainGame->dataManager.GetCodePointer(code));
 	}
+	std::sort(deck.main.begin(), deck.main.end(), ClientCard::deck_sort_lv);
+	std::sort(deck.extra.begin(), deck.extra.end(), ClientCard::deck_sort_lv);
+	std::sort(deck.side.begin(), deck.side.end(), ClientCard::deck_sort_lv);
 }
 bool DeckManager::LoadDeck(const wchar_t* file) {
 	int sp = 0, ct = 0, mainc = 0, sidec = 0, code;
@@ -139,5 +143,21 @@ bool DeckManager::LoadDeck(const wchar_t* file) {
 	LoadDeck(deckhost, cardlist, mainc, sidec);
 	return true;
 }
-
+void DeckManager::SaveDeck(Deck& deck, const wchar_t* name) {
+	wchar_t file[64];
+	swprintf(file, L"./deck/%s.ydk", name);
+	FILE* fp = _wfopen(file, L"w");
+	if(!fp)
+		return;
+	fprintf(fp, "#created by ...\n#main\n");
+	for(int i = 0; i < deck.main.size(); ++i)
+		fprintf(fp, "%d\n", deck.main[i]->first);
+	fprintf(fp, "#extra\n");
+	for(int i = 0; i < deck.extra.size(); ++i)
+		fprintf(fp, "%d\n", deck.extra[i]->first);
+	fprintf(fp, "!side\n");
+	for(int i = 0; i < deck.side.size(); ++i)
+		fprintf(fp, "%d\n", deck.side[i]->first);
+	fclose(fp);
+}
 }

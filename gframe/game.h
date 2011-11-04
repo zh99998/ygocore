@@ -277,11 +277,13 @@ public:
 	irr::gui::IGUIEditBox* ebDeckname;
 	//category
 	irr::gui::IGUIStaticText* wFilter;
+	irr::gui::IGUIScrollBar* scrFilter;
 	irr::gui::IGUIComboBox* cbCardType;
 	irr::gui::IGUIComboBox* cbCardType2;
 	irr::gui::IGUIComboBox* cbCardClass;
 	irr::gui::IGUIComboBox* cbRace;
 	irr::gui::IGUIComboBox* cbAttribute;
+	irr::gui::IGUIComboBox* cbLimit;
 	irr::gui::IGUIEditBox* ebStar;
 	irr::gui::IGUIEditBox* ebAttack;
 	irr::gui::IGUIEditBox* ebDefence;
@@ -357,4 +359,5 @@ public:
 #define BUTTON_EFFECT_FILTER		211
 #define BUTTON_START_FILTER			212
 #define BUTTON_RESULT_FILTER		213
+#define SCROLL_FILTER				214
 #endif // GAME_H

@@ -12,7 +12,8 @@ class ImageManager {
 public:
 	bool Initial();
 	void SetDevice(irr::IrrlichtDevice* dev);
-	void ClearImage();
+	void ClearTexture();
+	void RemoveTexture(int code);
 	irr::video::ITexture* GetTexture(int code);
 	irr::video::ITexture* GetTextureThumb(int code);
 	
