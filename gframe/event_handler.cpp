@@ -136,6 +136,8 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					mainGame->HideElement(mainGame->wQuery, true);
 				} else if(mainGame->dInfo.curMsg == MSG_SELECT_CHAIN) {
 					mainGame->HideElement(mainGame->wQuery);
+				} else {
+					mainGame->HideElement(mainGame->wQuery);
 				}
 				break;
 			}
@@ -148,6 +150,8 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					mainGame->dInfo.responseI = -1;
 					mainGame->SetResponseI();
 					mainGame->HideElement(mainGame->wQuery, true);
+				} else {
+					mainGame->HideElement(mainGame->wQuery);
 				}
 				break;
 			}
@@ -695,7 +699,8 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					CardData cd;
 					mainGame->dataManager.GetData(mcard->code, &cd);
 					mainGame->imgCard->setImage(mainGame->imageManager.GetTexture(mcard->code));
-					mainGame->stName->setText(mainGame->dataManager.GetName(mcard->code));
+					swprintf(formatBuffer, L"%s[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
+					mainGame->stName->setText(formatBuffer);
 					if(cd.type & TYPE_MONSTER) {
 						swprintf(formatBuffer, L"[%s] %s/%s", DataManager::FormatType(cd.type), DataManager::FormatRace(cd.race), DataManager::FormatAttribute(cd.attribute));
 						mainGame->stInfo->setText(formatBuffer);
@@ -1114,7 +1119,8 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 						CardData cd;
 						mainGame->dataManager.GetData(mcard->code, &cd);
 						mainGame->imgCard->setImage(mainGame->imageManager.GetTexture(mcard->code));
-						mainGame->stName->setText(mainGame->dataManager.GetName(mcard->code));
+						swprintf(formatBuffer, L"%s[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
+						mainGame->stName->setText(formatBuffer);
 						if(cd.type & TYPE_MONSTER) {
 							swprintf(formatBuffer, L"[%s] %s/%s", DataManager::FormatType(cd.type), DataManager::FormatRace(cd.race), DataManager::FormatAttribute(cd.attribute));
 							mainGame->stInfo->setText(formatBuffer);
@@ -1146,7 +1152,7 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 								swprintf(formatBuffer, L"%s[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
 								str.append(formatBuffer);
 								if(mcard->alias && mcard->alias != mcard->code) {
-									swprintf(formatBuffer, L"\n%s[%d]", mainGame->dataManager.GetName(mcard->alias), mcard->alias);
+									swprintf(formatBuffer, L"\n(%s[%d])", mainGame->dataManager.GetName(mcard->alias), mcard->alias);
 									str.append(formatBuffer);
 								}
 								swprintf(formatBuffer, L"\n%s/%s", mcard->atkstring, mcard->defstring);

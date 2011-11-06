@@ -135,11 +135,11 @@ void Game::DrawCard(ClientCard* pcard) {
 	if(pcard->is_showequip) {
 		matManager.mTexture.setTexture(0, imageManager.tEquip);
 		driver->setMaterial(matManager.mTexture);
-		driver->drawVertexPrimitiveList(matManager.vNegate, 4, matManager.iRectangle, 2);
-	} else if(pcard->is_disabled && (pcard->location & LOCATION_ONFIELD) && (pcard->position & POS_FACEUP)) {
-		matManager.mTexture.setTexture(0, imageManager.tEquip);
-		driver->setMaterial(matManager.mTexture);
 		driver->drawVertexPrimitiveList(matManager.vSymbol, 4, matManager.iRectangle, 2);
+	} else if(pcard->is_disabled && (pcard->location & LOCATION_ONFIELD) && (pcard->position & POS_FACEUP)) {
+		matManager.mTexture.setTexture(0, imageManager.tNegated);
+		driver->setMaterial(matManager.mTexture);
+		driver->drawVertexPrimitiveList(matManager.vNegate, 4, matManager.iRectangle, 2);
 	}
 	if(pcard->is_selectable && (pcard->location & 0xe)) {
 		float cv[4] = {1.0f, 1.0f, 0.0f, 1.0f};

@@ -2155,6 +2155,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->showcard = 4;
 		mainGame->WaitFrameSignal(30);
 		mainGame->showcard = 0;
+		mainGame->WaitFrameSignal(10);
 		return true;
 	}
 	case MSG_SUMMONED: {
@@ -2174,6 +2175,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->showcard = 5;
 		mainGame->WaitFrameSignal(30);
 		mainGame->showcard = 0;
+		mainGame->WaitFrameSignal(10);
 		return true;
 	}
 	case MSG_SPSUMMONED: {
@@ -2197,6 +2199,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->showcard = 4;
 		mainGame->WaitFrameSignal(30);
 		mainGame->showcard = 0;
+		mainGame->WaitFrameSignal(10);
 		return true;
 	}
 	case MSG_FLIPSUMMONED: {

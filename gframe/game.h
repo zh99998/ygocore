@@ -275,7 +275,7 @@ public:
 	irr::gui::IGUIButton* btnSaveDeckAs;
 	irr::gui::IGUIButton* btnDBExit;
 	irr::gui::IGUIEditBox* ebDeckname;
-	//category
+	//filter
 	irr::gui::IGUIStaticText* wFilter;
 	irr::gui::IGUIScrollBar* scrFilter;
 	irr::gui::IGUIComboBox* cbCardType;
@@ -287,6 +287,8 @@ public:
 	irr::gui::IGUIEditBox* ebStar;
 	irr::gui::IGUIEditBox* ebAttack;
 	irr::gui::IGUIEditBox* ebDefence;
+	irr::gui::IGUIEditBox* ebCardCode;
+	irr::gui::IGUIButton* btnCodeDir;
 	irr::gui::IGUIButton* btnEffectFilter;
 	irr::gui::IGUIButton* btnStartFilter;
 	irr::gui::IGUIButton* btnResultFilter;
@@ -360,4 +362,5 @@ public:
 #define BUTTON_START_FILTER			212
 #define BUTTON_RESULT_FILTER		213
 #define SCROLL_FILTER				214
+#define BUTTON_GETCODE				215
 #endif // GAME_H

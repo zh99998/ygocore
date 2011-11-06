@@ -355,6 +355,10 @@ bool Game::Initialize() {
 	env->addStaticText(L"星数：", rect<s32>(200, 74, 270, 94), false, false, wFilter);
 	ebStar = env->addEditBox(L"", rect<s32>(250, 72, 330, 92), true, wFilter);
 	ebStar->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	env->addStaticText(L"密码：", rect<s32>(10, 97, 70, 117), false, false, wFilter);
+	ebCardCode = env->addEditBox(L"", rect<s32>(60, 95, 150, 115), true, wFilter);
+	ebCardCode->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	btnCodeDir = env->addButton(rect<s32>(155, 95, 190, 115), wFilter, BUTTON_GETCODE, L"<--");
 	btnEffectFilter = env->addButton(rect<s32>(340, 49, 390, 92), wFilter, BUTTON_EFFECT_FILTER, L"效果");
 	btnStartFilter = env->addButton(rect<s32>(220, 96, 280, 119), wFilter, BUTTON_START_FILTER, L"搜索");
 	btnResultFilter = env->addButton(rect<s32>(290, 96, 400, 119), wFilter, BUTTON_RESULT_FILTER, L"结果中搜索");

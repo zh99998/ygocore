@@ -246,26 +246,38 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 				}
 				return;
 			} else {
-				pduel->write_buffer8(MSG_MOVE);
-				pduel->write_buffer32(pcard->data.code);
-				pduel->write_buffer32(pcard->get_info_location());
 				if(location == LOCATION_GRAVE) {
+					if(pcard->current.sequence == player[pcard->current.controler].list_grave.size() - 1)
+						return;
+					pduel->write_buffer8(MSG_MOVE);
+					pduel->write_buffer32(pcard->data.code);
+					pduel->write_buffer32(pcard->get_info_location());
 					player[pcard->current.controler].list_grave.erase(pcard->iter);
 					player[pcard->current.controler].list_grave.push_back(pcard);
 					pcard->iter = --(player[pcard->current.controler].list_grave.end());
 					reset_sequence(pcard->current.controler, LOCATION_GRAVE);
+					pduel->write_buffer32(pcard->get_info_location());
 				} else if(location == LOCATION_REMOVED) {
+					if(pcard->current.sequence == player[pcard->current.controler].list_remove.size() - 1)
+						return;
+					pduel->write_buffer8(MSG_MOVE);
+					pduel->write_buffer32(pcard->data.code);
+					pduel->write_buffer32(pcard->get_info_location());
 					player[pcard->current.controler].list_remove.erase(pcard->iter);
 					player[pcard->current.controler].list_remove.push_back(pcard);
 					pcard->iter = --(player[pcard->current.controler].list_remove.end());
 					reset_sequence(pcard->current.controler, LOCATION_REMOVED);
+					pduel->write_buffer32(pcard->get_info_location());
 				} else {
+					pduel->write_buffer8(MSG_MOVE);
+					pduel->write_buffer32(pcard->data.code);
+					pduel->write_buffer32(pcard->get_info_location());
 					player[pcard->current.controler].list_extra.erase(pcard->iter);
 					player[pcard->current.controler].list_extra.push_back(pcard);
 					pcard->iter = --(player[pcard->current.controler].list_extra.end());
 					reset_sequence(pcard->current.controler, LOCATION_EXTRA);
+					pduel->write_buffer32(pcard->get_info_location());
 				}
-				pduel->write_buffer32(pcard->get_info_location());
 				return;
 			}
 		} else

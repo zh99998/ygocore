@@ -863,7 +863,10 @@ int32 field::process() {
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(it->arg1);
-			pduel->write_buffer32(501);
+			if(((uint32)it->ptarget) & REASON_DISCARD)
+				pduel->write_buffer32(501);
+			else
+				pduel->write_buffer32(504);
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, it->arg1, it->arg2);
 			core.units.begin()->step++;
 		} else if(it->step == 1) {

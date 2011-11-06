@@ -267,6 +267,32 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 				FilterCardsFromResult();
 				break;
 			}
+			case BUTTON_GETCODE: {
+				const wchar_t* strcode = mainGame->ebCardCode->getText();
+				if(*strcode) {
+					int code = _wtoi(strcode);
+					auto it = mainGame->dataManager._datas.find(code);
+					if(it != mainGame->dataManager._datas.end()) {
+						results.clear();
+						results.push_back(it);
+						swprintf(result_string, L"1");
+						mainGame->scrFilter->setVisible(false);
+						mainGame->scrFilter->setPos(0);
+						mainGame->cbCardClass->setSelected(0);
+						mainGame->cbAttribute->setSelected(0);
+						mainGame->cbRace->setSelected(0);
+						mainGame->cbLimit->setSelected(0);
+						mainGame->ebAttack->setText(L"");
+						mainGame->ebDefence->setText(L"");
+						mainGame->ebStar->setText(L"");
+						mainGame->ebCardCode->setText(L"");
+						filter_effect = 0;
+						for(int i = 0; i < 32; ++i)
+							mainGame->chkCategory[i]->setChecked(false);
+					}
+					break;
+				}
+			}
 			case BUTTON_CATEGORY_OK: {
 				filter_effect = 0;
 				long long filter = 0x1;
@@ -546,10 +572,11 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 			if(!is_draging && pre_code != hovered_code) {
 				if(hovered_code) {
 					CardData cd;
-					wchar_t formatBuffer[32];
+					wchar_t formatBuffer[64];
 					mainGame->dataManager.GetData(hovered_code, &cd);
 					mainGame->imgCard->setImage(mainGame->imageManager.GetTexture(hovered_code));
-					mainGame->stName->setText(mainGame->dataManager.GetName(hovered_code));
+					swprintf(formatBuffer, L"%s[%d]", mainGame->dataManager.GetName(hovered_code), hovered_code);
+					mainGame->stName->setText(formatBuffer);
 					if(cd.type & TYPE_MONSTER) {
 						swprintf(formatBuffer, L"[%s] %s/%s", DataManager::FormatType(cd.type), DataManager::FormatRace(cd.race), DataManager::FormatAttribute(cd.attribute));
 						mainGame->stInfo->setText(formatBuffer);
