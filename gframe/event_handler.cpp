@@ -1093,15 +1093,17 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				mcard = 0;
 			if(mcard != hovered_card) {
 				if(hovered_card) {
-					if(hovered_card->location == LOCATION_HAND) {
+					if(hovered_card->location == LOCATION_HAND && !mainGame->dInfo.is_shuffling && mainGame->dInfo.curMsg != MSG_SHUFFLE_HAND) {
 						hovered_card->is_hovered = false;
 						MoveCard(hovered_card, 5);
 					}
 					if(hovered_card->equipTarget)
-						hovered_card->equipTarget->is_showequip = false;
+					hovered_card->equipTarget->is_showequip = false;
 					if(hovered_card->equipped.size())
-						for(std::set<ClientCard*>::iterator cit = hovered_card->equipped.begin(); cit != hovered_card->equipped.end(); ++cit)
-							(*cit)->is_showequip = false;
+							for(std::set<ClientCard*>::iterator cit = hovered_card->equipped.begin();
+					cit != hovered_card->equipped.end();
+					++cit)
+					(*cit)->is_showequip = false;
 				}
 				if(mcard) {
 					if(mcard != clicked_card)

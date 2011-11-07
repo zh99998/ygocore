@@ -59,6 +59,7 @@ struct chain {
 	event evt;
 	opmap opinfos;
 	uint32 flag;
+	static bool chain_operation_sort(chain c1, chain c2);
 };
 
 struct player_info {

@@ -161,7 +161,7 @@ bool Game::RefreshSingle(int player, int location, int sequence, int flag) {
 	memcpy(pbuf, queryBuffer, len);
 	if(!SendGameMessage(player, netManager.send_buffer_ptr, len + 8))
 		return false;
-	if (location == 0x10 || ((location & 0x2c) > 0 && (queryBuffer[7] & POS_FACEUP)))
+	if (location == 0x10 || ((location & 0x2c) && (queryBuffer[7] & POS_FACEUP)))
 		return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 8);
 	return true;
 }
@@ -552,7 +552,7 @@ void Game::Analyze(void* pd, char* engbuf) {
 			int cs = NetManager::ReadInt8(pbuf);
 			int cp = NetManager::ReadInt8(pbuf);
 			mainGame->SendGameMessage(cc, offset, pbuf - offset);
-			if ((cl & 0x80) || !(cl == 0x10 || ((cl & 0x2c) > 0 && (cp & 0x5) > 0)))
+			if ((cl & 0x2c) && (cp & POS_FACEDOWN))
 				NetManager::WriteInt32(pbufw, 0);
 			mainGame->SendGameMessage(1 - cc, offset, pbuf - offset);
 			if (cl != 0 && (cl & 0x80) == 0 && (cl != pl || pc != cc))
@@ -964,7 +964,7 @@ int Game::GameThread(void* pd) {
 		packlen = NetManager::ReadInt16(pbuf);
 		result = SolveMessage(pd, pbuf, packlen);
 		pbuf += packlen;
-	} while (result && pdInfo->isStarted && !mainGame->is_closing);
+	} while (result && pdInfo->isStarted && !pdInfo->netError && !mainGame->is_closing);
 	return 0;
 }
 bool Game::SolveMessage(void* pd, char* msg, int len) {
@@ -1110,8 +1110,10 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->gMutex.Unlock();
 		if (location == LOCATION_HAND && pdInfo->is_shuffling) {
 			pdInfo->is_shuffling = false;
-			for(int i = 0; i < mainGame->dField.hand[0].size(); ++i)
+			for(int i = 0; i < mainGame->dField.hand[0].size(); ++i) {
+				mainGame->dField.hand[0][i]->is_hovered = false;
 				mainGame->dField.MoveCard(mainGame->dField.hand[0][i], 5);
+			}
 			mainGame->WaitFrameSignal(5);
 		}
 		return true;
@@ -1801,6 +1803,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 					(*cit)->dPos = irr::core::vector3df(0, 0, 0);
 					(*cit)->dRot = irr::core::vector3df(1.322f / 5, 3.1415926f / 5, 0);
 					(*cit)->is_moving = true;
+					(*cit)->is_hovered = false;
 					(*cit)->aniFrame = 5;
 					flip = true;
 				}
@@ -1811,6 +1814,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			(*cit)->dPos = irr::core::vector3df((3.9f - (*cit)->curPos.X) / 5, 0, 0);
 			(*cit)->dRot = irr::core::vector3df(0, 0, 0);
 			(*cit)->is_moving = true;
+			(*cit)->is_hovered = false;
 			(*cit)->aniFrame = 5;
 		}
 		mainGame->WaitFrameSignal(20);
@@ -1819,8 +1823,10 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		if (player == 0)
 			mainGame->dInfo.is_shuffling = true;
 		else {
-			for (cit = mainGame->dField.hand[player].begin(); cit != mainGame->dField.hand[player].end(); ++cit)
+			for (cit = mainGame->dField.hand[player].begin(); cit != mainGame->dField.hand[player].end(); ++cit) {
+				(*cit)->is_hovered = false;
 				mainGame->dField.MoveCard(*cit, 5);
+			}
 			mainGame->WaitFrameSignal(5);
 		}
 		return true;
@@ -2319,7 +2325,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			int ss = NetManager::ReadInt8(pbuf);
 			pcard = mainGame->dField.GetCard(c, l, s);
 			pcard->is_highlighting = true;
-			if (pcard->location & LOCATION_ONFIELD) {
+			if(pcard->location & LOCATION_ONFIELD) {
 				for (int j = 0; j < 3; ++j) {
 					mainGame->dField.FadeCard(pcard, 5, 5);
 					mainGame->WaitFrameSignal(5);

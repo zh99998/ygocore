@@ -6,6 +6,8 @@
  */
 
 #include "field.h"
+#include <algorithm>
+
 int32 field::select_battle_command(uint16 step, uint8 playerid) {
 	if(step == 0) {
 		pduel->write_buffer8(MSG_SELECT_BATTLECMD);
@@ -15,6 +17,7 @@ int32 field::select_battle_command(uint16 step, uint8 playerid) {
 		effect* peffect;
 		//Activatable
 		pduel->write_buffer8(core.select_chains.size());
+		std::sort(core.select_chains.begin(), core.select_chains.end(), chain::chain_operation_sort);
 		for(i = 0; i < core.select_chains.size(); ++i) {
 			peffect = core.select_chains[i].triggering_effect;
 			pcard = peffect->handler;
@@ -112,6 +115,7 @@ int32 field::select_idle_command(uint16 step, uint8 playerid) {
 		}
 		//idle activate
 		pduel->write_buffer8(core.select_chains.size());
+		std::sort(core.select_chains.begin(), core.select_chains.end(), chain::chain_operation_sort);
 		for(i = 0; i < core.select_chains.size(); ++i) {
 			peffect = core.select_chains[i].triggering_effect;
 			pcard = peffect->handler;
@@ -218,6 +222,7 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		pduel->write_buffer8(max);
 		pduel->write_buffer8(core.select_cards.size());
 		card* pcard;
+		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(uint32 i = 0; i < core.select_cards.size(); ++i) {
 			pcard = core.select_cards[i];
 			pduel->write_buffer32(pcard->data.code);
@@ -272,6 +277,7 @@ int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count) {
 		pduel->write_buffer8(spe_count);
 		effect* peffect;
 		card* pcard;
+		std::sort(core.select_chains.begin(), core.select_chains.end(), chain::chain_operation_sort);
 		for(uint32 i = 0; i < core.select_chains.size(); ++i) {
 			peffect = core.select_chains[i].triggering_effect;
 			pcard = peffect->handler;
@@ -365,6 +371,7 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 		pduel->write_buffer8(max);
 		pduel->write_buffer8(core.select_cards.size());
 		card* pcard;
+		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(uint32 i = 0; i < core.select_cards.size(); ++i) {
 			pcard = core.select_cards[i];
 			pduel->write_buffer32(pcard->data.code);
@@ -415,6 +422,7 @@ int32 field::select_counter(uint16 step, uint8 playerid, uint16 countertype, uin
 		pduel->write_buffer8(count);
 		pduel->write_buffer8(core.select_cards.size());
 		card* pcard;
+		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(uint32 i = 0; i < core.select_cards.size(); ++i) {
 			pcard = core.select_cards[i];
 			pduel->write_buffer32(pcard->data.code);
@@ -465,6 +473,7 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 		pduel->write_buffer8(min);
 		pduel->write_buffer8(core.select_cards.size());
 		card* pcard;
+		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(uint32 i = 0; i < core.select_cards.size(); ++i) {
 			pcard = core.select_cards[i];
 			pduel->write_buffer32(pcard->data.code);

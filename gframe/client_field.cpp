@@ -685,8 +685,8 @@ void ClientField::GetCardLocation(ClientCard* pcard, irr::core::vector3df* t, ir
 	}
 }
 void ClientField::MoveCard(ClientCard * pcard, int frame) {
-	irr::core::vector3df trans;
-	irr::core::vector3df rot;
+	irr::core::vector3df trans = pcard->curPos;
+	irr::core::vector3df rot = pcard->curRot;
 	GetCardLocation(pcard, &trans, &rot);
 	pcard->dPos = (trans - pcard->curPos) / frame;
 	float diff = rot.X - pcard->curRot.X;
