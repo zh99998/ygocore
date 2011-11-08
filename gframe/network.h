@@ -41,6 +41,7 @@ public:
 	HostInfo hInfo;
 	HostRequest hReq;
 	std::vector<HostInfo> hosts;
+	wchar_t cnname[20];
 	char* send_buffer_ptr;
 	char send_buf[4096];
 	char recv_buf[4096];

@@ -105,9 +105,6 @@ void DeckManager::LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec) {
 		if(deck.side.size() < 15)
 			deck.side.push_back(mainGame->dataManager.GetCodePointer(code));
 	}
-	std::sort(deck.main.begin(), deck.main.end(), ClientCard::deck_sort_lv);
-	std::sort(deck.extra.begin(), deck.extra.end(), ClientCard::deck_sort_lv);
-	std::sort(deck.side.begin(), deck.side.end(), ClientCard::deck_sort_lv);
 }
 bool DeckManager::LoadDeck(const wchar_t* file) {
 	int sp = 0, ct = 0, mainc = 0, sidec = 0, code;

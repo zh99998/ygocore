@@ -21,6 +21,12 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 				mainGame->deckManager.deckhost.side.clear();
 				break;
 			}
+			case BUTTON_SORT_DECK: {
+				std::sort(mainGame->deckManager.deckhost.main.begin(), mainGame->deckManager.deckhost.main.end(), ClientCard::deck_sort_lv);
+				std::sort(mainGame->deckManager.deckhost.extra.begin(), mainGame->deckManager.deckhost.extra.end(), ClientCard::deck_sort_lv);
+				std::sort(mainGame->deckManager.deckhost.side.begin(), mainGame->deckManager.deckhost.side.end(), ClientCard::deck_sort_lv);
+				break;
+			}
 			case BUTTON_SAVE_DECK: {
 				mainGame->deckManager.SaveDeck(mainGame->deckManager.deckhost, mainGame->cbDBDecks->getItem(mainGame->cbDBDecks->getSelected()));
 				mainGame->stACMessage->setText(L"保存成功");
@@ -424,14 +430,17 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 			if((hovered_pos == 1 && (draging_pointer->second.type & 0x802040)) || (hovered_pos == 2 && !(draging_pointer->second.type & 0x802040)))
 				hovered_pos = 0;
 			if((hovered_pos == 1 || (hovered_pos == 0 && click_pos == 1)) && mainGame->deckManager.deckhost.main.size() < 60) {
-				mainGame->deckManager.deckhost.main.push_back(draging_pointer);
-				std::sort(mainGame->deckManager.deckhost.main.begin(), mainGame->deckManager.deckhost.main.end(), ClientCard::deck_sort_lv);
+				if(hovered_seq < mainGame->deckManager.deckhost.main.size())
+					mainGame->deckManager.deckhost.main.insert(mainGame->deckManager.deckhost.main.begin() + hovered_seq, draging_pointer);
+				else mainGame->deckManager.deckhost.main.push_back(draging_pointer);
 			} else if((hovered_pos == 2 || (hovered_pos == 0 && click_pos == 2)) && mainGame->deckManager.deckhost.extra.size() < 15) {
-				mainGame->deckManager.deckhost.extra.push_back(draging_pointer);
-				std::sort(mainGame->deckManager.deckhost.extra.begin(), mainGame->deckManager.deckhost.extra.end(), ClientCard::deck_sort_lv);
+				if(hovered_seq < mainGame->deckManager.deckhost.extra.size())
+					mainGame->deckManager.deckhost.extra.insert(mainGame->deckManager.deckhost.extra.begin() + hovered_seq, draging_pointer);
+				else mainGame->deckManager.deckhost.extra.push_back(draging_pointer);
 			} else if((hovered_pos == 3 || (hovered_pos == 0 && click_pos == 3)) && mainGame->deckManager.deckhost.side.size() < 15) {
-				mainGame->deckManager.deckhost.side.push_back(draging_pointer);
-				std::sort(mainGame->deckManager.deckhost.side.begin(), mainGame->deckManager.deckhost.side.end(), ClientCard::deck_sort_lv);
+				if(hovered_seq < mainGame->deckManager.deckhost.side.size())
+					mainGame->deckManager.deckhost.side.insert(mainGame->deckManager.deckhost.side.begin() + hovered_seq, draging_pointer);
+				else mainGame->deckManager.deckhost.side.push_back(draging_pointer);
 			}
 			break;
 		}
@@ -447,7 +456,6 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 					mainGame->deckManager.deckhost.main.erase(mainGame->deckManager.deckhost.main.begin() + hovered_seq);
 				else if(mainGame->deckManager.deckhost.side.size() < 15) {
 					mainGame->deckManager.deckhost.side.push_back(draging_pointer);
-					std::sort(mainGame->deckManager.deckhost.side.begin(), mainGame->deckManager.deckhost.side.end(), ClientCard::deck_sort_lv);
 					is_draging = false;
 				}
 			} else if(hovered_pos == 2) {
@@ -455,7 +463,6 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 					mainGame->deckManager.deckhost.extra.erase(mainGame->deckManager.deckhost.extra.begin() + hovered_seq);
 				else if(mainGame->deckManager.deckhost.side.size() < 15) {
 					mainGame->deckManager.deckhost.side.push_back(draging_pointer);
-					std::sort(mainGame->deckManager.deckhost.side.begin(), mainGame->deckManager.deckhost.side.end(), ClientCard::deck_sort_lv);
 					is_draging = false;
 				}
 			} else if(hovered_pos == 3) {
@@ -464,11 +471,9 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 				else {
 					if((draging_pointer->second.type & 0x802040) && mainGame->deckManager.deckhost.extra.size() < 15) {
 						mainGame->deckManager.deckhost.extra.push_back(draging_pointer);
-						std::sort(mainGame->deckManager.deckhost.extra.begin(), mainGame->deckManager.deckhost.extra.end(), ClientCard::deck_sort_lv);
 						is_draging = false;
 					} else if(!(draging_pointer->second.type & 0x802040) && mainGame->deckManager.deckhost.main.size() < 60) {
 						mainGame->deckManager.deckhost.main.push_back(draging_pointer);
-						std::sort(mainGame->deckManager.deckhost.main.begin(), mainGame->deckManager.deckhost.main.end(), ClientCard::deck_sort_lv);
 						is_draging = false;
 					}
 				}
@@ -476,7 +481,6 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 				if(is_draging) {
 					if(mainGame->deckManager.deckhost.side.size() < 15) {
 						mainGame->deckManager.deckhost.side.push_back(draging_pointer);
-						std::sort(mainGame->deckManager.deckhost.side.begin(), mainGame->deckManager.deckhost.side.end(), ClientCard::deck_sort_lv);
 						is_draging = false;
 					}
 				} else {
@@ -496,10 +500,8 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 						break;
 					if((draging_pointer->second.type & 0x802040) && mainGame->deckManager.deckhost.extra.size() < 15) {
 						mainGame->deckManager.deckhost.extra.push_back(draging_pointer);
-						std::sort(mainGame->deckManager.deckhost.extra.begin(), mainGame->deckManager.deckhost.extra.end(), ClientCard::deck_sort_lv);
 					} else if(!(draging_pointer->second.type & 0x802040) && mainGame->deckManager.deckhost.main.size() < 60) {
 						mainGame->deckManager.deckhost.main.push_back(draging_pointer);
-						std::sort(mainGame->deckManager.deckhost.main.begin(), mainGame->deckManager.deckhost.main.end(), ClientCard::deck_sort_lv);
 					}
 				}
 			}

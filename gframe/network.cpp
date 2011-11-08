@@ -3,6 +3,8 @@
 
 extern ygo::Game* mainGame;
 
+#define PROTO_VERSION 0x1000
+
 namespace ygo {
 
 bool NetManager::CreateHost() {
@@ -195,6 +197,7 @@ int NetManager::BroadcastClient(void* np) {
 	FD_ZERO(&fds);
 	FD_SET(net->sBClient, &fds);
 	sendto(net->sBClient, (const char*)&net->hReq, sizeof(HostRequest), 0, (sockaddr*)&sockTo, sizeof(sockaddr));
+	mainGame->is_refreshing = true;
 	int result = select(0, &fds, 0, 0, &tv);
 	std::set<int> addrset;
 	net->hosts.clear();
@@ -217,7 +220,7 @@ int NetManager::BroadcastClient(void* np) {
 		        && it->start_lp == 8000 && it->start_hand == 5 && it->draw_count == 1)
 			mode = L"标准设定";
 		else mode = L"自定义设定";
-		swprintf(tbuf, L"[ % s][ % s] % s", mode, it->lflist, it->name);
+		swprintf(tbuf, L"[%s][%s]%s", mode, it->lflist, it->name);
 		mainGame->lstServerList->addItem(tbuf);
 	}
 	mainGame->btnLanStartServer->setEnabled(true);
@@ -226,6 +229,7 @@ int NetManager::BroadcastClient(void* np) {
 	mainGame->btnLoadReplay->setEnabled(true);
 	mainGame->btnDeckEdit->setEnabled(true);
 	mainGame->gMutex.Unlock();
+	mainGame->is_refreshing = false;
 	closesocket(net->sBClient);
 	return 0;
 }
@@ -247,22 +251,38 @@ int NetManager::ListenThread(void* np) {
 		}
 		//check deck
 		pbuf = net->recv_buf;
+		int ver = ReadInt16(pbuf);
+		if(ver != PROTO_VERSION) {
+			psbuf = net->send_buf;
+			WriteInt8(psbuf, 0x1);
+			WriteInt16(psbuf, PROTO_VERSION);
+			send(net->sRemote, net->send_buf, 3, 0);
+			closesocket(net->sRemote);
+			net->sRemote = accept(net->sListen, 0, 0);
+			continue;
+		}
+		wchar_t cn = ReadInt16(pbuf);
+		int off = 0;
+		while(cn != 0 && off < 20) {
+			if(off < 20)
+				mainGame->netManager.cnname[off++] = cn;
+			cn = ReadInt16(pbuf);
+		}
+		mainGame->netManager.cnname[off] = 0;
 		int maincount = ReadInt16(pbuf);
 		int sidecount = ReadInt16(pbuf);
 		mainGame->deckManager.LoadDeck(mainGame->deckManager.deckclient, (int*)pbuf, maincount, sidecount);
 		if(!net->hInfo.no_check_deck && !mainGame->deckManager.CheckLFList(mainGame->deckManager.deckclient, net->hInfo.lfindex)) {
 			psbuf = net->send_buf;
-			WriteInt16(psbuf, 3);
-			WriteInt8(psbuf, MSG_RETRY);
+			WriteInt8(psbuf, 0x2);
 			send(net->sRemote, net->send_buf, 1, 0);
 			closesocket(net->sRemote);
 			net->sRemote = accept(net->sListen, 0, 0);
 			continue;
 		}
 		psbuf = net->send_buf;
-		WriteInt16(psbuf, 1);
-		WriteInt8(psbuf, MSG_WAITING);
-		send(net->sRemote, net->send_buf, 3, 0);
+		WriteInt8(psbuf, 0);
+		send(net->sRemote, net->send_buf, 1, 0);
 		mainGame->gMutex.Lock();
 		mainGame->imgCard->setImage(mainGame->imageManager.tCover);
 		mainGame->wCardImg->setVisible(true);
@@ -304,6 +324,11 @@ int NetManager::JoinThread(void* adr) {
 		return 0;
 	}
 	char* pbuf = mainGame->netManager.send_buf;
+	NetManager::WriteInt16(pbuf, PROTO_VERSION);
+	const wchar_t* pname = mainGame->stName->getText();
+	while(*pname != 0)
+		NetManager::WriteInt16(pbuf, *pname++);
+	NetManager::WriteInt16(pbuf, 0);
 	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.main.size() + mainGame->deckManager.deckhost.extra.size());
 	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.side.size());
 	for(int i = 0; i < mainGame->deckManager.deckhost.main.size(); ++i)
@@ -314,7 +339,7 @@ int NetManager::JoinThread(void* adr) {
 		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.side[i]->first);
 	mainGame->netManager.SendtoRemote(mainGame->netManager.send_buf, pbuf - mainGame->netManager.send_buf);
 	int result = recv(mainGame->netManager.sRemote, mainGame->netManager.recv_buf, 4096, 0);
-	if(result == SOCKET_ERROR || mainGame->netManager.recv_buf[2] != MSG_WAITING) {
+	if(result == SOCKET_ERROR || mainGame->netManager.recv_buf[0] != 0) {
 		closesocket(mainGame->netManager.sRemote);
 		if(!mainGame->is_closing) {
 			mainGame->btnLanStartServer->setEnabled(true);
@@ -324,8 +349,11 @@ int NetManager::JoinThread(void* adr) {
 			mainGame->btnDeckEdit->setEnabled(true);
 			if(result == SOCKET_ERROR)
 				mainGame->stModeStatus->setText(L"网络连接发生错误");
-			else
-				mainGame->stModeStatus->setText(L"无效卡组或者卡组不符合禁卡表规范");
+			else if(mainGame->netManager.recv_buf[0] == 0x1) {
+				wchar_t errorbuf[32];
+				swprintf(errorbuf, L"当前版本(0x%X)与主机版本(0x%X)不匹配", PROTO_VERSION, (int)(*(short*)&mainGame->netManager.recv_buf[1]));
+				mainGame->stModeStatus->setText(errorbuf);
+			} else mainGame->stModeStatus->setText(L"无效卡组或者卡组不符合禁卡表规范");
 		}
 		return 0;
 	}

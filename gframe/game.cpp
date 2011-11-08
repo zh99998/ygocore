@@ -62,7 +62,7 @@ bool Game::Initialize() {
 	         (netManager.local_addr >> 16) & 0xff, (netManager.local_addr >> 24) & 0xff);
 	wModeSelection = env->addWindow(rect<s32>(270, 100, 750, 490), false, dataManager.strBuffer);
 	wModeSelection->getCloseButton()->setVisible(false);
-	wModes = env->addTabControl(rect<s32>(5, 60, 475, 350), wModeSelection, false);
+	wModes = env->addTabControl(rect<s32>(5, 60, 475, 350), wModeSelection, false, true, TAB_MODES);
 	irr::gui::IGUITab* tabLanS = wModes->addTab(L"建立主机");
 	irr::gui::IGUITab* tabLanC = wModes->addTab(L"加入游戏");
 	irr::gui::IGUITab* tabReplay = wModes->addTab(L"观看录像");
@@ -111,7 +111,7 @@ bool Game::Initialize() {
 	btnLanCancelServer->setEnabled(false);
 	lstServerList = env->addListBox(rect<s32>(10, 10, 460, 136), tabLanC, LISTBOX_SERVER_LIST, true);
 	lstServerList->setItemHeight(18);
-	btnRefreshList = env->addButton(rect<s32>(180, 145, 280, 170), tabLanC, BUTTON_LAN_REFRESH, L"搜索主机");
+	btnRefreshList = env->addButton(rect<s32>(180, 145, 280, 170), tabLanC, BUTTON_LAN_REFRESH, L"刷新");
 	env->addStaticText(L"主机地址：", rect<s32>(10, 190, 120, 210), false, false, tabLanC);
 	ebJionIP = env->addEditBox(L"", rect<s32>(100, 185, 300, 210), true, tabLanC);
 	ebJionIP->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
@@ -313,7 +313,8 @@ bool Game::Initialize() {
 	ebDeckname->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	btnSaveDeckAs = env->addButton(rect<s32>(225, 65, 290, 90), wDeckEdit, BUTTON_SAVE_DECK_AS, L"另存");
 	btnClearDeck = env->addButton(rect<s32>(225, 95, 290, 116), wDeckEdit, BUTTON_CLEAR_DECK, L"清空");
-	btnDBExit = env->addButton(rect<s32>(10, 95, 110, 116), wDeckEdit, BUTTON_DBEXIT, L"退出编辑");
+	btnSortDeck = env->addButton(rect<s32>(155, 95, 220, 116), wDeckEdit, BUTTON_SORT_DECK, L"排序");
+	btnDBExit = env->addButton(rect<s32>(10, 95, 90, 116), wDeckEdit, BUTTON_DBEXIT, L"退出编辑");
 	//filters
 	wFilter = env->addStaticText(L"", rect<s32>(610, 8, 1020, 130), true, false, 0, -1, true);
 	wFilter->setVisible(false);
@@ -325,8 +326,8 @@ bool Game::Initialize() {
 	cbCardType->addItem(L"陷阱");
 	cbCardType2 = env->addComboBox(rect<s32>(130, 3, 190, 23), wFilter, -1);
 	cbCardType2->addItem(L"(无)", 0);
-	env->addStaticText(L"系列：", rect<s32>(200, 5, 270, 25), false, false, wFilter);
-	cbCardClass = env->addComboBox(rect<s32>(250, 3, 380, 23), wFilter, -1);
+	env->addStaticText(L"系列：", rect<s32>(210, 5, 280, 25), false, false, wFilter);
+	cbCardClass = env->addComboBox(rect<s32>(260, 3, 390, 23), wFilter, -1);
 	cbCardClass->addItem(L"(无)", 0);
 	for(auto ssit = dataManager._seriesStrings.begin(); ssit != dataManager._seriesStrings.end(); ++ssit)
 		cbCardClass->addItem(ssit->second, ssit->first);
@@ -335,8 +336,8 @@ bool Game::Initialize() {
 	cbAttribute->addItem(L"(无)", 0);
 	for(int filter = 0x1; filter != 0x80; filter <<= 1)
 		cbAttribute->addItem(DataManager::FormatAttribute(filter), filter);
-	env->addStaticText(L"种族：", rect<s32>(200, 28, 270, 48), false, false, wFilter);
-	cbRace = env->addComboBox(rect<s32>(250, 26, 380, 46), wFilter, -1);
+	env->addStaticText(L"种族：", rect<s32>(210, 28, 280, 48), false, false, wFilter);
+	cbRace = env->addComboBox(rect<s32>(260, 26, 390, 46), wFilter, -1);
 	cbRace->addItem(L"(无)", 0);
 	for(int filter = 0x1; filter != 0x400000; filter <<= 1)
 		cbRace->addItem(DataManager::FormatRace(filter), filter);
@@ -346,22 +347,22 @@ bool Game::Initialize() {
 	env->addStaticText(L"守备：", rect<s32>(10, 74, 70, 94), false, false, wFilter);
 	ebDefence = env->addEditBox(L"", rect<s32>(60, 72, 190, 92), true, wFilter);
 	ebDefence->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
-	env->addStaticText(L"限制：", rect<s32>(200, 51, 270, 71), false, false, wFilter);
-	cbLimit = env->addComboBox(rect<s32>(250, 49, 330, 69), wFilter, -1);
+	env->addStaticText(L"限制：", rect<s32>(210, 51, 280, 71), false, false, wFilter);
+	cbLimit = env->addComboBox(rect<s32>(260, 49, 340, 69), wFilter, -1);
 	cbLimit->addItem(L"(无)");
 	cbLimit->addItem(L"禁止");
 	cbLimit->addItem(L"限制");
 	cbLimit->addItem(L"准限制");
-	env->addStaticText(L"星数：", rect<s32>(200, 74, 270, 94), false, false, wFilter);
-	ebStar = env->addEditBox(L"", rect<s32>(250, 72, 330, 92), true, wFilter);
+	env->addStaticText(L"星数：", rect<s32>(210, 74, 280, 94), false, false, wFilter);
+	ebStar = env->addEditBox(L"", rect<s32>(260, 72, 340, 92), true, wFilter);
 	ebStar->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	env->addStaticText(L"密码：", rect<s32>(10, 97, 70, 117), false, false, wFilter);
 	ebCardCode = env->addEditBox(L"", rect<s32>(60, 95, 150, 115), true, wFilter);
 	ebCardCode->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	btnCodeDir = env->addButton(rect<s32>(155, 95, 190, 115), wFilter, BUTTON_GETCODE, L"<--");
-	btnEffectFilter = env->addButton(rect<s32>(340, 49, 390, 92), wFilter, BUTTON_EFFECT_FILTER, L"效果");
-	btnStartFilter = env->addButton(rect<s32>(220, 96, 280, 119), wFilter, BUTTON_START_FILTER, L"搜索");
-	btnResultFilter = env->addButton(rect<s32>(290, 96, 400, 119), wFilter, BUTTON_RESULT_FILTER, L"结果中搜索");
+	btnEffectFilter = env->addButton(rect<s32>(345, 49, 390, 92), wFilter, BUTTON_EFFECT_FILTER, L"效果");
+	btnStartFilter = env->addButton(rect<s32>(210, 96, 260, 118), wFilter, BUTTON_START_FILTER, L"搜索");
+	btnResultFilter = env->addButton(rect<s32>(290, 96, 390, 118), wFilter, BUTTON_RESULT_FILTER, L"结果中搜索");
 	wCategories = env->addWindow(rect<s32>(630, 80, 1000, 290), false, dataManager.strBuffer);
 	wCategories->getCloseButton()->setVisible(false);
 	wCategories->setDrawTitlebar(false);

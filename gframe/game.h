@@ -38,6 +38,7 @@ struct DuelInfo {
 	short curMsg;
 	short preMsg;
 	int selectHint;
+	wchar_t strPlayer[2][20];
 	wchar_t strLP[2][16];
 	wchar_t strTurn[8];
 	wchar_t strEvent[64];
@@ -89,11 +90,14 @@ public:
 	static int RecvThread(void*);
 	static int GameThread(void*);
 	static bool SolveMessage(void*, char*, int);
+	static void ReplayThread(void*);
+	
 	//
 	char msgBuffer[0x1000];
 	char queryBuffer[0x1000];
 	
 	bool is_closing;
+	bool is_refreshing;
 	mtrandom rnd;
 	Timer gTimer;
 	Mutex gMutex;
@@ -271,6 +275,7 @@ public:
 	irr::gui::IGUIComboBox* cbDBLFList;
 	irr::gui::IGUIComboBox* cbDBDecks;
 	irr::gui::IGUIButton* btnClearDeck;
+	irr::gui::IGUIButton* btnSortDeck;
 	irr::gui::IGUIButton* btnSaveDeck;
 	irr::gui::IGUIButton* btnSaveDeckAs;
 	irr::gui::IGUIButton* btnDBExit;
@@ -308,6 +313,7 @@ public:
 #define COMMAND_ATTACK		0x0040
 #define COMMAND_LIST		0x0080
 
+#define TAB_MODES					50
 #define BUTTON_SAVE_LOG				100
 #define BUTTON_CLEAR_LOG			101
 #define BUTTON_LAN_START_SERVER		110
@@ -357,6 +363,7 @@ public:
 #define BUTTON_SAVE_DECK			204
 #define BUTTON_SAVE_DECK_AS			205
 #define BUTTON_DBEXIT				206
+#define BUTTON_SORT_DECK			207
 #define COMBOBOX_MAINTYPE			210
 #define BUTTON_EFFECT_FILTER		211
 #define BUTTON_START_FILTER			212

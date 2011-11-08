@@ -69,6 +69,7 @@
     <File Name="client_field.cpp"/>
     <File Name="deck_con.h"/>
     <File Name="deck_con.cpp"/>
+    <File Name="replay.cpp"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

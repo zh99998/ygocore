@@ -691,6 +691,25 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 			break;
 			}
 		}
+		case irr::gui::EGET_TAB_CHANGED: {
+			switch(id) {
+			case TAB_MODES: {
+				if(mainGame->wModes->getActiveTab() != 1)
+					break;
+				if(mainGame->is_refreshing)
+					break;
+				if(mainGame->netManager.RefreshHost()) {
+					mainGame->btnLanStartServer->setEnabled(false);
+					mainGame->btnLanConnect->setEnabled(false);
+					mainGame->btnRefreshList->setEnabled(false);
+					mainGame->btnLoadReplay->setEnabled(false);
+					mainGame->btnDeckEdit->setEnabled(false);
+				}
+				break;
+			}
+			}
+			break;
+		}
 		case irr::gui::EGET_ELEMENT_HOVERED: {
 			if(id >= BUTTON_CARD_0 && id <= BUTTON_CARD_4) {
 				int pos = mainGame->scrCardList->getPos() / 10;
@@ -1098,12 +1117,12 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 						MoveCard(hovered_card, 5);
 					}
 					if(hovered_card->equipTarget)
-					hovered_card->equipTarget->is_showequip = false;
+						hovered_card->equipTarget->is_showequip = false;
 					if(hovered_card->equipped.size())
-							for(std::set<ClientCard*>::iterator cit = hovered_card->equipped.begin();
-					cit != hovered_card->equipped.end();
-					++cit)
-					(*cit)->is_showequip = false;
+						for(std::set<ClientCard*>::iterator cit = hovered_card->equipped.begin();
+						        cit != hovered_card->equipped.end();
+						        ++cit)
+							(*cit)->is_showequip = false;
 				}
 				if(mcard) {
 					if(mcard != clicked_card)
