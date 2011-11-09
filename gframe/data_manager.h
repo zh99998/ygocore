@@ -27,6 +27,7 @@ public:
 	const wchar_t* GetCounterName(int code);
 	const wchar_t* GetSeriesName(int code);
 	const wchar_t* GetNumString(int num);
+	static int EncodeUTF8(const wchar_t * wsrc, char * str);
 	static int DecodeUTF8(const char * src, wchar_t * wstr);
 
 	std::unordered_map<unsigned int, CardDataC> _datas;

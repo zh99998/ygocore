@@ -47,19 +47,8 @@ bool Game::Initialize() {
 	smgr = device->getSceneManager();
 	device->setWindowCaption(L"[---]");
 	device->setResizable(false);
-	guiFont = irr::gui::CGUITTFont::createTTFont(env, "c:\\windows\\fonts\\simsun.ttc", 14);
-	textFont = guiFont;
-	numFont = irr::gui::CGUITTFont::createTTFont(env, "c:\\windows\\fonts\\arialbd.ttf", 16);
-	adFont = irr::gui::CGUITTFont::createTTFont(env, "c:\\windows\\fonts\\arialbd.ttf", 12);
-	lpcFont = irr::gui::CGUITTFont::createTTFont(env, "c:\\windows\\fonts\\arialbd.ttf", 48);
-	env->getSkin()->setFont(guiFont);
-	for (u32 i = 0; i < EGDC_COUNT; ++i) {
-		SColor col = env->getSkin()->getColor((EGUI_DEFAULT_COLOR)i);
-		col.setAlpha(224);
-		env->getSkin()->setColor((EGUI_DEFAULT_COLOR)i, col);
-	}
-	swprintf(dataManager.strBuffer, L"模式选择(IP:%d.%d.%d.%d)", netManager.local_addr & 0xff, (netManager.local_addr >> 8) & 0xff,
-	         (netManager.local_addr >> 16) & 0xff, (netManager.local_addr >> 24) & 0xff);
+	swprintf(dataManager.strBuffer, L"模式选择(当前IP:%d.%d.%d.%d  版本:0x%X)", netManager.local_addr & 0xff, (netManager.local_addr >> 8) & 0xff,
+	         (netManager.local_addr >> 16) & 0xff, (netManager.local_addr >> 24) & 0xff, PROTO_VERSION);
 	wModeSelection = env->addWindow(rect<s32>(270, 100, 750, 490), false, dataManager.strBuffer);
 	wModeSelection->getCloseButton()->setVisible(false);
 	wModes = env->addTabControl(rect<s32>(5, 60, 475, 350), wModeSelection, false, true, TAB_MODES);
@@ -99,13 +88,12 @@ bool Game::Initialize() {
 	cbTurnTime->addItem(L"３分钟");
 	cbTurnTime->addItem(L"１分钟");
 	cbTurnTime->setVisible(false);
-	env->addStaticText(L"游戏名：", rect<s32>(10, 190, 120, 210), false, false, tabLanS);
-	ebServerName = env->addEditBox(L"Game", rect<s32>(100, 185, 300, 210), true, tabLanS);
+	env->addStaticText(L"游戏名：", rect<s32>(10, 190, 100, 210), false, false, tabLanS);
+	ebServerName = env->addEditBox(L"Game", rect<s32>(100, 185, 240, 210), true, tabLanS);
 	ebServerName->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
-	//env->addStaticText(L"密码：", rect<s32>(10, 220, 120, 240), false, false, tabLanS);
-	ebServerPass = env->addEditBox(L"", rect<s32>(100, 215, 300, 240), true, tabLanS);
+	env->addStaticText(L"密码：", rect<s32>(10, 220, 100, 240), false, false, tabLanS);
+	ebServerPass = env->addEditBox(L"", rect<s32>(100, 215, 240, 240), true, tabLanS);
 	ebServerPass->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
-	ebServerPass->setVisible(false);
 	btnLanStartServer = env->addButton(rect<s32>(320, 185, 460, 210), tabLanS, BUTTON_LAN_START_SERVER, L"建立主机！");
 	btnLanCancelServer = env->addButton(rect<s32>(320, 215, 460, 240), tabLanS, BUTTON_LAN_CANCEL_SERVER, L"取消主机");
 	btnLanCancelServer->setEnabled(false);
@@ -113,12 +101,13 @@ bool Game::Initialize() {
 	lstServerList->setItemHeight(18);
 	btnRefreshList = env->addButton(rect<s32>(180, 145, 280, 170), tabLanC, BUTTON_LAN_REFRESH, L"刷新");
 	env->addStaticText(L"主机地址：", rect<s32>(10, 190, 120, 210), false, false, tabLanC);
-	ebJionIP = env->addEditBox(L"", rect<s32>(100, 185, 300, 210), true, tabLanC);
-	ebJionIP->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
-	//env->addStaticText(L"游戏密码：", rect<s32>(10, 220, 120, 240), false, false, tabLanC);
-	ebJionPass = env->addEditBox(L"", rect<s32>(100, 215, 300, 240), true, tabLanC);
-	ebJionPass->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
-	ebJionPass->setVisible(false);
+	ebJoinIP = env->addEditBox(L"", rect<s32>(100, 185, 240, 210), true, tabLanC);
+	ebJoinIP->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	ebJoinPort = env->addEditBox(L"", rect<s32>(245, 185, 305, 210), true, tabLanC);
+	ebJoinPort->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	env->addStaticText(L"游戏密码：", rect<s32>(10, 220, 120, 240), false, false, tabLanC);
+	ebJoinPass = env->addEditBox(L"", rect<s32>(100, 215, 240, 240), true, tabLanC);
+	ebJoinPass->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	btnLanConnect = env->addButton(rect<s32>(320, 215, 460, 240), tabLanC, BUTTON_LAN_CONNECT, L"加入游戏！");
 	lstReplayList = env->addListBox(rect<s32>(10, 10, 460, 190), tabReplay, -1, true);
 	lstReplayList->setItemHeight(18);
@@ -163,20 +152,19 @@ bool Game::Initialize() {
 	//info
 	irr::gui::IGUITab* tabInfo = wInfos->addTab(L"卡片信息");
 	stName = env->addStaticText(L"", rect<s32>(10, 10, 287, 32), true, false, tabInfo, -1, false);
-	stName->setOverrideFont(textFont);
 	stName->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	stInfo = env->addStaticText(L"", rect<s32>(15, 37, 296, 60), false, true, tabInfo, -1, false);
 	stInfo->setOverrideColor(SColor(255, 0, 0, 255));
 	stDataInfo = env->addStaticText(L"", rect<s32>(15, 60, 296, 83), false, true, tabInfo, -1, false);
 	stDataInfo->setOverrideColor(SColor(255, 0, 0, 255));
 	stText = env->addStaticText(L"", rect<s32>(15, 83, 296, 324), false, true, tabInfo, -1, false);
-	stText->setOverrideFont(textFont);
 	//log
-	irr::gui::IGUITab* tabLog =  wInfos->addTab(L"决斗记录");
+	irr::gui::IGUITab* tabLog =  wInfos->addTab(L"消息记录");
 	lstLog = env->addListBox(rect<s32>(10, 10, 290, 290), tabLog, -1, false);
 	lstLog->setItemHeight(18);
-	btnClearLog = env->addButton(rect<s32>(40, 300, 140, 325), tabLog, BUTTON_CLEAR_LOG, L"清除记录");
-	btnSaveLog = env->addButton(rect<s32>(160, 300, 260, 325), tabLog, BUTTON_SAVE_LOG, L"保存记录");
+	btnClearLog = env->addButton(rect<s32>(160, 300, 260, 325), tabLog, BUTTON_CLEAR_LOG, L"清除记录");
+	btnSaveLog = env->addButton(rect<s32>(40, 300, 140, 325), tabLog, BUTTON_SAVE_LOG, L"保存记录");
+	btnSaveLog->setVisible(false);
 	//system
 	irr::gui::IGUITab* tabSystem = wInfos->addTab(L"系统设定");
 	chkAutoPos = env->addCheckBox(false, rect<s32>(20, 20, 280, 45), tabSystem, -1, L"自动选择卡片位置");
@@ -376,6 +364,13 @@ bool Game::Initialize() {
 	scrFilter->setSmallStep(1);
 	scrFilter->setVisible(false);
 	device->setEventReceiver(&dField);
+	LoadConfig();
+	env->getSkin()->setFont(guiFont);
+	for (u32 i = 0; i < EGDC_COUNT; ++i) {
+		SColor col = env->getSkin()->getColor((EGUI_DEFAULT_COLOR)i);
+		col.setAlpha(224);
+		env->getSkin()->setColor((EGUI_DEFAULT_COLOR)i, col);
+	}
 	return true;
 }
 void Game::MainLoop() {
@@ -498,4 +493,48 @@ void Game::RefreshDeck(irr::gui::IGUIComboBox* cbDeck) {
 	FindClose(fh);
 #endif
 }
+void Game::LoadConfig() {
+	FILE* fp = fopen("system.conf", "r");
+	if(!fp)
+		return;
+	char linebuf[256];
+	char strbuf[32];
+	char valbuf[256];
+	wchar_t wstr[256];
+	int value;
+	fseek(fp, 0, SEEK_END);
+	size_t fsize = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	while(ftell(fp) < fsize) {
+		fgets(linebuf, 256, fp);
+		sscanf(linebuf, "%s = %s", strbuf, valbuf);
+		if(!strcmp(strbuf, "nickname")) {
+			DataManager::DecodeUTF8(valbuf, wstr);
+			ebUsername->setText(wstr);
+		} else if(!strcmp(strbuf, "gamename")) {
+			DataManager::DecodeUTF8(valbuf, wstr);
+			ebServerName->setText(wstr);
+		} else if(!strcmp(strbuf, "textfont")) {
+			guiFont = irr::gui::CGUITTFont::createTTFont(env, valbuf, 14);
+			textFont = guiFont;
+		} else if(!strcmp(strbuf, "numfont")) {
+			numFont = irr::gui::CGUITTFont::createTTFont(env, valbuf, 16);
+			adFont = irr::gui::CGUITTFont::createTTFont(env, valbuf, 12);
+			lpcFont = irr::gui::CGUITTFont::createTTFont(env, valbuf, 48);
+		} else if(!strcmp(strbuf, "servport")) {
+			netManager.serv_port = atoi(valbuf);
+		} else if(!strcmp(strbuf, "defaultip")) {
+			DataManager::DecodeUTF8(valbuf, wstr);
+			ebJoinIP->setText(wstr);
+		} else if(!strcmp(strbuf, "defaultport")) {
+			DataManager::DecodeUTF8(valbuf, wstr);
+			ebJoinPort->setText(wstr);
+		}
+	}
+	fclose(fp);
+}
+void Game::SaveConfig() {
+
+}
+
 }

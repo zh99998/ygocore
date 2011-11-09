@@ -3,17 +3,17 @@
 
 extern ygo::Game* mainGame;
 
-#define PROTO_VERSION 0x1000
-
 namespace ygo {
 
 bool NetManager::CreateHost() {
 	wchar_t* pstr;
 	int wp;
 	hInfo.identifier = NETWORK_SERVER_ID;
+	hInfo.version = PROTO_VERSION;
 	hInfo.address = mainGame->netManager.local_addr;
 	for(wp = 0, pstr = (wchar_t*)mainGame->ebServerName->getText(); wp < 19 && pstr[wp]; ++wp)
 		hInfo.name[wp] = pstr[wp];
+	hInfo.port = serv_port;
 	hInfo.name[wp] = 0;
 	hInfo.no_check_deck = mainGame->chkNoCheckDeck->isChecked();
 	hInfo.no_shuffle_deck = mainGame->chkNoShuffleDeck->isChecked();
@@ -47,7 +47,7 @@ bool NetManager::CreateHost() {
 		closesocket(sBHost);
 		return false;
 	}
-	local.sin_port = htons(7911);
+	local.sin_port = htons(serv_port);
 	if(bind(sListen, (sockaddr*)&local, sizeof(sockaddr)) == SOCKET_ERROR) {
 		closesocket(sBHost);
 		closesocket(sListen);
@@ -89,20 +89,17 @@ bool NetManager::JoinHost() {
 		closesocket(sRemote);
 		return false;
 	}
-	if(mainGame->lstServerList->getSelected() >= 0)
-		Thread::NewThread(JoinThread, (void*)hosts[mainGame->lstServerList->getSelected()].address);
-	else {
-		char ip[20];
-		int i = 0;
-		wchar_t* pstr = (wchar_t *)mainGame->ebJionIP->getText();
-		while(*pstr && i < 16) {
-			ip[i++] = *pstr;
-			*pstr++;
-		}
-		ip[i] = 0;
-		int adr = inet_addr(ip);
-		Thread::NewThread(JoinThread, (void*)adr);
+	char ip[20];
+	int i = 0;
+	wchar_t* pstr = (wchar_t *)mainGame->ebJoinIP->getText();
+	while(*pstr && i < 16) {
+		ip[i++] = *pstr;
+		*pstr++;
 	}
+	ip[i] = 0;
+	remote_addr = inet_addr(ip);
+	remote_port = _wtoi(mainGame->ebJoinPort->getText());
+	Thread::NewThread(JoinThread, (void*)this);
 	return true;
 }
 bool NetManager::SendtoRemote(char* buf, int len) {
@@ -197,13 +194,15 @@ int NetManager::BroadcastClient(void* np) {
 	FD_ZERO(&fds);
 	FD_SET(net->sBClient, &fds);
 	sendto(net->sBClient, (const char*)&net->hReq, sizeof(HostRequest), 0, (sockaddr*)&sockTo, sizeof(sockaddr));
+	mainGame->lstServerList->clear();
 	mainGame->is_refreshing = true;
 	int result = select(0, &fds, 0, 0, &tv);
 	std::set<int> addrset;
 	net->hosts.clear();
 	while(result != 0 && result != SOCKET_ERROR) {
 		int recvLen = recvfrom(net->sBClient, (char*)&net->hInfo, sizeof(HostInfo), 0, 0, 0);
-		if(recvLen == sizeof(HostInfo) && net->hInfo.identifier == NETWORK_SERVER_ID && addrset.find(net->hInfo.address) == addrset.end()) {
+		if(recvLen == sizeof(HostInfo) && net->hInfo.identifier == NETWORK_SERVER_ID
+		        && net->hInfo.version == PROTO_VERSION && addrset.find(net->hInfo.address) == addrset.end()) {
 			net->hosts.push_back(net->hInfo);
 		}
 		result = select(0, &fds, 0, 0, &tv);
@@ -214,7 +213,6 @@ int NetManager::BroadcastClient(void* np) {
 	const wchar_t* mode;
 	std::vector<HostInfo>::iterator it;
 	mainGame->gMutex.Lock();
-	mainGame->lstServerList->clear();
 	for(it = net->hosts.begin(); it != net->hosts.end(); ++it) {
 		if(!it->no_check_deck && !it->no_shuffle_deck && !it->no_shuffle_deck && !it->attack_ft && !it->no_chain_hint
 		        && it->start_lp == 8000 && it->start_hand == 5 && it->draw_count == 1)
@@ -263,12 +261,26 @@ int NetManager::ListenThread(void* np) {
 		}
 		wchar_t cn = ReadInt16(pbuf);
 		int off = 0;
-		while(cn != 0 && off < 20) {
-			if(off < 20)
-				mainGame->netManager.cnname[off++] = cn;
+		while(cn != 0 && off < 19) {
+			mainGame->dInfo.pass[off++] = cn;
 			cn = ReadInt16(pbuf);
 		}
-		mainGame->netManager.cnname[off] = 0;
+		mainGame->dInfo.pass[off] = 0;
+		if(wcscmp(mainGame->dInfo.pass, mainGame->ebServerPass->getText())) {
+			psbuf = net->send_buf;
+			WriteInt8(psbuf, 0x3);
+			send(net->sRemote, net->send_buf, 1, 0);
+			closesocket(net->sRemote);
+			net->sRemote = accept(net->sListen, 0, 0);
+			continue;
+		}
+		cn = ReadInt16(pbuf);
+		off = 0;
+		while(cn != 0 && off < 19) {
+			mainGame->dInfo.cnname[off++] = cn;
+			cn = ReadInt16(pbuf);
+		}
+		mainGame->dInfo.cnname[off] = 0;
 		int maincount = ReadInt16(pbuf);
 		int sidecount = ReadInt16(pbuf);
 		mainGame->deckManager.LoadDeck(mainGame->deckManager.deckclient, (int*)pbuf, maincount, sidecount);
@@ -282,7 +294,12 @@ int NetManager::ListenThread(void* np) {
 		}
 		psbuf = net->send_buf;
 		WriteInt8(psbuf, 0);
-		send(net->sRemote, net->send_buf, 1, 0);
+		const wchar_t* ln = mainGame->ebUsername->getText();
+		int li = 0;
+		while(ln[li] && li < 19)
+			WriteInt16(psbuf, ln[li++]);
+		WriteInt16(psbuf, 0);
+		send(net->sRemote, net->send_buf, 3 + li * 2, 0);
 		mainGame->gMutex.Lock();
 		mainGame->imgCard->setImage(mainGame->imageManager.tCover);
 		mainGame->wCardImg->setVisible(true);
@@ -308,11 +325,12 @@ int NetManager::ListenThread(void* np) {
 }
 int NetManager::JoinThread(void* adr) {
 	SOCKADDR_IN server;
-	server.sin_addr.s_addr = (long)adr;
+	NetManager* pnet = (NetManager*)adr;
+	server.sin_addr.s_addr = pnet->remote_addr;
 	server.sin_family = AF_INET;
-	server.sin_port = htons(7911);
-	if(connect(mainGame->netManager.sRemote, (sockaddr*)&server, sizeof(sockaddr)) == SOCKET_ERROR) {
-		closesocket(mainGame->netManager.sRemote);
+	server.sin_port = htons(pnet->remote_port);
+	if(connect(pnet->sRemote, (sockaddr*)&server, sizeof(sockaddr)) == SOCKET_ERROR) {
+		closesocket(pnet->sRemote);
 		if(!mainGame->is_closing) {
 			mainGame->btnLanStartServer->setEnabled(true);
 			mainGame->btnLanConnect->setEnabled(true);
@@ -323,11 +341,17 @@ int NetManager::JoinThread(void* adr) {
 		}
 		return 0;
 	}
-	char* pbuf = mainGame->netManager.send_buf;
+	char* pbuf = pnet->send_buf;
 	NetManager::WriteInt16(pbuf, PROTO_VERSION);
-	const wchar_t* pname = mainGame->stName->getText();
-	while(*pname != 0)
-		NetManager::WriteInt16(pbuf, *pname++);
+	const wchar_t* pname = mainGame->ebJoinPass->getText();
+	int i = 0;
+	while(pname[i] != 0 && i < 19)
+		NetManager::WriteInt16(pbuf, pname[i++]);
+	NetManager::WriteInt16(pbuf, 0);
+	i = 0;
+	pname = mainGame->ebUsername->getText();
+	while(pname[i] != 0 && i < 19)
+		NetManager::WriteInt16(pbuf, pname[i++]);
 	NetManager::WriteInt16(pbuf, 0);
 	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.main.size() + mainGame->deckManager.deckhost.extra.size());
 	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.side.size());
@@ -337,10 +361,10 @@ int NetManager::JoinThread(void* adr) {
 		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.extra[i]->first);
 	for(int i = 0; i < mainGame->deckManager.deckhost.side.size(); ++i)
 		NetManager::WriteInt32(pbuf, mainGame->deckManager.deckhost.side[i]->first);
-	mainGame->netManager.SendtoRemote(mainGame->netManager.send_buf, pbuf - mainGame->netManager.send_buf);
-	int result = recv(mainGame->netManager.sRemote, mainGame->netManager.recv_buf, 4096, 0);
-	if(result == SOCKET_ERROR || mainGame->netManager.recv_buf[0] != 0) {
-		closesocket(mainGame->netManager.sRemote);
+	pnet->SendtoRemote(pnet->send_buf, pbuf - pnet->send_buf);
+	int result = recv(pnet->sRemote, pnet->recv_buf, 4096, 0);
+	if(result == SOCKET_ERROR || pnet->recv_buf[0] != 0) {
+		closesocket(pnet->sRemote);
 		if(!mainGame->is_closing) {
 			mainGame->btnLanStartServer->setEnabled(true);
 			mainGame->btnLanConnect->setEnabled(true);
@@ -349,14 +373,24 @@ int NetManager::JoinThread(void* adr) {
 			mainGame->btnDeckEdit->setEnabled(true);
 			if(result == SOCKET_ERROR)
 				mainGame->stModeStatus->setText(L"网络连接发生错误");
-			else if(mainGame->netManager.recv_buf[0] == 0x1) {
+			else if(pnet->recv_buf[0] == 0x1) {
 				wchar_t errorbuf[32];
-				swprintf(errorbuf, L"当前版本(0x%X)与主机版本(0x%X)不匹配", PROTO_VERSION, (int)(*(short*)&mainGame->netManager.recv_buf[1]));
+				swprintf(errorbuf, L"当前版本(0x%X)与主机版本(0x%X)不匹配", PROTO_VERSION, (int)(*(short*)&pnet->recv_buf[1]));
 				mainGame->stModeStatus->setText(errorbuf);
-			} else mainGame->stModeStatus->setText(L"无效卡组或者卡组不符合禁卡表规范");
+			} else if(pnet->recv_buf[0] == 0x2) {
+				mainGame->stModeStatus->setText(L"无效卡组或者卡组不符合禁卡表规范");
+			} else
+				mainGame->stModeStatus->setText(L"密码错误");
 		}
 		return 0;
 	}
+	wchar_t* pn = (wchar_t*)&pnet->recv_buf[1];
+	int pi = 0;
+	while(pn[pi] && pi < 19) {
+		mainGame->dInfo.cnname[pi] = pn[pi];
+		pi++;
+	}
+	mainGame->dInfo.cnname[pi] = 0;
 	mainGame->gMutex.Lock();
 	mainGame->imgCard->setImage(mainGame->imageManager.tCover);
 	mainGame->wCardImg->setVisible(true);

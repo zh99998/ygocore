@@ -38,7 +38,8 @@ struct DuelInfo {
 	short curMsg;
 	short preMsg;
 	int selectHint;
-	wchar_t strPlayer[2][20];
+	wchar_t cnname[20];
+	wchar_t pass[20];
 	wchar_t strLP[2][16];
 	wchar_t strTurn[8];
 	wchar_t strEvent[64];
@@ -68,8 +69,11 @@ public:
 	void WaitFrameSignal(int frame);
 	void DrawThumb(int code, position2di pos, std::unordered_map<int, int>* lflist);
 	void DrawDeckBd();
+	void LoadConfig();
+	void SaveConfig();
 	
 	int LocalPlayer(int player);
+	const wchar_t* LocalName(int local_player);
 	bool SendByte(int player, char val);
 	bool SendGameMessage(int player, char* buf, int len);
 	bool WaitforResponse(int player);
@@ -197,8 +201,9 @@ public:
 	irr::gui::IGUICheckBox* chkNoChainHint;
 	irr::gui::IGUIListBox* lstServerList;
 	irr::gui::IGUIButton* btnRefreshList;
-	irr::gui::IGUIEditBox* ebJionIP;
-	irr::gui::IGUIEditBox* ebJionPass;
+	irr::gui::IGUIEditBox* ebJoinIP;
+	irr::gui::IGUIEditBox* ebJoinPort;
+	irr::gui::IGUIEditBox* ebJoinPass;
 	irr::gui::IGUIButton* btnLanConnect;
 	irr::gui::IGUIListBox* lstReplayList;
 	irr::gui::IGUIButton* btnLoadReplay;

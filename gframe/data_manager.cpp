@@ -193,6 +193,27 @@ const wchar_t* DataManager::GetSeriesName(int code) {
 const wchar_t* DataManager::GetNumString(int num) {
 	return numStrings[num];
 }
+int DataManager::EncodeUTF8(const wchar_t * wsrc, char * str) {
+	char* pstr = str;
+	while(*wsrc != 0) {
+		if(*wsrc < 0x80) {
+			*str = *wsrc;
+			++str;
+		} else if(*wsrc < 0x800) {
+			str[0] = (*wsrc >> 6) & 0x1f | 0xc0;
+			str[1] = (*wsrc) & 0x3f | 0x80;
+			str += 2;
+		} else {
+			str[0] = (*wsrc >> 12) & 0xf | 0xe0;
+			str[1] = (*wsrc >> 6) & 0x3f | 0x80;
+			str[2] = (*wsrc) & 0x3f | 0x80;
+			str += 3;
+		}
+		wsrc++;
+	}
+	*str = 0;
+	return str - pstr;
+}
 int DataManager::DecodeUTF8(const char * src, wchar_t * wstr) {
 	char* p = (char*)src;
 	wchar_t* wp = wstr;

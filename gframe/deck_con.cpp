@@ -346,7 +346,7 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 					mainGame->cbCardType2->addItem(L"融合", 0x41);
 					mainGame->cbCardType2->addItem(L"仪式", 0x81);
 					mainGame->cbCardType2->addItem(L"同调", 0x2001);
-					mainGame->cbCardType2->addItem(L"未知", 0x800001);
+					mainGame->cbCardType2->addItem(L"超量", 0x800001);
 					break;
 				}
 				case 2: {

@@ -241,14 +241,16 @@ void Game::DrawMisc() {
 	numFont->draw(dInfo.strLP[0], recti(330, 12, 631, 30), 0xffffff00, true, false, 0);
 	numFont->draw(dInfo.strLP[1], recti(691, 11, 990, 30), 0xff000000, true, false, 0);
 	numFont->draw(dInfo.strLP[1], recti(691, 12, 992, 30), 0xffffff00, true, false, 0);
+	textFont->draw(ebUsername->getText(), recti(330, 31, 629, 50), 0xffffffff, true, false, 0);
+	textFont->draw(dInfo.cnname, recti(691, 31, 990, 50), 0xffffffff, true, false, 0);
 	driver->draw2DRectangle(recti(632, 10, 688, 30), 0xff000000, 0xff000000, 0xffffffff, 0xffffffff);
 	driver->draw2DRectangle(recti(632, 30, 688, 50), 0xffffffff, 0xffffffff, 0xff000000, 0xff000000);
 	lpcFont->draw(dataManager.GetNumString(dInfo.turn), recti(635, 5, 685, 40), 0x80000000, true, false, 0);
 	lpcFont->draw(dataManager.GetNumString(dInfo.turn), recti(635, 5, 687, 40), 0x8000ffff, true, false, 0);
 	if((dInfo.turn % 2 && dInfo.is_first_turn) || (!(dInfo.turn % 2) && !dInfo.is_first_turn))
-		driver->draw2DRectangleOutline(recti(327, 8, 630, 31), 0xffff8080);
+		driver->draw2DRectangleOutline(recti(327, 8, 630, 51), 0xffff8080);
 	else
-		driver->draw2DRectangleOutline(recti(689, 8, 991, 31), 0xffff8080);
+		driver->draw2DRectangleOutline(recti(689, 8, 991, 51), 0xffff8080);
 	for(int i = 0; i < 5; ++i) {
 		ClientCard* pcard = dField.mzone[0][i];
 		if(pcard) {

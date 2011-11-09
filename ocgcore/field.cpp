@@ -24,7 +24,8 @@ field::field(duel* pduel) {
 	for (int i = 0; i < 2; ++i) {
 		cost[i].count = 0;
 		cost[i].amount = 0;
-		cost[i].lpstack[0] = 0;
+		cost[i].lpstack[i] = 0;
+		core.hint_timing[i] = 0;
 		player[i].lp = 8000;
 		player[i].start_count = 5;
 		player[i].draw_count = 1;

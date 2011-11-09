@@ -662,6 +662,13 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 		case irr::gui::EGET_LISTBOX_CHANGED: {
 			switch(id) {
 			case LISTBOX_SERVER_LIST: {
+				if(mainGame->lstServerList->getSelected() == -1)
+					break;
+				HostInfo& hi = mainGame->netManager.hosts[mainGame->lstServerList->getSelected()];
+				swprintf(formatBuffer, L"%d.%d.%d.%d", hi.address & 0xff, (hi.address >> 8) & 0xff, (hi.address >> 16) & 0xff, (hi.address >> 24) & 0xff);
+				mainGame->ebJoinIP->setText(formatBuffer);
+				swprintf(formatBuffer, L"%d", hi.port);
+				mainGame->ebJoinPort->setText(formatBuffer);
 				break;
 			}
 			}

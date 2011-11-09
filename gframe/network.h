@@ -5,12 +5,15 @@
 #include <set>
 #include <vector>
 
+#define PROTO_VERSION 0x1000
+
 namespace ygo {
 
 struct HostInfo {
 	short identifier;
-	int address;
-	short port;
+	short version;
+	unsigned int address;
+	unsigned short port;
 	wchar_t name[20];
 	bool no_check_deck;
 	bool no_shuffle_deck;
@@ -32,7 +35,10 @@ struct HostRequest {
 
 class NetManager {
 public:
-	int local_addr;
+	unsigned int local_addr;
+	unsigned short serv_port;
+	unsigned int remote_addr;
+	unsigned short remote_port;
 	bool is_creating_host;
 	SOCKET sBHost;
 	SOCKET sBClient;
@@ -41,7 +47,6 @@ public:
 	HostInfo hInfo;
 	HostRequest hReq;
 	std::vector<HostInfo> hosts;
-	wchar_t cnname[20];
 	char* send_buffer_ptr;
 	char send_buf[4096];
 	char recv_buf[4096];
