@@ -31,9 +31,16 @@ field::field(duel* pduel) {
 		player[i].draw_count = 1;
 		player[i].disabled_location = 0;
 		player[i].used_location = 0;
-		for (int j = 0; j < 5; ++j)
+		player[i].list_mzone.reserve(5);
+		player[i].list_szone.reserve(6);
+		player[i].list_main.reserve(45);
+		player[i].list_hand.reserve(10);
+		player[i].list_grave.reserve(30);
+		player[i].list_remove.reserve(30);
+		player[i].list_extra.reserve(15);
+		for(int j = 0; j < 5; ++j)
 			player[i].list_mzone.push_back(0);
-		for (int j = 0; j < 6; ++j)
+		for(int j = 0; j < 6; ++j)
 			player[i].list_szone.push_back(0);
 	}
 	for (int i = 0; i < 5; ++i)
@@ -88,15 +95,12 @@ void field::add_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence
 	case LOCATION_DECK:
 		if (sequence == 0) {		//deck top
 			player[playerid].list_main.push_back(pcard);
-			pcard->iter = --(player[playerid].list_main.end());
 			pcard->current.sequence = player[playerid].list_main.size() - 1;
 		} else if (sequence == 1) {		//deck button
-			player[playerid].list_main.push_front(pcard);
-			pcard->iter = player[playerid].list_main.begin();
+			player[playerid].list_main.insert(player[playerid].list_main.begin(), pcard);
 			reset_sequence(playerid, LOCATION_DECK);
 		} else {		//deck top & shuffle
 			player[playerid].list_main.push_back(pcard);
-			pcard->iter = --(player[playerid].list_main.end());
 			pcard->current.sequence = player[playerid].list_main.size() - 1;
 			if(!core.shuffle_check_disabled)
 				core.shuffle_deck_check[playerid] = TRUE;
@@ -104,24 +108,20 @@ void field::add_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence
 		break;
 	case LOCATION_HAND:
 		player[playerid].list_hand.push_back(pcard);
-		pcard->iter = --(player[playerid].list_hand.end());
 		pcard->current.sequence = player[playerid].list_hand.size() - 1;
 		if(!(pcard->current.reason & REASON_DRAW) && !core.shuffle_check_disabled)
 			core.shuffle_hand_check[playerid] = TRUE;
 		break;
 	case LOCATION_GRAVE:
 		player[playerid].list_grave.push_back(pcard);
-		pcard->iter = --(player[playerid].list_grave.end());
 		pcard->current.sequence = player[playerid].list_grave.size() - 1;
 		break;
 	case LOCATION_REMOVED:
 		player[playerid].list_remove.push_back(pcard);
-		pcard->iter = --(player[playerid].list_remove.end());
 		pcard->current.sequence = player[playerid].list_remove.size() - 1;
 		break;
 	case LOCATION_EXTRA:
 		player[playerid].list_extra.push_back(pcard);
-		pcard->iter = --(player[playerid].list_extra.end());
 		pcard->current.sequence = player[playerid].list_extra.size() - 1;
 		break;
 	}
@@ -137,7 +137,6 @@ void field::remove_card(card* pcard) {
 	if (pcard->current.controler == PLAYER_NONE || pcard->current.location == 0)
 		return;
 	uint8 playerid = pcard->current.controler;
-	card_list::iterator cit;
 	switch (pcard->current.location) {
 	case LOCATION_MZONE:
 		player[playerid].list_mzone[pcard->current.sequence] = 0;
@@ -146,25 +145,25 @@ void field::remove_card(card* pcard) {
 		player[playerid].list_szone[pcard->current.sequence] = 0;
 		break;
 	case LOCATION_DECK:
-		player[playerid].list_main.erase(pcard->iter);
+		player[playerid].list_main.erase(player[playerid].list_main.begin() + pcard->current.sequence);
 		reset_sequence(playerid, LOCATION_DECK);
 		if(!core.shuffle_check_disabled)
 			core.shuffle_deck_check[playerid] = TRUE;
 		break;
 	case LOCATION_HAND:
-		player[playerid].list_hand.erase(pcard->iter);
+		player[playerid].list_hand.erase(player[playerid].list_hand.begin() + pcard->current.sequence);
 		reset_sequence(playerid, LOCATION_HAND);
 		break;
 	case LOCATION_GRAVE:
-		player[playerid].list_grave.erase(pcard->iter);
+		player[playerid].list_grave.erase(player[playerid].list_grave.begin() + pcard->current.sequence);
 		reset_sequence(playerid, LOCATION_GRAVE);
 		break;
 	case LOCATION_REMOVED:
-		player[playerid].list_remove.erase(pcard->iter);
+		player[playerid].list_remove.erase(player[playerid].list_remove.begin() + pcard->current.sequence);
 		reset_sequence(playerid, LOCATION_REMOVED);
 		break;
 	case LOCATION_EXTRA:
-		player[playerid].list_extra.erase(pcard->iter);
+		player[playerid].list_extra.erase(player[playerid].list_extra.begin() + pcard->current.sequence);
 		reset_sequence(playerid, LOCATION_EXTRA);
 		break;
 	}
@@ -193,18 +192,15 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 					pduel->write_buffer8(MSG_MOVE);
 					pduel->write_buffer32(pcard->data.code);
 					pduel->write_buffer32(pcard->get_info_location());
-					player[preplayer].list_main.remove(pcard);
+					player[preplayer].list_main.erase(player[preplayer].list_main.begin() + pcard->current.sequence);
 					if (sequence == 0) {		//deck top
 						player[playerid].list_main.push_back(pcard);
-						pcard->iter = --(player[playerid].list_main.end());
 						pcard->current.sequence = player[playerid].list_main.size() - 1;
 					} else if (sequence == 1) {
-						player[playerid].list_main.push_front(pcard);
-						pcard->iter = player[playerid].list_main.begin();
+						player[playerid].list_main.insert(player[playerid].list_main.begin(), pcard);
 						reset_sequence(playerid, LOCATION_DECK);
 					} else {
 						player[playerid].list_main.push_back(pcard);
-						pcard->iter = --(player[playerid].list_main.end());
 						pcard->current.sequence = player[playerid].list_main.size() - 1;
 						if(!core.shuffle_check_disabled)
 							core.shuffle_deck_check[playerid] = true;
@@ -256,9 +252,8 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 					pduel->write_buffer8(MSG_MOVE);
 					pduel->write_buffer32(pcard->data.code);
 					pduel->write_buffer32(pcard->get_info_location());
-					player[pcard->current.controler].list_grave.erase(pcard->iter);
+					player[pcard->current.controler].list_grave.erase(player[pcard->current.controler].list_grave.begin() + pcard->current.sequence);
 					player[pcard->current.controler].list_grave.push_back(pcard);
-					pcard->iter = --(player[pcard->current.controler].list_grave.end());
 					reset_sequence(pcard->current.controler, LOCATION_GRAVE);
 					pduel->write_buffer32(pcard->get_info_location());
 				} else if(location == LOCATION_REMOVED) {
@@ -267,18 +262,16 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 					pduel->write_buffer8(MSG_MOVE);
 					pduel->write_buffer32(pcard->data.code);
 					pduel->write_buffer32(pcard->get_info_location());
-					player[pcard->current.controler].list_remove.erase(pcard->iter);
+					player[pcard->current.controler].list_remove.erase(player[pcard->current.controler].list_remove.begin() + pcard->current.sequence);
 					player[pcard->current.controler].list_remove.push_back(pcard);
-					pcard->iter = --(player[pcard->current.controler].list_remove.end());
 					reset_sequence(pcard->current.controler, LOCATION_REMOVED);
 					pduel->write_buffer32(pcard->get_info_location());
 				} else {
 					pduel->write_buffer8(MSG_MOVE);
 					pduel->write_buffer32(pcard->data.code);
 					pduel->write_buffer32(pcard->get_info_location());
-					player[pcard->current.controler].list_extra.erase(pcard->iter);
+					player[pcard->current.controler].list_extra.erase(player[pcard->current.controler].list_extra.begin() + pcard->current.sequence);
 					player[pcard->current.controler].list_extra.push_back(pcard);
-					pcard->iter = --(player[pcard->current.controler].list_extra.end());
 					reset_sequence(pcard->current.controler, LOCATION_EXTRA);
 					pduel->write_buffer32(pcard->get_info_location());
 				}
@@ -348,27 +341,18 @@ int32 field::get_useable_count(uint8 playerid, uint8 location, uint32* list) {
 void field::shuffle(uint8 playerid, uint8 location) {
 	if(!(location & (LOCATION_HAND + LOCATION_DECK)))
 		return;
-	card* tcard[100];
 	card* t;
-	card_list& l = (location == LOCATION_HAND) ? player[playerid].list_hand : player[playerid].list_main;
-	if(l.size() == 0)
+	card_vector& svector = (location == LOCATION_HAND) ? player[playerid].list_hand : player[playerid].list_main;
+	if(svector.size() == 0)
 		return;
-	if(l.size() > 1) {
-		card_list::iterator cit;
-		uint32 i = 0, j, r;
-		for(cit = l.begin(); cit != l.end(); ++cit)
-			tcard[i++] = *cit;
-		for(j = 0; j < i; ++j) {
-			r = pduel->get_next_integer(0, i - 1);
-			t = tcard[j];
-			tcard[j] = tcard[r];
-			tcard[r] = t;
-		}
-		l.clear();
-		for(j = 0; j < i; ++j) {
-			l.push_back(tcard[j]);
-			tcard[j]->current.sequence = j;
-			tcard[j]->iter = --l.end();
+	if(svector.size() > 1) {
+		card_vector::iterator cit;
+		uint32 i = 0, s = svector.size(), r;
+		for(i = 0; i < s; ++i) {
+			r = pduel->get_next_integer(0, s - 1);
+			t = svector[i];
+			svector[i] = svector[r];
+			svector[r] = t;
 		}
 		reset_sequence(playerid, location);
 	}
@@ -384,7 +368,7 @@ void field::shuffle(uint8 playerid, uint8 location) {
 void field::reset_sequence(uint8 playerid, uint8 location) {
 	if(location & (LOCATION_ONFIELD))
 		return;
-	card_list::iterator cit;
+	card_vector::iterator cit;
 	uint32 i = 0;
 	switch(location) {
 	case LOCATION_DECK:
@@ -410,7 +394,7 @@ void field::reset_sequence(uint8 playerid, uint8 location) {
 	}
 }
 void field::swap_deck_and_grave(uint8 playerid) {
-	card_list::iterator clit;
+	card_vector::iterator clit;
 	for(clit = player[playerid].list_grave.begin(); clit != player[playerid].list_grave.end(); ++clit) {
 		(*clit)->previous.location = LOCATION_GRAVE;
 		(*clit)->previous.sequence = (*clit)->current.sequence;
@@ -423,12 +407,11 @@ void field::swap_deck_and_grave(uint8 playerid) {
 		(*clit)->enable_field_effect(false);
 		(*clit)->cancel_field_effect();
 	}
-	card_list cl = player[playerid].list_grave;
+	card_vector cl = player[playerid].list_grave;
 	player[playerid].list_grave = player[playerid].list_main;
 	player[playerid].list_main = cl;
 	for(clit = player[playerid].list_grave.begin(); clit != player[playerid].list_grave.end(); ++clit) {
 		(*clit)->current.location = LOCATION_GRAVE;
-		(*clit)->iter = clit;
 		(*clit)->current.reason = REASON_EFFECT;
 		(*clit)->current.reason_effect = core.reason_effect;
 		(*clit)->current.reason_player = core.reason_player;
@@ -437,7 +420,6 @@ void field::swap_deck_and_grave(uint8 playerid) {
 	}
 	for(clit = player[playerid].list_main.begin(); clit != player[playerid].list_main.end(); ++clit) {
 		(*clit)->current.location = LOCATION_DECK;
-		(*clit)->iter = clit;
 		(*clit)->current.reason = REASON_EFFECT;
 		(*clit)->current.reason_effect = core.reason_effect;
 		(*clit)->current.reason_player = core.reason_player;
@@ -615,7 +597,7 @@ void field::filter_affected_cards(effect* peffect, card_set* cset) {
 	if(self == PLAYER_NONE)
 		return;
 	card* pcard;
-	card_list::iterator it;
+	card_vector::iterator it;
 	uint16 range = peffect->s_range;
 	for(uint32 p = 0; p < 2; ++p) {
 		if (range & LOCATION_MZONE) {
@@ -713,7 +695,7 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 			}
 		}
 		if(location & LOCATION_DECK) {
-			for(card_list::reverse_iterator cit = player[self].list_main.rbegin(); cit != player[self].list_main.rend(); ++cit) {
+			for(auto cit = player[self].list_main.rbegin(); cit != player[self].list_main.rend(); ++cit) {
 				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
@@ -730,7 +712,7 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 			}
 		}
 		if(location & LOCATION_EXTRA) {
-			for(card_list::reverse_iterator cit = player[self].list_extra.rbegin(); cit != player[self].list_extra.rend(); ++cit) {
+			for(auto cit = player[self].list_extra.rbegin(); cit != player[self].list_extra.rend(); ++cit) {
 				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
@@ -747,7 +729,7 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 			}
 		}
 		if(location & LOCATION_HAND) {
-			for(card_list::iterator cit = player[self].list_hand.begin(); cit != player[self].list_hand.end(); ++cit) {
+			for(auto cit = player[self].list_hand.begin(); cit != player[self].list_hand.end(); ++cit) {
 				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
@@ -764,7 +746,7 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 			}
 		}
 		if(location & LOCATION_GRAVE) {
-			for(card_list::reverse_iterator cit = player[self].list_grave.rbegin(); cit != player[self].list_grave.rend(); ++cit) {
+			for(auto cit = player[self].list_grave.rbegin(); cit != player[self].list_grave.rend(); ++cit) {
 				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
@@ -781,7 +763,7 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 			}
 		}
 		if(location & LOCATION_REMOVED) {
-			for(card_list::reverse_iterator cit = player[self].list_remove.rbegin(); cit != player[self].list_remove.rend(); ++cit) {
+			for(auto cit = player[self].list_remove.rbegin(); cit != player[self].list_remove.rend(); ++cit) {
 				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
@@ -831,31 +813,31 @@ int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, g
 		}
 		if(location & LOCATION_HAND) {
 			if(pgroup)
-				for(card_list::iterator cit = player[self].list_hand.begin(); cit != player[self].list_hand.end(); ++cit)
+				for(auto cit = player[self].list_hand.begin(); cit != player[self].list_hand.end(); ++cit)
 					pgroup->container.insert(*cit);
 			count += player[self].list_hand.size();
 		}
 		if(location & LOCATION_DECK) {
 			if(pgroup)
-				for(card_list::reverse_iterator cit = player[self].list_main.rbegin(); cit != player[self].list_main.rend(); ++cit)
+				for(auto cit = player[self].list_main.rbegin(); cit != player[self].list_main.rend(); ++cit)
 					pgroup->container.insert(*cit);
 			count += player[self].list_main.size();
 		}
 		if(location & LOCATION_EXTRA) {
 			if(pgroup)
-				for(card_list::reverse_iterator cit = player[self].list_extra.rbegin(); cit != player[self].list_extra.rend(); ++cit)
+				for(auto cit = player[self].list_extra.rbegin(); cit != player[self].list_extra.rend(); ++cit)
 					pgroup->container.insert(*cit);
 			count += player[self].list_extra.size();
 		}
 		if(location & LOCATION_GRAVE) {
 			if(pgroup)
-				for(card_list::reverse_iterator cit = player[self].list_grave.rbegin(); cit != player[self].list_grave.rend(); ++cit)
+				for(auto cit = player[self].list_grave.rbegin(); cit != player[self].list_grave.rend(); ++cit)
 					pgroup->container.insert(*cit);
 			count += player[self].list_grave.size();
 		}
 		if(location & LOCATION_REMOVED) {
 			if(pgroup)
-				for(card_list::reverse_iterator cit = player[self].list_remove.rbegin(); cit != player[self].list_remove.rend(); ++cit)
+				for(auto cit = player[self].list_remove.rbegin(); cit != player[self].list_remove.rend(); ++cit)
 					pgroup->container.insert(*cit);
 			count += player[self].list_remove.size();
 		}
@@ -947,7 +929,7 @@ void field::get_ritual_material(uint8 playerid, card_set* material) {
 		        && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE) && pcard->is_releaseable_by_nonsummon(playerid))
 			material->insert(pcard);
 	}
-	card_list::iterator cit;
+	card_vector::iterator cit;
 	for(cit = player[playerid].list_hand.begin(); cit != player[playerid].list_hand.end(); ++cit)
 		if(((*cit)->data.type & TYPE_MONSTER) && (*cit)->is_releaseable_by_nonsummon(playerid))
 			material->insert((*cit));
@@ -986,14 +968,13 @@ void field::get_exceed_material(card* scard, card_set* material) {
 void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset) {
 	uint8 c = s;
 	card* pcard;
-	card_list::iterator clit;
 	for(int p = 0; p < 2; ++p) {
 		if(!c)
 			continue;
 		for(int i = 0; i < 5; ++i) {
 			pcard = player[self].list_mzone[i];
 			if(pcard && pcard->exceed_materials.size())
-				for(clit = pcard->exceed_materials.begin(); clit != pcard->exceed_materials.end(); ++clit)
+				for(auto clit = pcard->exceed_materials.begin(); clit != pcard->exceed_materials.end(); ++clit)
 					pset->insert(*clit);
 		}
 		self = 1 - self;

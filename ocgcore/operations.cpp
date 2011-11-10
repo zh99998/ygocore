@@ -343,7 +343,7 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 	}
 	case 1: {
 		core.operated_set.clear();
-		card_list::reverse_iterator clit = player[playerid].list_hand.rbegin();
+		auto clit = player[playerid].list_hand.rbegin();
 		for(uint32 i = 0; i < count; ++i) {
 			core.operated_set.insert(*clit);
 			clit++;
@@ -2270,8 +2270,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				raise_single_event(*cit, EVENT_REMOVE, (*cit)->current.reason_effect, (*cit)->current.reason, (*cit)->current.reason_player, 0, 0);
 			}
 			if((*cit)->exceed_materials.size()) {
-				card_list::iterator clit;
-				for(clit = (*cit)->exceed_materials.begin(); clit != (*cit)->exceed_materials.end(); ++clit)
+				for(auto clit = (*cit)->exceed_materials.begin(); clit != (*cit)->exceed_materials.end(); ++clit)
 					overlays.insert(*clit);
 			}
 		}
@@ -2311,9 +2310,8 @@ int32 field::discard_deck(uint16 step, uint8 playerid, uint8 count, uint32 reaso
 			return TRUE;
 		}
 		uint32 redirect, dest;
-		card_list::reverse_iterator cit;
 		int32 i = 0;
-		for(i = 0, cit = player[playerid].list_main.rbegin(); i < count && cit != player[playerid].list_main.rend(); ++cit, ++i) {
+		for(auto cit = player[playerid].list_main.rbegin(); i < count && cit != player[playerid].list_main.rend(); ++cit, ++i) {
 			dest = LOCATION_GRAVE;
 			(*cit)->operation_param = LOCATION_GRAVE;
 			(*cit)->current.reason_effect = core.reason_effect;
@@ -2503,8 +2501,7 @@ int32 field::move_to_field(uint16 step, card * target, uint32 enable, uint32 ret
 			}
 			if(target->exceed_materials.size()) {
 				card_set overlays;
-				card_list::iterator clit;
-				for(clit = target->exceed_materials.begin(); clit != target->exceed_materials.end(); ++clit)
+				for(auto clit = target->exceed_materials.begin(); clit != target->exceed_materials.end(); ++clit)
 					overlays.insert(*clit);
 				send_to(&overlays, 0, REASON_LOST_TARGET, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 			}

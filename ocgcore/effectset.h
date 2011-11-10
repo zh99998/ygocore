@@ -9,11 +9,13 @@
 #define EFFECTSET_H_
 
 #include <stdlib.h>
+#include <array>
+#include <algorithm>
 #include "effect.h"
 
 class effect;
 
-int effect_sort_id(const void* e1, const void* e2);
+bool effect_sort_id(const effect* e1, const effect* e2);
 
 struct effect_set {
 	effect_set(): count(0) {}
@@ -38,7 +40,7 @@ struct effect_set {
 	void sort() {
 		if(count < 2)
 			return;
-		qsort(container, count, sizeof(effect*), effect_sort_id);
+		std::sort(container.begin(), container.begin() + count, effect_sort_id);
 	}
 	effect*& get_last() {
 		return container[count - 1];
@@ -49,7 +51,7 @@ struct effect_set {
 	effect*& at(int index) {
 		return container[index];
 	}
-	effect* container[32];
+	std::array<effect*, 32> container;
 	int count;
 };
 

@@ -8,8 +8,8 @@
 #include "effect.h"
 #include <iostream>
 
-int effect_sort_id(const void* e1, const void* e2) {
-	return (*(effect**)e1)->id - (*(effect**)e2)->id;
+bool effect_sort_id(const effect* e1, const effect* e2) {
+	return e1->id < e2->id;
 };
 effect::effect() {
 	scrtype = 3;

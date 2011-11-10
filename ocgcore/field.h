@@ -18,6 +18,7 @@
 #include <set>
 #include <map>
 #include <list>
+#include <array>
 
 class card;
 struct card_data;
@@ -64,7 +65,6 @@ struct chain {
 
 struct player_info {
 	typedef std::vector<card*> card_vector;
-	typedef std::list<card*> card_list;
 	int32 lp;
 	int32 start_count;
 	int32 draw_count;
@@ -72,11 +72,11 @@ struct player_info {
 	uint32 disabled_location;
 	card_vector list_mzone;
 	card_vector list_szone;
-	card_list list_main;
-	card_list list_grave;
-	card_list list_hand;
-	card_list list_remove;
-	card_list list_extra;
+	card_vector list_main;
+	card_vector list_grave;
+	card_vector list_hand;
+	card_vector list_remove;
+	card_vector list_extra;
 };
 struct field_effect {
 	typedef std::multimap<uint32, effect*> effect_container;

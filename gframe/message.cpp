@@ -164,7 +164,7 @@ bool Game::RefreshSingle(int player, int location, int sequence, int flag) {
 	memcpy(pbuf, queryBuffer, len);
 	if(!SendGameMessage(player, netManager.send_buffer_ptr, len + 8))
 		return false;
-	if (location == 0x10 || ((location & 0x2c) && (queryBuffer[7] & POS_FACEUP)))
+	if ((location & 0x90) || ((location & 0x2c) && (queryBuffer[7] & POS_FACEUP)))
 		return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 8);
 	return true;
 }
@@ -175,7 +175,9 @@ int Game::CardReader(int code, void* pData) {
 int Game::MessageHandler(long fduel, int type) {
 	char msgbuf[256];
 	get_log_message(fduel, (byte*)msgbuf);
-	printf("[Script error:] %s\n", msgbuf);
+	FILE* fp = fopen("error.log", "at+");
+	fprintf(fp, "[Script error:] %s\n", msgbuf);
+	fclose(fp);
 	return 0;
 }
 int Game::EngineThread(void* pd) {
@@ -574,7 +576,7 @@ void Game::Analyze(void* pd, char* engbuf) {
 			int cs = NetManager::ReadInt8(pbuf);
 			int cp = NetManager::ReadInt8(pbuf);
 			mainGame->SendGameMessage(cc, offset, pbuf - offset);
-			if ((cl & 0x2c) && (cp & POS_FACEDOWN))
+			if (!(cl & 0x90) && !((cl & 0x2c) && (cp & POS_FACEUP)))
 				NetManager::WriteInt32(pbufw, 0);
 			mainGame->SendGameMessage(1 - cc, offset, pbuf - offset);
 			if (cl != 0 && (cl & 0x80) == 0 && (cl != pl || pc != cc))

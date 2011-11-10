@@ -587,7 +587,7 @@ int32 scriptlib::duel_confirm_decktop(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	if(count > pduel->game_field->player[playerid].list_main.size())
 		count = pduel->game_field->player[playerid].list_main.size();
-	field::card_list::reverse_iterator cit = pduel->game_field->player[playerid].list_main.rbegin();
+	auto cit = pduel->game_field->player[playerid].list_main.rbegin();
 	pduel->write_buffer8(MSG_CONFIRM_DECKTOP);
 	pduel->write_buffer8(playerid);
 	pduel->write_buffer8(count);
@@ -1360,7 +1360,7 @@ int32 scriptlib::duel_get_decktop_group(lua_State *L) {
 	uint32 count = lua_tointeger(L, 2);
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
-	field::card_list::reverse_iterator cit = pduel->game_field->player[playerid].list_main.rbegin();
+	auto cit = pduel->game_field->player[playerid].list_main.rbegin();
 	for(uint32 i = 0; i < count && cit != pduel->game_field->player[playerid].list_main.rend(); ++i, ++cit)
 		pgroup->container.insert(*cit);
 	interpreter::group2value(L, pgroup);

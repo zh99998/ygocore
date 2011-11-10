@@ -15,7 +15,6 @@
 #include "effectset.h"
 #include <set>
 #include <map>
-#include <list>
 
 class card;
 class duel;
@@ -55,9 +54,9 @@ struct card_state {
 
 class card {
 public:
+	typedef std::vector<card*> card_vector;
 	typedef std::multimap<uint32, effect*> effect_container;
 	typedef std::set<card*, card_sort> card_set;
-	typedef std::list<card*> card_list;
 	typedef std::map<effect*, effect_container::iterator> effect_indexer;
 	typedef std::set<effect*> effect_relation;
 	typedef std::map<card*, uint32> relation_map;
@@ -84,7 +83,6 @@ public:
 	card* equiping_target;
 	card* pre_equip_target;
 	card* overlay_target;
-	card_list::iterator iter;
 	relation_map relations;
 	counter_map counters;
 	attacker_map announced_cards;
@@ -94,7 +92,7 @@ public:
 	card_set material_cards;
 	card_set effect_target_owner;
 	card_set effect_target_cards;
-	card_list exceed_materials;
+	card_vector exceed_materials;
 	effect_container single_effect;
 	effect_container field_effect;
 	effect_container equip_effect;

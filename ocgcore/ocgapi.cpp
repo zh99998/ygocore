@@ -129,7 +129,7 @@ extern "C" _declspec(dllexport) int32 query_card(ptr pduel, uint8 playerid, uint
 	if(location & LOCATION_ONFIELD)
 		pcard = ptduel->game_field->get_field_card(playerid, location, sequence);
 	else {
-		field::card_list* lst = 0;
+		field::card_vector* lst = 0;
 		if(location == LOCATION_HAND )
 			lst = &ptduel->game_field->player[playerid].list_hand;
 		else if(location == LOCATION_GRAVE )
@@ -143,7 +143,7 @@ extern "C" _declspec(dllexport) int32 query_card(ptr pduel, uint8 playerid, uint
 		if(!lst || sequence > lst->size())
 			pcard = 0;
 		else {
-			field::card_list::iterator cit = lst->begin();
+			auto cit = lst->begin();
 			for(uint32 i = 0; i < sequence; ++i, ++cit);
 			pcard = *cit;
 		}
@@ -216,8 +216,8 @@ extern "C" _declspec(dllexport) int32 query_field_card(ptr pduel, uint8 playerid
 
 		}
 	} else {
-		field::card_list* lst;
-		field::card_list::iterator cit;
+		field::card_vector* lst;
+		field::card_vector::iterator cit;
 		if(location == LOCATION_HAND )
 			lst = &ptduel->game_field->player[playerid].list_hand;
 		else if(location == LOCATION_GRAVE )

@@ -903,9 +903,8 @@ int32 field::process() {
 		if(count > player[target_player].list_main.size())
 			count = player[target_player].list_main.size();
 		if(it->step == 0) {
-			card_list::reverse_iterator clit;
 			core.select_cards.clear();
-			for(i = 0, clit = player[target_player].list_main.rbegin(); i < count; ++i, ++clit)
+			for(auto clit = player[target_player].list_main.rbegin(); i < count; ++i, ++clit)
 				core.select_cards.push_back(*clit);
 			add_process(PROCESSOR_SORT_CARD, 0, 0, 0, sort_player, 0);
 			core.units.begin()->step++;
@@ -918,7 +917,6 @@ int32 field::process() {
 					tc[(int32)returns.bvalue[i]] = core.select_cards[i];
 				for(i = 0; i < count; ++i) {
 					player[target_player].list_main.push_back(tc[count - i - 1]);
-					tc[count - i - 1]->iter = --(player[target_player].list_main.end());
 					tc[count - i - 1]->current.sequence = player[target_player].list_main.size() - 1;
 				}
 			}
@@ -1436,7 +1434,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 			return FALSE;
 		}
 		core.select_cards.clear();
-		for(card_list::iterator cit = player[infos.turn_player].list_hand.begin(); cit != player[infos.turn_player].list_hand.end(); ++cit)
+		for(auto cit = player[infos.turn_player].list_hand.begin(); cit != player[infos.turn_player].list_hand.end(); ++cit)
 			core.select_cards.push_back(*cit);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player, hd - limit + ((hd - limit) << 16));
 		return FALSE;
@@ -2095,9 +2093,8 @@ int32 field::process_idle_command(uint16 step) {
 			if(peffect->is_activateable(infos.turn_player, nil_event))
 				core.select_chains.push_back(newchain);
 		}
-		card_list::iterator clit;
 		core.summonable_cards.clear();
-		for(clit = player[infos.turn_player].list_hand.begin(); clit != player[infos.turn_player].list_hand.end(); ++clit)
+		for(auto clit = player[infos.turn_player].list_hand.begin(); clit != player[infos.turn_player].list_hand.end(); ++clit)
 			if((*clit)->is_can_be_summoned(infos.turn_player, FALSE, 0))
 				core.summonable_cards.push_back(*clit);
 		for(int i = 0; i < 5; ++i) {
@@ -2120,7 +2117,7 @@ int32 field::process_idle_command(uint16 step) {
 		}
 		core.msetable_cards.clear();
 		core.ssetable_cards.clear();
-		for(clit = player[infos.turn_player].list_hand.begin(); clit != player[infos.turn_player].list_hand.end(); ++clit) {
+		for(auto clit = player[infos.turn_player].list_hand.begin(); clit != player[infos.turn_player].list_hand.end(); ++clit) {
 			if((*clit)->is_setable_mzone(infos.turn_player, FALSE, 0))
 				core.msetable_cards.push_back(*clit);
 			if((*clit)->is_setable_szone(infos.turn_player))

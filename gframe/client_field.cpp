@@ -383,7 +383,7 @@ void ClientField::GetChainLocation(int controler, int location, int sequence, ir
 	t->X = 0;
 	t->Y = 0;
 	t->Z = 0;
-	switch(location) {
+	switch((location & 0x7f)) {
 	case LOCATION_DECK: {
 		if (controler == 0) {
 			t->X = 7.3f;

@@ -38,7 +38,7 @@ bool NetManager::CreateHost() {
 	local.sin_addr.s_addr = htonl(INADDR_ANY);
 	local.sin_family = AF_INET;
 	local.sin_port = htons(7913);
-	if(bind(sBHost, (sockaddr*)&local, sizeof(sockaddr)) == SOCKET_ERROR) {
+	if(::bind(sBHost, (sockaddr*)&local, sizeof(sockaddr)) == SOCKET_ERROR) {
 		closesocket(sBHost);
 		return false;
 	}
@@ -48,7 +48,7 @@ bool NetManager::CreateHost() {
 		return false;
 	}
 	local.sin_port = htons(serv_port);
-	if(bind(sListen, (sockaddr*)&local, sizeof(sockaddr)) == SOCKET_ERROR) {
+	if(::bind(sListen, (sockaddr*)&local, sizeof(sockaddr)) == SOCKET_ERROR) {
 		closesocket(sBHost);
 		closesocket(sListen);
 		return false;
@@ -76,7 +76,7 @@ bool NetManager::RefreshHost() {
 	local.sin_family = AF_INET;
 	local.sin_port = htons(7912);
 	hReq.identifier = NETWORK_CLIENT_ID;
-	if(bind(sBClient, (sockaddr*)&local, sizeof(sockaddr)) == SOCKET_ERROR) {
+	if(::bind(sBClient, (sockaddr*)&local, sizeof(sockaddr)) == SOCKET_ERROR) {
 		closesocket(sBClient);
 		return false;
 	}

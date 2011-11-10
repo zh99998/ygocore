@@ -104,8 +104,7 @@ uint32 card::get_infos(byte* buf, int32 query_flag) {
 	}
 	if(query_flag & QUERY_OVERLAY_CARD) {
 		*p++ = exceed_materials.size();
-		card_list::iterator clit;
-		for(clit = exceed_materials.begin(); clit != exceed_materials.end(); ++clit)
+		for(auto clit = exceed_materials.begin(); clit != exceed_materials.end(); ++clit)
 			*p++ = (*clit)->data.code;
 	}
 	if(query_flag & QUERY_COUNTERS) {
@@ -585,23 +584,16 @@ void card::exceed_add(card* mat) {
 void card::exceed_remove(card* mat) {
 	if(mat->overlay_target != this)
 		return;
-	card_list::iterator clit, rm;
-	for(rm = exceed_materials.begin();; ++rm)
-		if(*rm == mat) {
-			clit = rm;
-			clit++;
-			mat->previous.controler = mat->current.controler;
-			mat->previous.location = mat->current.location;
-			mat->previous.sequence = mat->current.sequence;
-			mat->current.controler = PLAYER_NONE;
-			mat->current.location = 0;
-			mat->current.sequence = 0;
-			mat->overlay_target = 0;
-			exceed_materials.erase(rm);
-			break;
-		}
-	for(; clit != exceed_materials.end(); ++clit)
-		(*clit)->current.sequence--;
+	exceed_materials.erase(exceed_materials.begin() + mat->current.sequence);
+	mat->previous.controler = mat->current.controler;
+	mat->previous.location = mat->current.location;
+	mat->previous.sequence = mat->current.sequence;
+	mat->current.controler = PLAYER_NONE;
+	mat->current.location = 0;
+	mat->current.sequence = 0;
+	mat->overlay_target = 0;
+	for(auto clit = exceed_materials.begin(); clit != exceed_materials.end(); ++clit)
+		(*clit)->current.sequence = clit - exceed_materials.begin();
 }
 void card::apply_field_effect() {
 	effect_container::iterator it;

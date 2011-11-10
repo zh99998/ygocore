@@ -489,8 +489,7 @@ int32 scriptlib::card_get_overlay_group(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	group* pgroup = pcard->pduel->new_group();
-	card::card_list::iterator cit;
-	for(cit = pcard->exceed_materials.begin(); cit != pcard->exceed_materials.end(); ++cit)
+	for(auto cit = pcard->exceed_materials.begin(); cit != pcard->exceed_materials.end(); ++cit)
 		pgroup->container.insert(*cit);
 	interpreter::group2value(L, pgroup);
 	return 1;
@@ -517,8 +516,7 @@ int32 scriptlib::card_remove_overlay_card(lua_State *L) {
 	int32 reason = lua_tointeger(L, 5);
 	duel* pduel = pcard->pduel;
 	pduel->game_field->core.select_cards.clear();
-	card::card_list::iterator clit;
-	for(clit = pcard->exceed_materials.begin(); clit != pcard->exceed_materials.end(); ++clit)
+	for(auto clit = pcard->exceed_materials.begin(); clit != pcard->exceed_materials.end(); ++clit)
 		pduel->game_field->core.select_cards.push_back(*clit);
 	pduel->game_field->add_process(PROCESSOR_REMOVEOL_S, 0, (effect*)reason, 0, playerid, min + (max << 16));
 	return lua_yield(L, 0);
