@@ -195,16 +195,14 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 					player[preplayer].list_main.erase(player[preplayer].list_main.begin() + pcard->current.sequence);
 					if (sequence == 0) {		//deck top
 						player[playerid].list_main.push_back(pcard);
-						pcard->current.sequence = player[playerid].list_main.size() - 1;
 					} else if (sequence == 1) {
 						player[playerid].list_main.insert(player[playerid].list_main.begin(), pcard);
-						reset_sequence(playerid, LOCATION_DECK);
 					} else {
 						player[playerid].list_main.push_back(pcard);
-						pcard->current.sequence = player[playerid].list_main.size() - 1;
 						if(!core.shuffle_check_disabled)
 							core.shuffle_deck_check[playerid] = true;
 					}
+					reset_sequence(playerid, LOCATION_DECK);
 					pcard->previous.controler = preplayer;
 					pcard->current.controler = playerid;
 					pduel->write_buffer32(pcard->get_info_location());

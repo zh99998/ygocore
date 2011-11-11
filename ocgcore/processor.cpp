@@ -1680,6 +1680,7 @@ int32 field::process_point_event(int16 step, int32 special, int32 skip_new) {
 		} else {
 			core.used_event.splice(core.used_event.end(), core.point_event);
 			core.chain_limit_p = 0;
+			reset_chain();
 		}
 		return TRUE;
 	}

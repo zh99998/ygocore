@@ -583,6 +583,17 @@ int32 scriptlib::card_get_attack_announced_count(lua_State *L) {
 	lua_pushinteger(L, pcard->announce_count);
 	return 1;
 }
+int32 scriptlib::card_is_direct_attacked(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	bool ret = false;
+	for(auto cit = pcard->attacked_cards.begin(); cit != pcard->attacked_cards.end(); ++cit)
+		if(cit->first == 0)
+			ret = true;
+	lua_pushboolean(L, ret);
+	return 1;
+}
 int32 scriptlib::card_set_card_target(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);

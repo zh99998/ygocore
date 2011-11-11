@@ -93,6 +93,7 @@ public:
 	static int32 card_get_battled_group(lua_State *L);
 	static int32 card_get_battled_group_count(lua_State *L);
 	static int32 card_get_attack_announced_count(lua_State *L);
+	static int32 card_is_direct_attacked(lua_State *L);
 	static int32 card_set_card_target(lua_State *L);
 	static int32 card_get_card_target(lua_State *L);
 	static int32 card_get_card_target_count(lua_State *L);
@@ -295,6 +296,7 @@ public:
 	static int32 duel_check_event(lua_State *L);
 	static int32 duel_raise_event(lua_State *L);
 	static int32 duel_raise_single_event(lua_State *L);
+	static int32 duel_check_timing(lua_State *L);
 	static int32 duel_get_environment(lua_State *L);
 	
 	static int32 duel_win(lua_State *L);

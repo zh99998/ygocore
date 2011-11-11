@@ -707,6 +707,13 @@ int32 scriptlib::duel_raise_single_event(lua_State *L) {
 	pduel->game_field->process_single_event();
 	return lua_yield(L, 0);
 }
+int32 scriptlib::duel_check_timing(lua_State *L) {
+	check_param_count(L, 1);
+	duel* pduel = interpreter::get_duel_info(L);
+	int32 tm = lua_tointeger(L, 1);
+	lua_pushboolean(L, (pduel->game_field->core.hint_timing[0]&tm) || (pduel->game_field->core.hint_timing[1]&tm));
+	return 1;
+}
 int32 scriptlib::duel_get_environment(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	effect_set eset;
