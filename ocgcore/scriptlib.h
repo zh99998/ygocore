@@ -85,6 +85,7 @@ public:
 	static int32 card_get_union_count(lua_State *L);
 	static int32 card_get_overlay_group(lua_State *L);
 	static int32 card_get_overlay_count(lua_State *L);
+	static int32 card_check_remove_overlay_card(lua_State *L);
 	static int32 card_remove_overlay_card(lua_State *L);
 	static int32 card_get_attacked_group(lua_State *L);
 	static int32 card_get_attacked_group_count(lua_State *L);
@@ -167,7 +168,7 @@ public:
 	static int32 card_is_can_remove_counter(lua_State *L);
 	static int32 card_is_can_be_fusion_material(lua_State *L);
 	static int32 card_is_can_be_synchro_material(lua_State *L);
-	static int32 card_is_can_be_exceed_material(lua_State *L);
+	static int32 card_is_can_be_xyz_material(lua_State *L);
 	static int32 card_check_fusion_material(lua_State *L);
 	static int32 card_is_immune_to_effect(lua_State *L);
 	static int32 card_is_can_be_effect_target(lua_State *L);
@@ -376,10 +377,11 @@ public:
 	static int32 duel_set_operation_info(lua_State *L);
 	static int32 duel_get_operation_info(lua_State *L);
 	static int32 duel_get_operation_count(lua_State *L);
-	static int32 duel_get_exceed_material(lua_State *L);
+	static int32 duel_get_xyz_material(lua_State *L);
 	static int32 duel_overlay(lua_State *L);
 	static int32 duel_get_overlay_group(lua_State *L);
 	static int32 duel_get_overlay_count(lua_State *L);
+	static int32 duel_check_remove_overlay_card(lua_State *L);
 	static int32 duel_remove_overlay_card(lua_State *L);
 	
 	static int32 duel_hint(lua_State *L);

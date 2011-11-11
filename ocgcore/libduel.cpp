@@ -1160,52 +1160,54 @@ int32 scriptlib::duel_get_chain_info(lua_State *L) {
 	uint32 flag;
 	uint32 args = lua_gettop(L) - 1;
 	duel* pduel = interpreter::get_duel_info(L);
-	chain ch;
+	chain* ch;
 	if(c == 0 && pduel->game_field->core.continuous_chain.size())
-		ch = pduel->game_field->core.continuous_chain.back();
+		ch = &pduel->game_field->core.continuous_chain.back();
 	else {
 		if(c > pduel->game_field->core.current_chain.size() || c < 1)
 			c = pduel->game_field->core.current_chain.size();
-		ch = pduel->game_field->core.current_chain[c - 1];
+		if(c == 0)
+			return 0;
+		ch = &pduel->game_field->core.current_chain[c - 1];
 	}
 	for(uint32 i = 0; i < args; ++i) {
 		flag = lua_tointeger(L, 2 + i);
 		switch(flag) {
 		case CHAININFO_CHAIN_COUNT:
-			lua_pushinteger(L, ch.chain_count);
+			lua_pushinteger(L, ch->chain_count);
 			break;
 		case CHAININFO_TRIGGERING_EFFECT:
-			interpreter::effect2value(L, ch.triggering_effect);
+			interpreter::effect2value(L, ch->triggering_effect);
 			break;
 		case CHAININFO_TRIGGERING_PLAYER:
-			lua_pushinteger(L, ch.triggering_player);
+			lua_pushinteger(L, ch->triggering_player);
 			break;
 		case CHAININFO_TRIGGERING_CONTROLER:
-			lua_pushinteger(L, ch.triggering_controler);
+			lua_pushinteger(L, ch->triggering_controler);
 			break;
 		case CHAININFO_TRIGGERING_LOCATION:
-			lua_pushinteger(L, ch.triggering_location);
+			lua_pushinteger(L, ch->triggering_location);
 			break;
 		case CHAININFO_TRIGGERING_SEQUENCE:
-			lua_pushinteger(L, ch.triggering_sequence);
+			lua_pushinteger(L, ch->triggering_sequence);
 			break;
 		case CHAININFO_TARGET_CARDS:
-			interpreter::group2value(L, ch.target_cards);
+			interpreter::group2value(L, ch->target_cards);
 			break;
 		case CHAININFO_TARGET_PLAYER:
-			lua_pushinteger(L, ch.target_player);
+			lua_pushinteger(L, ch->target_player);
 			break;
 		case CHAININFO_TARGET_PARAM:
-			lua_pushinteger(L, ch.target_param);
+			lua_pushinteger(L, ch->target_param);
 			break;
 		case CHAININFO_DISABLE_REASON:
-			interpreter::effect2value(L, ch.disable_reason);
+			interpreter::effect2value(L, ch->disable_reason);
 			break;
 		case CHAININFO_DISABLE_PLAYER:
-			lua_pushinteger(L, ch.disable_player);
+			lua_pushinteger(L, ch->disable_player);
 			break;
 		case CHAININFO_CHAIN_ID:
-			lua_pushinteger(L, ch.chain_id);
+			lua_pushinteger(L, ch->chain_id);
 			break;
 		default:
 			lua_pushnil(L);
@@ -1215,16 +1217,16 @@ int32 scriptlib::duel_get_chain_info(lua_State *L) {
 	return args;
 }
 int32 scriptlib::duel_get_first_target(lua_State *L) {
-	chain ch;
+	chain* ch;
 	duel* pduel = interpreter::get_duel_info(L);
 	if(pduel->game_field->core.continuous_chain.size())
-		ch = pduel->game_field->core.continuous_chain.back();
+		ch = &pduel->game_field->core.continuous_chain.back();
 	else if(pduel->game_field->core.current_chain.size())
-		ch = pduel->game_field->core.current_chain.back();
+		ch = &pduel->game_field->core.current_chain.back();
 	else return 0;
-	if(!ch.target_cards || ch.target_cards->container.size() == 0)
+	if(!ch->target_cards || ch->target_cards->container.size() == 0)
 		return 0;
-	interpreter::card2value(L, *ch.target_cards->container.begin());
+	interpreter::card2value(L, *ch->target_cards->container.begin());
 	return 1;
 }
 int32 scriptlib::duel_get_current_phase(lua_State *L) {
@@ -2014,6 +2016,8 @@ int32 scriptlib::duel_set_operation_info(lua_State *L) {
 			pduel->delete_group(omit->second.op_cards);
 		clit->opinfos[cate] = opt;
 	} else {
+		if (pduel->game_field->core.current_chain.size() == 0)
+			return 0;
 		if(ct < 1 || ct > pduel->game_field->core.current_chain.size()) {
 			field::chain_array::reverse_iterator cait = pduel->game_field->core.current_chain.rbegin();
 			chain::opmap::iterator omit = cait->opinfos.find(cate);
@@ -2021,11 +2025,11 @@ int32 scriptlib::duel_set_operation_info(lua_State *L) {
 				pduel->delete_group(omit->second.op_cards);
 			cait->opinfos[cate] = opt;
 		} else {
-			chain ch = pduel->game_field->core.current_chain[ct - 1];
-			chain::opmap::iterator omit = ch.opinfos.find(cate);
-			if(omit != ch.opinfos.end() && omit->second.op_cards)
+			chain* ch = &pduel->game_field->core.current_chain[ct - 1];
+			chain::opmap::iterator omit = ch->opinfos.find(cate);
+			if(omit != ch->opinfos.end() && omit->second.op_cards)
 				pduel->delete_group(omit->second.op_cards);
-			ch.opinfos[cate] = opt;
+			ch->opinfos[cate] = opt;
 		}
 	}
 	return 0;
@@ -2093,7 +2097,7 @@ int32 scriptlib::duel_get_operation_count(lua_State *L) {
 	}
 	return 1;
 }
-int32 scriptlib::duel_get_exceed_material(lua_State *L) {
+int32 scriptlib::duel_get_xyz_material(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* scard = *(card**) lua_touserdata(L, 1);
@@ -2147,6 +2151,19 @@ int32 scriptlib::duel_get_overlay_count(lua_State *L) {
 	lua_pushinteger(L, pduel->game_field->get_overlay_count(rplayer, s, o));
 	return 1;
 }
+int32 scriptlib::duel_check_remove_overlay_card(lua_State *L) {
+	check_param_count(L, 5);
+	int32 playerid = lua_tointeger(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	uint32 s = lua_tointeger(L, 2);
+	uint32 o = lua_tointeger(L, 3);
+	int32 count = lua_tointeger(L, 4);
+	int32 reason = lua_tointeger(L, 5);
+	duel* pduel = interpreter::get_duel_info(L);
+	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, 0, s, o, count, reason));
+	return 1;
+}
 int32 scriptlib::duel_remove_overlay_card(lua_State *L) {
 	check_action_permission(L);
 	check_param_count(L, 6);
@@ -2159,15 +2176,7 @@ int32 scriptlib::duel_remove_overlay_card(lua_State *L) {
 	int32 max = lua_tointeger(L, 5);
 	int32 reason = lua_tointeger(L, 6);
 	duel* pduel = interpreter::get_duel_info(L);
-	field::card_set cset;
-	pduel->game_field->get_overlay_group(playerid, s, o, &cset);
-	if(cset.empty())
-		return 0;
-	pduel->game_field->core.select_cards.clear();
-	card::card_set::iterator cit;
-	for(cit = cset.begin(); cit != cset.end(); ++cit)
-		pduel->game_field->core.select_cards.push_back(*cit);
-	pduel->game_field->add_process(PROCESSOR_REMOVEOL_S, 0, (effect*)reason, 0, playerid, min + (max << 16));
+	pduel->game_field->remove_overlay_card(reason, 0, playerid, s, o, min, max);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_hint(lua_State * L) {

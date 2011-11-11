@@ -961,7 +961,7 @@ void field::get_exceed_material(card* scard, card_set* material) {
 	for(int i = 0; i < 5; ++i) {
 		pcard = player[1 - playerid].list_mzone[i];
 		if(pcard && pcard->is_position(POS_FACEUP) && pcard->is_can_be_exceed_material(scard)
-		        && pcard->is_affected_by_effect(EFFECT_EXCEED_MATERIAL))
+		        && pcard->is_affected_by_effect(EFFECT_XYZ_MATERIAL))
 			material->insert(pcard);
 	}
 }
@@ -973,7 +973,7 @@ void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset) {
 			continue;
 		for(int i = 0; i < 5; ++i) {
 			pcard = player[self].list_mzone[i];
-			if(pcard && pcard->exceed_materials.size())
+			if(pcard && !pcard->is_status(STATUS_SUMMONING) && pcard->exceed_materials.size())
 				for(auto clit = pcard->exceed_materials.begin(); clit != pcard->exceed_materials.end(); ++clit)
 					pset->insert(*clit);
 		}
@@ -988,8 +988,9 @@ int32 field::get_overlay_count(uint8 self, uint8 s, uint8 o) {
 		if(!c)
 			continue;
 		for(int i = 0; i < 5; ++i) {
-			if(player[self].list_mzone[i])
-				count += player[self].list_mzone[i]->exceed_materials.size();
+			card* pcard = player[self].list_mzone[i];
+			if(pcard && !pcard->is_status(STATUS_SUMMONING))
+				count += pcard->exceed_materials.size();
 		}
 		self = 1 - self;
 		c = o;
@@ -1392,6 +1393,26 @@ int32 field::is_player_can_remove_counter(uint8 playerid, card * pcard, uint8 s,
 	e.event_cards = 0;
 	e.event_player = playerid;
 	e.event_value = count;
+	e.reason = reason;
+	e.reason_effect = core.reason_effect;
+	e.reason_player = playerid;
+	for (; pr.first != pr.second; ++pr.first) {
+		peffect = pr.first->second;
+		if(peffect->is_activateable(peffect->get_handler_player(), e))
+			return TRUE;
+	}
+	return FALSE;
+}
+int32 field::is_player_can_remove_overlay_card(uint8 playerid, card* pcard, uint8 s, uint8 o, uint16 min, uint32 reason) {
+	if((pcard && pcard->exceed_materials.size() >= min) || (!pcard && get_overlay_count(playerid, s, o) >= min))
+		return TRUE;
+	pair<effect_container::iterator, effect_container::iterator> pr;
+	pr = effects.continuous_effect.equal_range(EFFECT_OVERLAY_REMOVE_REPLACE);
+	effect* peffect;
+	event e;
+	e.event_cards = 0;
+	e.event_player = playerid;
+	e.event_value = min;
 	e.reason = reason;
 	e.reason_effect = core.reason_effect;
 	e.reason_player = playerid;

@@ -337,6 +337,7 @@ public:
 	int32 is_player_can_spsummon_token(uint8 playerid, uint8 toplayer, uint8 sumpos, card_data* pdata);
 	int32 is_player_can_release(uint8 playerid, card* pcard);
 	int32 is_player_can_remove_counter(uint8 playerid, card* pcard, uint8 s, uint8 o, uint16 countertype, uint16 count, uint32 reason);
+	int32 is_player_can_remove_overlay_card(uint8 playerid, card* pcard, uint8 s, uint8 o, uint16 count, uint32 reason);
 	int32 is_player_can_send_to_grave(uint8 playerid, card* pcard);
 	int32 is_player_can_send_to_hand(uint8 playerid, card* pcard);
 	int32 is_player_can_send_to_deck(uint8 playerid, card* pcard);
@@ -384,6 +385,7 @@ public:
 	void change_target_player(uint8 chaincount, uint8 playerid);
 	void change_target_param(uint8 chaincount, int32 param);
 	void remove_counter(uint32 reason, card* pcard, uint32 rplayer, uint32 s, uint32 o, uint32 countertype, uint32 count);
+	void remove_overlay_card(uint32 reason, card* pcard, uint32 rplayer, uint32 s, uint32 o, uint16 min, uint16 max);
 	void get_control(effect* reason_effect, uint32 reason_player, card* pcard, uint32 playerid, uint32 reset_phase, uint32 reset_count);
 	void swap_control(effect* reason_effect, uint32 reason_player, card* pcard1, card* pcard2, uint32 reset_phase, uint32 reset_count);
 	void equip(uint32 equip_player, card* equip_card, card* target, uint32 up);
@@ -406,6 +408,7 @@ public:
 	void change_position(card* target, effect* reason_effect, uint32 reason_player, uint32 npos, uint32 noflip, uint32 enable = FALSE);
 
 	int32 remove_counter(uint16 step, uint32 reason, card* pcard, uint8 rplayer, uint8 s, uint8 o, uint16 countertype, uint16 count);
+	int32 remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 rplayer, uint8 s, uint8 o, uint16 min, uint16 max);
 	int32 get_control(uint16 step, effect* reason_effect, uint8 reason_player, card* pcard, uint8 playerid, uint8 reset_phase, uint8 reset_count);
 	int32 swap_control(uint16 step, effect* reason_effect, uint8 reason_player, card* pcard1, card* pcard2, uint8 reset_phase, uint8 reset_count);
 	int32 equip(uint16 step, uint8 equip_player, card* equip_card, card* target, uint32 up);

@@ -94,6 +94,9 @@ void field::change_target_param(uint8 chaincount, int32 param) {
 void field::remove_counter(uint32 reason, card* pcard, uint32 rplayer, uint32 s, uint32 o, uint32 countertype, uint32 count) {
 	add_process(PROCESSOR_REMOVE_COUNTER, 0, (effect*) reason, (group*)pcard, (rplayer << 16) + (s << 8) + o, countertype + (count << 16));
 }
+void field::remove_overlay_card(uint32 reason, card* pcard, uint32 rplayer, uint32 s, uint32 o, uint16 min, uint16 max) {
+	add_process(PROCESSOR_REMOVEOL_S, 0, (effect*) reason, (group*)pcard, (rplayer << 16) + (s << 8) + o, (max << 16) + min);
+}
 void field::get_control(effect* reason_effect, uint32 reason_player, card* pcard, uint32 playerid, uint32 reset_phase, uint32 reset_count) {
 	add_process(PROCESSOR_GET_CONTROL, 0, reason_effect, (group*)pcard, 0, (reason_player << 24) + (playerid << 16) + (reset_phase << 8) + reset_count);
 }
@@ -628,6 +631,92 @@ int32 field::remove_counter(uint16 step, uint32 reason, card* pcard, uint8 rplay
 	case 3: {
 		raise_event((card*)0, EVENT_REMOVE_COUNTER + countertype, core.reason_effect, reason, rplayer, rplayer, count);
 		process_instant_event();
+		return FALSE;
+	}
+	case 4: {
+		returns.ivalue[0] = 1;
+		return TRUE;
+	}
+	}
+	return TRUE;
+}
+int32 field::remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 rplayer, uint8 s, uint8 o, uint16 min, uint16 max) {
+	switch(step) {
+	case 0: {
+		core.select_options.clear();
+		core.select_effects.clear();
+		if((pcard && pcard->exceed_materials.size() >= min) || (!pcard && get_overlay_count(rplayer, s, o) >= min)) {
+			core.select_options.push_back(12);
+			core.select_effects.push_back(0);
+		}
+		pair<effect_container::iterator, effect_container::iterator> pr;
+		pr = effects.continuous_effect.equal_range(EFFECT_OVERLAY_REMOVE_REPLACE);
+		effect* peffect;
+		event e;
+		e.event_cards = 0;
+		e.event_player = rplayer;
+		e.event_value = min;
+		e.reason = reason;
+		e.reason_effect = core.reason_effect;
+		e.reason_player = rplayer;
+		for (; pr.first != pr.second; ++pr.first) {
+			peffect = pr.first->second;
+			if(peffect->is_activateable(peffect->get_handler_player(), e)) {
+				core.select_options.push_back(peffect->description);
+				core.select_effects.push_back(peffect);
+			}
+		}
+		returns.ivalue[0] = 0;
+		if(core.select_options.size() == 0)
+			return TRUE;
+		if(core.select_options.size() == 1)
+			returns.ivalue[0] = 0;
+		else if(core.select_effects[0] == 0 && core.select_effects.size() == 2)
+			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 0);
+		else
+			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, rplayer, 0);
+		return FALSE;
+	}
+	case 1: {
+		effect* peffect = core.select_effects[returns.ivalue[0]];
+		if(peffect) {
+			event e;
+			e.event_cards = 0;
+			e.event_player = rplayer;
+			e.event_value = min + (max << 16);;
+			e.reason = reason;
+			e.reason_effect = core.reason_effect;
+			e.reason_player = rplayer;
+			core.sub_solving_event.push_back(e);
+			add_process(PROCESSOR_SOLVE_CONTINUOUS, 0, peffect, 0, rplayer, 0);
+			core.units.begin()->step = 3;
+			return FALSE;
+		}
+		pduel->game_field->core.select_cards.clear();
+		if(pcard) {
+			for(auto cit = pcard->exceed_materials.begin(); cit != pcard->exceed_materials.end(); ++cit)
+				pduel->game_field->core.select_cards.push_back(*cit);
+		} else {
+			card_set cset;
+			pduel->game_field->get_overlay_group(rplayer, s, o, &cset);
+			for(auto cit = cset.begin(); cit != cset.end(); ++cit)
+				pduel->game_field->core.select_cards.push_back(*cit);
+		}
+		pduel->write_buffer8(MSG_HINT);
+		pduel->write_buffer8(HINT_SELECTMSG);
+		pduel->write_buffer8(rplayer);
+		pduel->write_buffer32(519);
+		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, rplayer, min + (max << 16));
+		return FALSE;
+	}
+	case 2: {
+		card_set cset;
+		for(int32 i = 0; i < returns.bvalue[0]; ++i)
+			cset.insert(core.select_cards[returns.bvalue[i + 1]]);
+		send_to(&cset, core.reason_effect, reason, rplayer, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		return FALSE;
+	}
+	case 3: {
 		return FALSE;
 	}
 	case 4: {

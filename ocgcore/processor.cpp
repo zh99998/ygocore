@@ -927,19 +927,11 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_REMOVEOL_S: {
-		if(it->step == 0) {
-			pduel->write_buffer8(MSG_HINT);
-			pduel->write_buffer8(HINT_SELECTMSG);
-			pduel->write_buffer8(it->arg1);
-			pduel->write_buffer32(519);
-			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, it->arg1, it->arg2);
-			core.units.begin()->step ++;
-		} else {
-			card_set cset;
-			for(int32 i = 0; i < returns.bvalue[0]; ++i)
-				cset.insert(core.select_cards[returns.bvalue[i + 1]]);
-			send_to(&cset, core.reason_effect, (uint32)it->peffect, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		if(remove_overlay_card(it->step, (uint32)(it->peffect), (card*)(it->ptarget), it->arg1 >> 16,
+		                       (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
 			core.units.pop_front();
+		} else {
+			core.units.begin()->step++;
 		}
 		return pduel->bufferlen;
 	}

@@ -1912,7 +1912,7 @@ int32 card::is_can_be_exceed_material(card* scard) {
 	if(!(get_type()&TYPE_MONSTER))
 		return FALSE;
 	effect_set eset;
-	filter_effect(EFFECT_CANNOT_BE_EXCEED_MATERIAL, &eset);
+	filter_effect(EFFECT_CANNOT_BE_XYZ_MATERIAL, &eset);
 	for(int32 i = 0; i < eset.count; ++i)
 		if(eset[i]->get_value(scard))
 			return FALSE;

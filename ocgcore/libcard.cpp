@@ -501,13 +501,24 @@ int32 scriptlib::card_get_overlay_count(lua_State *L) {
 	lua_pushinteger(L, pcard->exceed_materials.size());
 	return 1;
 }
+int32 scriptlib::card_check_remove_overlay_card(lua_State *L) {
+	check_param_count(L, 4);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	int32 playerid = lua_tointeger(L, 2);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	int32 count = lua_tointeger(L, 3);
+	int32 reason = lua_tointeger(L, 4);
+	duel* pduel = pcard->pduel;
+	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, pcard, 0, 0, count, reason));
+	return 1;
+}
 int32 scriptlib::card_remove_overlay_card(lua_State *L) {
 	check_action_permission(L);
 	check_param_count(L, 5);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	if(pcard->exceed_materials.empty())
-		return 0;
 	int32 playerid = lua_tointeger(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -515,10 +526,7 @@ int32 scriptlib::card_remove_overlay_card(lua_State *L) {
 	int32 max = lua_tointeger(L, 4);
 	int32 reason = lua_tointeger(L, 5);
 	duel* pduel = pcard->pduel;
-	pduel->game_field->core.select_cards.clear();
-	for(auto clit = pcard->exceed_materials.begin(); clit != pcard->exceed_materials.end(); ++clit)
-		pduel->game_field->core.select_cards.push_back(*clit);
-	pduel->game_field->add_process(PROCESSOR_REMOVEOL_S, 0, (effect*)reason, 0, playerid, min + (max << 16));
+	pduel->game_field->remove_overlay_card(reason, pcard, playerid, 0, 0, min, max);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::card_get_attacked_group(lua_State *L) {
@@ -1386,7 +1394,7 @@ int32 scriptlib::card_is_can_be_synchro_material(lua_State *L) {
 	lua_pushboolean(L, pcard->is_can_be_synchro_material(scard));
 	return 1;
 }
-int32 scriptlib::card_is_can_be_exceed_material(lua_State *L) {
+int32 scriptlib::card_is_can_be_xyz_material(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
