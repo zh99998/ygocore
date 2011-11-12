@@ -970,7 +970,15 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					mainGame->SetResponseB(selected_cards.size() + 1);
 					mainGame->localAction.Set();
 				} else if (max >= select_min) {
-					select_ready = true;
+					if(selected_cards.size() == selectable_cards.size()) {
+						mainGame->dInfo.responseB[0] = selected_cards.size();
+						for (int i = 0; i < selected_cards.size(); ++i)
+							mainGame->dInfo.responseB[i + 1] = selected_cards[i]->select_seq;
+						mainGame->SetResponseB(selected_cards.size() + 1);
+						mainGame->localAction.Set();
+					} else {
+						select_ready = true;
+					}
 				} else {
 					select_ready = false;
 				}

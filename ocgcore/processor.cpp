@@ -3546,12 +3546,12 @@ int32 field::solve_continuous(uint16 step, effect * peffect, uint8 triggering_pl
 	case 2: {
 		if(!peffect->operation)
 			return FALSE;
+		peffect->dec_count();
 		core.sub_solving_event.push_back(*core.solving_event.begin());
 		add_process(PROCESSOR_EXECUTE_OPERATION, 0, peffect, 0, triggering_player, 0);
 		return FALSE;
 	}
 	case 3: {
-		peffect->dec_count();
 		if(core.continuous_chain.rbegin()->target_cards)
 			pduel->delete_group(core.continuous_chain.rbegin()->target_cards);
 		chain::opmap::iterator oit;

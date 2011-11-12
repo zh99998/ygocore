@@ -2051,18 +2051,24 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 					mainGame->WaitFrameSignal(5);
 				} else {
 					if (cl == 0x4 && pcard->overlayed.size() > 0) {
+						mainGame->gMutex.Lock();
 						for (int i = 0; i < pcard->overlayed.size(); ++i)
 							mainGame->dField.MoveCard(pcard->overlayed[i], 10);
+						mainGame->gMutex.Unlock();
 						mainGame->WaitFrameSignal(10);
 					}
 					if (cl == 0x2) {
+						mainGame->gMutex.Lock();
 						for (int i = 0; i < mainGame->dField.hand[cc].size(); ++i)
 							mainGame->dField.MoveCard(mainGame->dField.hand[cc][i], 10);
+						mainGame->gMutex.Unlock();
 					} else {
+						mainGame->gMutex.Lock();
 						mainGame->dField.MoveCard(pcard, 10);
 						if (pl == 0x2)
 							for (int i = 0; i < mainGame->dField.hand[pc].size(); ++i)
 								mainGame->dField.MoveCard(mainGame->dField.hand[pc][i], 10);
+						mainGame->gMutex.Unlock();
 					}
 					mainGame->WaitFrameSignal(10);
 				}
@@ -2080,10 +2086,12 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 				pcard->location = 0x80;
 				pcard->sequence = olcard->overlayed.size() - 1;
 				if (olcard->location == 0x4) {
+					mainGame->gMutex.Lock();
 					mainGame->dField.MoveCard(pcard, 10);
 					if (pl == 0x2)
 						for (int i = 0; i < mainGame->dField.hand[pc].size(); ++i)
 							mainGame->dField.MoveCard(mainGame->dField.hand[pc][i], 10);
+					mainGame->gMutex.Unlock();
 					mainGame->WaitFrameSignal(10);
 				}
 			} else if (!(cl & 0x80)) {
@@ -2095,13 +2103,15 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 				pcard->position = cp;
 				mainGame->dField.AddCard(pcard, cc, cl, cs);
 				mainGame->dField.overlay_cards.erase(pcard);
-				mainGame->gMutex.Unlock();
 				for (int i = 0; i < olcard->overlayed.size(); ++i) {
 					olcard->overlayed[i]->sequence = i;
 					mainGame->dField.MoveCard(olcard->overlayed[i], 2);
 				}
+				mainGame->gMutex.Unlock();
 				mainGame->WaitFrameSignal(10);
+				mainGame->gMutex.Lock();
 				mainGame->dField.MoveCard(pcard, 10);
+				mainGame->gMutex.Unlock();
 				mainGame->WaitFrameSignal(10);
 			} else {
 				ClientCard* olcard1 = mainGame->dField.GetCard(pc, pl & 0x7f, ps);
@@ -2113,12 +2123,12 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 				pcard->sequence = olcard2->overlayed.size() - 1;
 				pcard->location = 0x80;
 				pcard->overlayTarget = olcard2;
-				mainGame->gMutex.Unlock();
 				for (int i = 0; i < olcard1->overlayed.size(); ++i) {
 					olcard1->overlayed[i]->sequence = i;
 					mainGame->dField.MoveCard(olcard1->overlayed[i], 2);
 				}
 				mainGame->dField.MoveCard(pcard, 10);
+				mainGame->gMutex.Unlock();
 				mainGame->WaitFrameSignal(10);
 			}
 		}
@@ -2188,6 +2198,10 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->dField.AddCard(pc2, c1, l1, s1);
 		mainGame->dField.MoveCard(pc1, 10);
 		mainGame->dField.MoveCard(pc2, 10);
+		for (int i = 0; i < pc1->overlayed.size(); ++i)
+			mainGame->dField.MoveCard(pc1->overlayed[i], 10);
+		for (int i = 0; i < pc2->overlayed.size(); ++i)
+			mainGame->dField.MoveCard(pc2->overlayed[i], 10);
 		mainGame->gMutex.Unlock();
 		mainGame->WaitFrameSignal(10);
 		return true;
