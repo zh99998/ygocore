@@ -432,7 +432,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_REMOVE_COUNTER: {
-		if (remove_counter(it->step, (uint32)it->peffect, (card*)it->ptarget, (it->arg1 >> 16) & 0xff, (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
+		if (remove_counter(it->step, (ptr)it->peffect, (card*)it->ptarget, (it->arg1 >> 16) & 0xff, (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
 			pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
 			core.units.pop_front();
 		} else
@@ -863,7 +863,7 @@ int32 field::process() {
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(it->arg1);
-			if(((uint32)it->ptarget) & REASON_DISCARD)
+			if(((ptr)it->ptarget) & REASON_DISCARD)
 				pduel->write_buffer32(501);
 			else
 				pduel->write_buffer32(504);
@@ -877,7 +877,7 @@ int32 field::process() {
 				cset.insert(pcard);
 			}
 			if(cset.size())
-				send_to(&cset, core.reason_effect, (uint32)(it->ptarget), core.reason_player, it->arg1, LOCATION_GRAVE, 0, POS_FACEUP);
+				send_to(&cset, core.reason_effect, (ptr)(it->ptarget), core.reason_player, it->arg1, LOCATION_GRAVE, 0, POS_FACEUP);
 			else
 				returns.ivalue[0] = 0;
 			core.units.begin()->step++;
@@ -927,7 +927,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_REMOVEOL_S: {
-		if(remove_overlay_card(it->step, (uint32)(it->peffect), (card*)(it->ptarget), it->arg1 >> 16,
+		if(remove_overlay_card(it->step, (ptr)(it->peffect), (card*)(it->ptarget), it->arg1 >> 16,
 		                       (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
 			core.units.pop_front();
 		} else {
@@ -3633,7 +3633,7 @@ int32 field::solve_chain(uint16 step, uint32 skip_new) {
 		effect* peffect = cait->triggering_effect;
 		if((peffect->type & EFFECT_TYPE_ACTIVATE) && (peffect->handler->current.location == LOCATION_SZONE))
 			peffect->handler->set_status(STATUS_ACTIVATED, TRUE);
-		peffect->operation = (int32)core.units.begin()->peffect;
+		peffect->operation = (ptr)core.units.begin()->peffect;
 		if(core.special_summoning.size())
 			special_summon_complete(peffect, cait->triggering_player);
 		return FALSE;

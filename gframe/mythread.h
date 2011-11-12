@@ -14,6 +14,18 @@ public:
 
 #else // _WIN32
 
+#include <pthread.h>
+
+class Thread {
+public:
+	static void NewThread(int (*thread_func)(void*), void* param) {
+		pthread_t thread;
+		pthread_attr_t attr;
+		pthread_attr_init(&attr);
+		pthread_create(&thread, &attr, (void * (*)(void *))thread_func, param);
+	}
+};
+
 #endif // _WIN32
 
 #endif // THREAD_H

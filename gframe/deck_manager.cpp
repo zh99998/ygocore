@@ -49,7 +49,7 @@ void DeckManager::LoadLFList() {
 		}
 		fclose(fp);
 	}
-	swprintf(cur.listName, L"无限制");
+	myswprintf(cur.listName, L"无限制");
 	cur.content = new std::unordered_map<int, int>;
 	_lfList.push_back(cur);
 }
@@ -106,13 +106,20 @@ void DeckManager::LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec) {
 			deck.side.push_back(mainGame->dataManager.GetCodePointer(code));
 	}
 }
+
 bool DeckManager::LoadDeck(const wchar_t* file) {
 	int sp = 0, ct = 0, mainc = 0, sidec = 0, code;
 	wchar_t deck[64];
-	swprintf(deck, L"./deck/%s.ydk", file);
+	myswprintf(deck, L"./deck/%ls.ydk", file);
 	int cardlist[128];
 	bool is_side = false;
+#ifdef WIN32
 	FILE* fp = _wfopen(deck, L"r");
+#else
+	char deckfn[256];
+	DataManager::EncodeUTF8(deck, deckfn);
+	FILE* fp = fopen(deckfn, "r");
+#endif
 	if(!fp)
 		return false;
 	char linebuf[256];
@@ -142,8 +149,14 @@ bool DeckManager::LoadDeck(const wchar_t* file) {
 }
 void DeckManager::SaveDeck(Deck& deck, const wchar_t* name) {
 	wchar_t file[64];
-	swprintf(file, L"./deck/%s.ydk", name);
+	myswprintf(file, L"./deck/%ls.ydk", name);
+#ifdef WIN32
 	FILE* fp = _wfopen(file, L"w");
+#else
+	char filefn[256];
+	DataManager::EncodeUTF8(file, filefn);
+	FILE* fp = fopen(filefn, "r");
+#endif
 	if(!fp)
 		return;
 	fprintf(fp, "#created by ...\n#main\n");

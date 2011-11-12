@@ -69,7 +69,7 @@ void ClientCard::UpdateInfo(char* buf, int flag) {
 			atkstring[0] = '?';
 			atkstring[1] = 0;
 		} else
-			swprintf(atkstring, L"%d", attack);
+			myswprintf(atkstring, L"%d", attack);
 	}
 	if(flag & QUERY_DEFENCE) {
 		defence = NetManager::ReadInt32(buf);
@@ -77,7 +77,7 @@ void ClientCard::UpdateInfo(char* buf, int flag) {
 			defstring[0] = '?';
 			defstring[1] = 0;
 		} else
-			swprintf(defstring, L"%d", defence);
+			myswprintf(defstring, L"%d", defence);
 	}
 	if(flag & QUERY_BASE_ATTACK)
 		base_attack = NetManager::ReadInt32(buf);

@@ -108,7 +108,7 @@ bool DataManager::LoadDates(const char* file) {
 	}
 	fclose(fp);
 	for(int i = 0; i < 255; ++i)
-		swprintf(numStrings[i], L"%d", i);
+		myswprintf(numStrings[i], L"%d", i);
 	return true;
 }
 bool DataManager::Error(sqlite3* pDB, sqlite3_stmt* pStmt) {

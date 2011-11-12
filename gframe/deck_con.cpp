@@ -281,7 +281,7 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 					if(it != mainGame->dataManager._datas.end()) {
 						results.clear();
 						results.push_back(it);
-						swprintf(result_string, L"1");
+						myswprintf(result_string, L"1");
 						mainGame->scrFilter->setVisible(false);
 						mainGame->scrFilter->setPos(0);
 						mainGame->cbCardClass->setSelected(0);
@@ -341,12 +341,18 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 					mainGame->ebStar->setEnabled(true);
 					mainGame->cbCardType2->clear();
 					mainGame->cbCardType2->addItem(L"(无)", 0);
-					mainGame->cbCardType2->addItem(L"通常", 0x11);
-					mainGame->cbCardType2->addItem(L"效果", 0x21);
-					mainGame->cbCardType2->addItem(L"融合", 0x41);
-					mainGame->cbCardType2->addItem(L"仪式", 0x81);
-					mainGame->cbCardType2->addItem(L"同调", 0x2001);
-					mainGame->cbCardType2->addItem(L"超量", 0x800001);
+					mainGame->cbCardType2->addItem(L"通常", TYPE_MONSTER + TYPE_NORMAL);
+					mainGame->cbCardType2->addItem(L"效果", TYPE_MONSTER + TYPE_EFFECT);
+					mainGame->cbCardType2->addItem(L"融合", TYPE_MONSTER + TYPE_FUSION);
+					mainGame->cbCardType2->addItem(L"仪式", TYPE_MONSTER + TYPE_RITUAL);
+					mainGame->cbCardType2->addItem(L"同调", TYPE_MONSTER + TYPE_SYNCHRO);
+					mainGame->cbCardType2->addItem(L"超量", TYPE_MONSTER + TYPE_XYZ);
+					mainGame->cbCardType2->addItem(L"调整", TYPE_MONSTER + TYPE_TUNER);
+					mainGame->cbCardType2->addItem(L"二重", TYPE_MONSTER + TYPE_DUAL);
+					mainGame->cbCardType2->addItem(L"同盟", TYPE_MONSTER + TYPE_UNION);
+					mainGame->cbCardType2->addItem(L"灵魂", TYPE_MONSTER + TYPE_SPIRIT);
+					mainGame->cbCardType2->addItem(L"反转", TYPE_MONSTER + TYPE_FLIP);
+					mainGame->cbCardType2->addItem(L"卡通", TYPE_MONSTER + TYPE_TOON);
 					break;
 				}
 				case 2: {
@@ -358,12 +364,12 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 					mainGame->ebStar->setEnabled(false);
 					mainGame->cbCardType2->clear();
 					mainGame->cbCardType2->addItem(L"(无)", 0);
-					mainGame->cbCardType2->addItem(L"通常", 0x2);
-					mainGame->cbCardType2->addItem(L"速攻", 0x10002);
-					mainGame->cbCardType2->addItem(L"永续", 0x20002);
-					mainGame->cbCardType2->addItem(L"仪式", 0x82);
-					mainGame->cbCardType2->addItem(L"装备", 0x40002);
-					mainGame->cbCardType2->addItem(L"场地", 0x80002);
+					mainGame->cbCardType2->addItem(L"通常", TYPE_SPELL);
+					mainGame->cbCardType2->addItem(L"速攻", TYPE_SPELL + TYPE_QUICKPLAY);
+					mainGame->cbCardType2->addItem(L"永续", TYPE_SPELL + TYPE_CONTINUOUS);
+					mainGame->cbCardType2->addItem(L"仪式", TYPE_SPELL + TYPE_RITUAL);
+					mainGame->cbCardType2->addItem(L"装备", TYPE_SPELL + TYPE_EQUIP);
+					mainGame->cbCardType2->addItem(L"场地", TYPE_SPELL + TYPE_FIELD);
 					break;
 				}
 				case 3: {
@@ -375,9 +381,9 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 					mainGame->ebStar->setEnabled(false);
 					mainGame->cbCardType2->clear();
 					mainGame->cbCardType2->addItem(L"(无)", 0);
-					mainGame->cbCardType2->addItem(L"通常", 0x4);
-					mainGame->cbCardType2->addItem(L"永续", 0x20004);
-					mainGame->cbCardType2->addItem(L"反击", 0x100004);
+					mainGame->cbCardType2->addItem(L"通常", TYPE_TRAP);
+					mainGame->cbCardType2->addItem(L"永续", TYPE_TRAP + TYPE_CONTINUOUS);
+					mainGame->cbCardType2->addItem(L"反击", TYPE_TRAP + TYPE_COUNTER);
 					break;
 				}
 				}
@@ -577,10 +583,10 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 					wchar_t formatBuffer[64];
 					mainGame->dataManager.GetData(hovered_code, &cd);
 					mainGame->imgCard->setImage(mainGame->imageManager.GetTexture(hovered_code));
-					swprintf(formatBuffer, L"%s[%d]", mainGame->dataManager.GetName(hovered_code), hovered_code);
+					myswprintf(formatBuffer, L"%ls[%d]", mainGame->dataManager.GetName(hovered_code), hovered_code);
 					mainGame->stName->setText(formatBuffer);
 					if(cd.type & TYPE_MONSTER) {
-						swprintf(formatBuffer, L"[%s] %s/%s", DataManager::FormatType(cd.type), DataManager::FormatRace(cd.race), DataManager::FormatAttribute(cd.attribute));
+						myswprintf(formatBuffer, L"[%ls] %ls/%ls", DataManager::FormatType(cd.type), DataManager::FormatRace(cd.race), DataManager::FormatAttribute(cd.attribute));
 						mainGame->stInfo->setText(formatBuffer);
 						formatBuffer[0] = L'[';
 						for(int i = 1; i <= cd.level; ++i)
@@ -588,17 +594,17 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 						formatBuffer[cd.level + 1] = L']';
 						formatBuffer[cd.level + 2] = L' ';
 						if(cd.attack < 0 && cd.defence < 0)
-							swprintf(&formatBuffer[cd.level + 3], L"?/?");
+							myswprintf(&formatBuffer[cd.level + 3], L"?/?");
 						else if(cd.attack < 0)
-							swprintf(&formatBuffer[cd.level + 3], L"?/%d", cd.defence);
+							myswprintf(&formatBuffer[cd.level + 3], L"?/%d", cd.defence);
 						else if(cd.defence < 0)
-							swprintf(&formatBuffer[cd.level + 3], L"%d/?", cd.attack);
+							myswprintf(&formatBuffer[cd.level + 3], L"%d/?", cd.attack);
 						else
-							swprintf(&formatBuffer[cd.level + 3], L"%d/%d", cd.attack, cd.defence);
+							myswprintf(&formatBuffer[cd.level + 3], L"%d/%d", cd.attack, cd.defence);
 						mainGame->stDataInfo->setText(formatBuffer);
 						mainGame->stText->setRelativePosition(irr::core::position2di(15, 83));
 					} else {
-						swprintf(formatBuffer, L"[%s]", DataManager::FormatType(cd.type));
+						myswprintf(formatBuffer, L"[%ls]", DataManager::FormatType(cd.type));
 						mainGame->stInfo->setText(formatBuffer);
 						mainGame->stDataInfo->setText(L"");
 						mainGame->stText->setRelativePosition(irr::core::position2di(15, 60));
@@ -647,7 +653,7 @@ void DeckBuilder::FilterCards() {
 			continue;
 		switch(filter_type) {
 		case 1: {
-			int type2 = data.type & 0x8020f1;
+			int type2 = data.type & 0xe03ef1;
 			if(!(data.type & TYPE_MONSTER) || (filter_type2 == 0x21 && type2 != 0x21) || (data.type & filter_type2) != filter_type2)
 				continue;
 			if(filter_race && data.race != filter_race)
@@ -698,7 +704,7 @@ void DeckBuilder::FilterCards() {
 		}
 		results.push_back(ptr);
 	}
-	swprintf(result_string, L"%d", results.size());
+	myswprintf(result_string, L"%d", results.size());
 	if(results.size() > 7) {
 		mainGame->scrFilter->setVisible(true);
 		mainGame->scrFilter->setMax(results.size() - 7);
@@ -727,7 +733,7 @@ void DeckBuilder::FilterCardsFromResult() {
 			continue;
 		switch(filter_type) {
 		case 1: {
-			int type2 = data.type & 0x8020f1;
+			int type2 = data.type & 0xe03ef1;
 			if(!(data.type & TYPE_MONSTER) || (filter_type2 == 0x21 && type2 != 0x21) || (data.type & filter_type2) != filter_type2)
 				continue;
 			if(filter_race && data.race != filter_race)
@@ -780,7 +786,7 @@ void DeckBuilder::FilterCardsFromResult() {
 		offset++;
 	}
 	results.resize(offset);
-	swprintf(result_string, L"%d", results.size());
+	myswprintf(result_string, L"%d", results.size());
 	if(results.size() > 7) {
 		mainGame->scrFilter->setVisible(true);
 		mainGame->scrFilter->setMax(results.size() - 7);

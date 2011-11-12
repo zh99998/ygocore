@@ -37,7 +37,7 @@ private:
 #else // _WIN32
 
 #include <sys/time.h>
-#include <signal.h>
+#include <unistd.h>
 
 class Timer {
 public:
@@ -54,16 +54,7 @@ public:
 		return (endTime.tv_sec - startTime.tv_sec) * 1000000.0f + endTime.tv_usec - startTime.tv_usec;
 	}
 	void Wait(long long us) {
-		sigset_t sig;
-		itimerval itimer;
-		sigemptyset(&sig, SIGALRM);
-		sigprocmask(SIG_BLOCK, &sig, 0);
-		itimer.it_interval.tv_sec = 0;
-		itimer.it_interval.tv_usec = 0;
-		itimer.it_value.tv_sec = us / 1000000;
-		itimer.it_value.tv_usec = us % 1000000;
-		setitimer(ITIMER_REAL, &itimer, 0);
-		sigwaitinfo(&sig, 0);
+		usleep(us);
 	}
 private:
 	timeval startTime;

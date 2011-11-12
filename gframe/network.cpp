@@ -149,7 +149,9 @@ bool NetManager::WaitClientResponse() {
 	return true;
 }
 int NetManager::GetLocalAddress() {
-	hostent* host = gethostbyname(0);
+	char hname[256];
+	gethostname(hname, 256);
+	hostent* host = gethostbyname(hname);
 	if(!host)
 		return 0;
 	return *(int*)host->h_addr_list[0];
@@ -218,7 +220,7 @@ int NetManager::BroadcastClient(void* np) {
 		        && it->start_lp == 8000 && it->start_hand == 5 && it->draw_count == 1)
 			mode = L"标准设定";
 		else mode = L"自定义设定";
-		swprintf(tbuf, L"[%s][%s]%s", mode, it->lflist, it->name);
+		myswprintf(tbuf, L"[%ls][%ls]%ls", mode, it->lflist, it->name);
 		mainGame->lstServerList->addItem(tbuf);
 	}
 	mainGame->btnLanStartServer->setEnabled(true);
@@ -375,7 +377,7 @@ int NetManager::JoinThread(void* adr) {
 				mainGame->stModeStatus->setText(L"网络连接发生错误");
 			else if(pnet->recv_buf[0] == 0x1) {
 				wchar_t errorbuf[32];
-				swprintf(errorbuf, L"当前版本(0x%X)与主机版本(0x%X)不匹配", PROTO_VERSION, (int)(*(short*)&pnet->recv_buf[1]));
+				myswprintf(errorbuf, L"当前版本(0x%X)与主机版本(0x%X)不匹配", PROTO_VERSION, (int)(*(short*)&pnet->recv_buf[1]));
 				mainGame->stModeStatus->setText(errorbuf);
 			} else if(pnet->recv_buf[0] == 0x2) {
 				mainGame->stModeStatus->setText(L"无效卡组或者卡组不符合禁卡表规范");

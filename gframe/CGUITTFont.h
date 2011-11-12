@@ -33,7 +33,7 @@
 
 #include <irrlicht.h>
 #include <ft2build.h>
-#include "irrUstring.h"
+#include "irrUString.h"
 #include FT_FREETYPE_H
 
 namespace irr {

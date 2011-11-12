@@ -1172,7 +1172,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		if(returns.ivalue[0])
 			returns.bvalue[0] = 0;
 		else
-			add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, sumplayer, (int32)(core.temp_var[0]) + 1);
+			add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, sumplayer, (ptr)(core.temp_var[0]) + 1);
 		core.units.begin()->step = 2;
 		return false;
 	}
@@ -1426,7 +1426,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card * target, effect * proc, ui
 		if(returns.ivalue[0])
 			returns.bvalue[0] = 0;
 		else
-			add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, setplayer, (int32)(core.temp_var[0]) + 1);
+			add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, setplayer, (ptr)(core.temp_var[0]) + 1);
 		core.units.begin()->step = 2;
 		return false;
 	}

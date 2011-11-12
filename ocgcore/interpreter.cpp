@@ -636,11 +636,11 @@ void interpreter::push_param(lua_State* L) {
 			break;
 		}
 		case PARAM_TYPE_FUNCTION: {
-			function2value(L, (int32)it->first);
+			function2value(L, (ptr)it->first);
 			break;
 		}
 		case PARAM_TYPE_INDEX: {
-			int32 index = (int32)it->first;
+			int32 index = (int32)(ptr)it->first;
 			if(index > 0)
 				lua_pushvalue(L, index);
 			else lua_pushnil(L);
@@ -658,7 +658,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, uint32 ret_count) 
 		return OPERATION_FAIL;
 	}
 	if (param_count != params.size()) {
-		sprintf(pduel->strbuffer, "\"CallFunction\": incorrect parameter count (%d expected, %d pushed)", param_count, params.size());
+		sprintf(pduel->strbuffer, "\"CallFunction\": incorrect parameter count (%d expected, %ld pushed)", param_count, params.size());
 		handle_message(pduel, 1);
 		params.clear();
 		return OPERATION_FAIL;

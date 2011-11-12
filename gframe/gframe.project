@@ -20,16 +20,12 @@
     <File Name="CGUITTFont.h"/>
     <File Name="event_handler.cpp"/>
     <File Name="irrUString.h"/>
-    <File Name="timer.h"/>
-    <File Name="mutex.h"/>
     <File Name="CGUIImageButton.h"/>
     <File Name="CGUIImageButton.cpp"/>
     <File Name="CGUIButton.h"/>
     <File Name="drawing.cpp"/>
     <File Name="materials.h"/>
     <File Name="client_card.h"/>
-    <File Name="thread.h"/>
-    <File Name="signal.h"/>
     <File Name="network.h"/>
     <File Name="network.cpp"/>
     <File Name="deck_manager.h"/>
@@ -70,6 +66,10 @@
     <File Name="deck_con.h"/>
     <File Name="deck_con.cpp"/>
     <File Name="replay.cpp"/>
+    <File Name="mymutex.h"/>
+    <File Name="mysignal.h"/>
+    <File Name="mythread.h"/>
+    <File Name="mytimer.h"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

@@ -6,6 +6,7 @@
  */
 
 #include "field.h"
+#include <memory.h>
 #include <algorithm>
 
 int32 field::select_battle_command(uint16 step, uint8 playerid) {

@@ -45,7 +45,7 @@ public:
 		pthread_mutex_unlock(&mutex_t);
 	}
 	bool TryLock() {
-		return !pthread_mutex_trulock(&mutex_t);
+		return !pthread_mutex_trylock(&mutex_t);
 	}
 private:
 	pthread_mutex_t mutex_t;

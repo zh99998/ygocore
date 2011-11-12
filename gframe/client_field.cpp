@@ -323,7 +323,7 @@ void ClientField::ShowSelectCard(bool buttonok) {
 			mainGame->btnCardSelect[i]->setPressed(false);
 			mainGame->btnCardSelect[i]->setVisible(true);
 			if(mainGame->dInfo.curMsg != MSG_SORT_CHAIN && mainGame->dInfo.curMsg != MSG_SORT_CARD) {
-				swprintf(formatBuffer, L"%s[%d]", DataManager::FormatLocation(selectable_cards[i]->location), selectable_cards[i]->sequence + 1);
+				myswprintf(formatBuffer, L"%ls[%d]", DataManager::FormatLocation(selectable_cards[i]->location), selectable_cards[i]->sequence + 1);
 				mainGame->stCardPos[i]->setText(formatBuffer);
 				mainGame->stCardPos[i]->setVisible(true);;
 				if(selectable_cards[i]->controler)
@@ -331,7 +331,7 @@ void ClientField::ShowSelectCard(bool buttonok) {
 				else mainGame->stCardPos[i]->setBackgroundColor(0xffffffff);
 			} else {
 				if(sort_list[i]) {
-					swprintf(formatBuffer, L"%d", sort_list[i]);
+					myswprintf(formatBuffer, L"%d", sort_list[i]);
 					mainGame->stCardPos[i]->setText(formatBuffer);
 				} else mainGame->stCardPos[i]->setText(L"");
 				mainGame->stCardPos[i]->setBackgroundColor(0xffffffff);
@@ -354,7 +354,7 @@ void ClientField::ShowSelectCard(bool buttonok) {
 			mainGame->btnCardSelect[i]->setPressed(false);
 			mainGame->btnCardSelect[i]->setVisible(true);
 			if(mainGame->dInfo.curMsg != MSG_SORT_CHAIN && mainGame->dInfo.curMsg != MSG_SORT_CARD) {
-				swprintf(formatBuffer, L"%s[%d]", DataManager::FormatLocation(selectable_cards[i]->location), selectable_cards[i]->sequence + 1);
+				myswprintf(formatBuffer, L"%ls[%d]", DataManager::FormatLocation(selectable_cards[i]->location), selectable_cards[i]->sequence + 1);
 				mainGame->stCardPos[i]->setText(formatBuffer);
 				mainGame->stCardPos[i]->setVisible(true);
 				if(selectable_cards[i]->controler)
@@ -362,7 +362,7 @@ void ClientField::ShowSelectCard(bool buttonok) {
 				else mainGame->stCardPos[i]->setBackgroundColor(0xffffffff);
 			} else {
 				if(sort_list[i]) {
-					swprintf(formatBuffer, L"%d", sort_list[i]);
+					myswprintf(formatBuffer, L"%d", sort_list[i]);
 					mainGame->stCardPos[i]->setText(formatBuffer);
 				} else mainGame->stCardPos[i]->setText(L"");
 				mainGame->stCardPos[i]->setBackgroundColor(0xffffffff);

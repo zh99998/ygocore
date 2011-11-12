@@ -5,6 +5,7 @@
  *      Author: Argon
  */
 #include <stdio.h>
+#include <string.h>
 #include "ocgapi.h"
 #include <set>
 
@@ -14,13 +15,13 @@ message_handler mhandler = default_message_handler;
 byte buffer[0x10000];
 std::set<duel*> duel_set;
 
-extern "C" _declspec(dllexport) void set_script_reader(script_reader f) {
+extern "C" DECL_DLLEXPORT void set_script_reader(script_reader f) {
 	sreader = f;
 }
-extern "C" _declspec(dllexport) void set_card_reader(card_reader f) {
+extern "C" DECL_DLLEXPORT void set_card_reader(card_reader f) {
 	creader = f;
 }
-extern "C" _declspec(dllexport) void set_message_handler(message_handler f) {
+extern "C" DECL_DLLEXPORT void set_message_handler(message_handler f) {
 	mhandler = f;
 }
 byte* read_script(const char* script_name, int* len) {
@@ -59,13 +60,13 @@ uint32 default_message_handler(void* pduel, uint32 message_type) {
 	return 0;
 }
 
-extern "C" _declspec(dllexport) ptr create_duel(uint32 seed) {
+extern "C" DECL_DLLEXPORT ptr create_duel(uint32 seed) {
 	duel* pduel = new duel();
 	duel_set.insert(pduel);
 	pduel->random.init(seed);
 	return (ptr)pduel;
 }
-extern "C" _declspec(dllexport) void start_duel(ptr pduel, int options) {
+extern "C" DECL_DLLEXPORT void start_duel(ptr pduel, int options) {
 	duel* pd = (duel*)pduel;
 	pd->game_field->core.duel_options = options;
 	if(pd->game_field->player[0].start_count > 0)
@@ -74,14 +75,14 @@ extern "C" _declspec(dllexport) void start_duel(ptr pduel, int options) {
 		pd->game_field->draw(0, REASON_RULE, PLAYER_NONE, 1, pd->game_field->player[1].start_count);
 	pd->game_field->add_process(PROCESSOR_TURN, 0, 0, 0, 0, 0);
 }
-extern "C" _declspec(dllexport) void end_duel(ptr pduel) {
+extern "C" DECL_DLLEXPORT void end_duel(ptr pduel) {
 	duel* pd = (duel*)pduel;
 	if(duel_set.count(pd)) {
 		duel_set.erase(pd);
 		delete pd;
 	}
 }
-extern "C" _declspec(dllexport) void set_player_info(ptr pduel, int32 playerid, int32 lp, int32 startcount, int32 drawcount) {
+extern "C" DECL_DLLEXPORT void set_player_info(ptr pduel, int32 playerid, int32 lp, int32 startcount, int32 drawcount) {
 	duel* pd = (duel*)pduel;
 	if(lp > 0)
 		pd->game_field->player[playerid].lp = lp;
@@ -90,22 +91,22 @@ extern "C" _declspec(dllexport) void set_player_info(ptr pduel, int32 playerid, 
 	if(drawcount >= 0)
 		pd->game_field->player[playerid].draw_count = drawcount;
 }
-extern "C" _declspec(dllexport) void get_log_message(ptr pduel, byte* buf) {
+extern "C" DECL_DLLEXPORT void get_log_message(ptr pduel, byte* buf) {
 	strcpy((char*)buf, ((duel*)pduel)->strbuffer);
 }
-extern "C" _declspec(dllexport) int32 get_message(ptr pduel, byte* buf) {
+extern "C" DECL_DLLEXPORT int32 get_message(ptr pduel, byte* buf) {
 	int32 len = ((duel*)pduel)->read_buffer(buf);
 	((duel*)pduel)->clear_buffer();
 	return len;
 }
-extern "C" _declspec(dllexport) int32 process(ptr pduel) {
+extern "C" DECL_DLLEXPORT int32 process(ptr pduel) {
 	duel* pd = (duel*)pduel;
 	int result = pd->game_field->process();
 	while((result & 0xffff) == 0 && (result & 0xf0000) == 0)
 		result = pd->game_field->process();
 	return result;
 }
-extern "C" _declspec(dllexport) void new_card(ptr pduel, uint32 code, uint8 owner, uint8 playerid, uint8 location, uint8 sequence, uint8 position) {
+extern "C" DECL_DLLEXPORT void new_card(ptr pduel, uint32 code, uint8 owner, uint8 playerid, uint8 location, uint8 sequence, uint8 position) {
 	duel* ptduel = (duel*)pduel;
 	card* pcard = ptduel->new_card(code);
 	pcard->owner = owner;
@@ -120,7 +121,7 @@ extern "C" _declspec(dllexport) void new_card(ptr pduel, uint32 code, uint8 owne
 			pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
 	}
 }
-extern "C" _declspec(dllexport) int32 query_card(ptr pduel, uint8 playerid, uint8 location, uint8 sequence, int32 query_flag, byte* buf) {
+extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 location, uint8 sequence, int32 query_flag, byte* buf) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	duel* ptduel = (duel*)pduel;
@@ -155,7 +156,7 @@ extern "C" _declspec(dllexport) int32 query_card(ptr pduel, uint8 playerid, uint
 		return 4;
 	}
 }
-extern "C" _declspec(dllexport) int32 query_field_count(ptr pduel, uint8 playerid, uint8 location) {
+extern "C" DECL_DLLEXPORT int32 query_field_count(ptr pduel, uint8 playerid, uint8 location) {
 	duel* ptduel = (duel*)pduel;
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -183,7 +184,7 @@ extern "C" _declspec(dllexport) int32 query_field_count(ptr pduel, uint8 playeri
 	}
 	return 0;
 }
-extern "C" _declspec(dllexport) int32 query_field_card(ptr pduel, uint8 playerid, uint8 location, int32 query_flag, byte* buf) {
+extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint8 location, int32 query_flag, byte* buf) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	duel* ptduel = (duel*)pduel;
@@ -235,12 +236,12 @@ extern "C" _declspec(dllexport) int32 query_field_card(ptr pduel, uint8 playerid
 	}
 	return ct;
 }
-extern "C" _declspec(dllexport) void set_responsei(ptr pduel, int32 value) {
+extern "C" DECL_DLLEXPORT void set_responsei(ptr pduel, int32 value) {
 	((duel*)pduel)->set_responsei(value);
 }
-extern "C" _declspec(dllexport) void set_responseb(ptr pduel, byte* buf) {
+extern "C" DECL_DLLEXPORT void set_responseb(ptr pduel, byte* buf) {
 	((duel*)pduel)->set_responseb(buf);
 }
-extern "C" _declspec(dllexport) void run_script(ptr pduel, byte* scriptbuf, int32 len) {
+extern "C" DECL_DLLEXPORT void run_script(ptr pduel, byte* scriptbuf, int32 len) {
 
 }

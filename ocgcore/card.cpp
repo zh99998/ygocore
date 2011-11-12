@@ -1289,7 +1289,7 @@ void card::fution_select(uint8 playerid, group* fusion_m, card* cg) {
 	ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
 	if(ecit != single_effect.end())
 		peffect = ecit->second;
-	pduel->game_field->add_process(PROCESSOR_SELECT_FUSION, 0, peffect, fusion_m, playerid, (int32)cg);
+	pduel->game_field->add_process(PROCESSOR_SELECT_FUSION, 0, peffect, fusion_m, playerid, (ptr)cg);
 }
 int32 card::is_equipable(card* pcard) {
 	effect_set eset;

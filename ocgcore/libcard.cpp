@@ -373,7 +373,7 @@ int32 scriptlib::card_is_dual_state(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushboolean(L, (int)pcard->is_affected_by_effect(EFFECT_DUAL_STATUS));
+	lua_pushboolean(L, (ptr)pcard->is_affected_by_effect(EFFECT_DUAL_STATUS));
 	return 1;
 }
 int32 scriptlib::card_enable_dual_state(lua_State *L) {

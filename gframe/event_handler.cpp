@@ -414,28 +414,28 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					ClientCard* pcard = mzone[command_controler][command_sequence];
 					for(int i = 0; i < pcard->overlayed.size(); ++i)
 						selectable_cards.push_back(pcard->overlayed[i]);
-					swprintf(formatBuffer, L"查看叠放卡：(%d)", pcard->overlayed.size());
+					myswprintf(formatBuffer, L"查看叠放卡：(%d)", pcard->overlayed.size());
 					mainGame->wCardSelect->setText(formatBuffer);
 					break;
 				}
 				case LOCATION_GRAVE: {
 					for(int i = grave[command_controler].size() - 1; i >= 0 ; --i)
 						selectable_cards.push_back(grave[command_controler][i]);
-					swprintf(formatBuffer, L"查看墓地：(%d)", grave[command_controler].size());
+					myswprintf(formatBuffer, L"查看墓地：(%d)", grave[command_controler].size());
 					mainGame->wCardSelect->setText(formatBuffer);
 					break;
 				}
 				case LOCATION_REMOVED: {
 					for(int i = remove[command_controler].size() - 1; i >= 0 ; --i)
 						selectable_cards.push_back(remove[command_controler][i]);
-					swprintf(formatBuffer, L"查看除外：(%d)", remove[command_controler].size());
+					myswprintf(formatBuffer, L"查看除外：(%d)", remove[command_controler].size());
 					mainGame->wCardSelect->setText(formatBuffer);
 					break;
 				}
 				case LOCATION_EXTRA: {
 					for(int i = extra[command_controler].size() - 1; i >= 0 ; --i)
 						selectable_cards.push_back(extra[command_controler][i]);
-					swprintf(formatBuffer, L"查看额外：(%d)", extra[command_controler].size());
+					myswprintf(formatBuffer, L"查看额外：(%d)", extra[command_controler].size());
 					mainGame->wCardSelect->setText(formatBuffer);
 					break;
 				}
@@ -585,14 +585,14 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 							if(offset + i >= select_max)
 								break;
 							if(sort_list[offset + i]) {
-								swprintf(formatBuffer, L"%d", sort_list[offset + i]);
+								myswprintf(formatBuffer, L"%d", sort_list[offset + i]);
 								mainGame->stCardPos[i]->setText(formatBuffer);
 							} else mainGame->stCardPos[i]->setText(L"");
 						}
 					} else {
 						select_min++;
 						sort_list[command_card->select_seq] = select_min;
-						swprintf(formatBuffer, L"%d", select_min);
+						myswprintf(formatBuffer, L"%d", select_min);
 						mainGame->stCardPos[id - BUTTON_CARD_0]->setText(formatBuffer);
 						if(select_min == select_max) {
 							for(int i = 0; i < select_max; ++i)
@@ -665,9 +665,9 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				if(mainGame->lstServerList->getSelected() == -1)
 					break;
 				HostInfo& hi = mainGame->netManager.hosts[mainGame->lstServerList->getSelected()];
-				swprintf(formatBuffer, L"%d.%d.%d.%d", hi.address & 0xff, (hi.address >> 8) & 0xff, (hi.address >> 16) & 0xff, (hi.address >> 24) & 0xff);
+				myswprintf(formatBuffer, L"%d.%d.%d.%d", hi.address & 0xff, (hi.address >> 8) & 0xff, (hi.address >> 16) & 0xff, (hi.address >> 24) & 0xff);
 				mainGame->ebJoinIP->setText(formatBuffer);
-				swprintf(formatBuffer, L"%d", hi.port);
+				myswprintf(formatBuffer, L"%d", hi.port);
 				mainGame->ebJoinPort->setText(formatBuffer);
 				break;
 			}
@@ -684,7 +684,7 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					else
 						mainGame->btnCardSelect[i]->setImage(mainGame->imageManager.tCover);
 					mainGame->btnCardSelect[i]->setRelativePosition(rect<s32>(30 + i * 125, 55, 30 + 120 + i * 125, 225));
-					swprintf(formatBuffer, L"%s[%d]", DataManager::FormatLocation(selectable_cards[i + pos]->location),
+					myswprintf(formatBuffer, L"%ls[%d]", DataManager::FormatLocation(selectable_cards[i + pos]->location),
 					         selectable_cards[i + pos]->sequence + 1);
 					mainGame->stCardPos[i]->setText(formatBuffer);
 					if(selectable_cards[i + pos]->is_selected)
@@ -725,10 +725,10 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					CardData cd;
 					mainGame->dataManager.GetData(mcard->code, &cd);
 					mainGame->imgCard->setImage(mainGame->imageManager.GetTexture(mcard->code));
-					swprintf(formatBuffer, L"%s[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
+					myswprintf(formatBuffer, L"%ls[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
 					mainGame->stName->setText(formatBuffer);
 					if(cd.type & TYPE_MONSTER) {
-						swprintf(formatBuffer, L"[%s] %s/%s", DataManager::FormatType(cd.type), DataManager::FormatRace(cd.race), DataManager::FormatAttribute(cd.attribute));
+						myswprintf(formatBuffer, L"[%ls] %ls/%ls", DataManager::FormatType(cd.type), DataManager::FormatRace(cd.race), DataManager::FormatAttribute(cd.attribute));
 						mainGame->stInfo->setText(formatBuffer);
 						formatBuffer[0] = L'[';
 						for(int i = 1; i <= cd.level; ++i)
@@ -736,17 +736,17 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 						formatBuffer[cd.level + 1] = L']';
 						formatBuffer[cd.level + 2] = L' ';
 						if(cd.attack < 0 && cd.defence < 0)
-							swprintf(&formatBuffer[cd.level + 3], L"?/?");
+							myswprintf(&formatBuffer[cd.level + 3], L"?/?");
 						else if(cd.attack < 0)
-							swprintf(&formatBuffer[cd.level + 3], L"?/%d", cd.defence);
+							myswprintf(&formatBuffer[cd.level + 3], L"?/%d", cd.defence);
 						else if(cd.defence < 0)
-							swprintf(&formatBuffer[cd.level + 3], L"%d/?", cd.attack);
+							myswprintf(&formatBuffer[cd.level + 3], L"%d/?", cd.attack);
 						else
-							swprintf(&formatBuffer[cd.level + 3], L"%d/%d", cd.attack, cd.defence);
+							myswprintf(&formatBuffer[cd.level + 3], L"%d/%d", cd.attack, cd.defence);
 						mainGame->stDataInfo->setText(formatBuffer);
 						mainGame->stText->setRelativePosition(irr::core::position2di(15, 83));
 					} else {
-						swprintf(formatBuffer, L"[%s]", DataManager::FormatType(cd.type));
+						myswprintf(formatBuffer, L"[%ls]", DataManager::FormatType(cd.type));
 						mainGame->stInfo->setText(formatBuffer);
 						mainGame->stDataInfo->setText(L"");
 						mainGame->stText->setRelativePosition(irr::core::position2di(15, 60));
@@ -997,7 +997,7 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					mainGame->SetResponseB(selectable_cards.size());
 					mainGame->localAction.Set();
 				} else {
-					swprintf(formatBuffer, L"请移除%d个[%s]:", select_counter_count, mainGame->dataManager.GetCounterName(select_counter_type));
+					myswprintf(formatBuffer, L"请移除%d个[%ls]:", select_counter_count, mainGame->dataManager.GetCounterName(select_counter_type));
 					mainGame->stHintMsg->setText(formatBuffer);
 				}
 				break;
@@ -1155,10 +1155,10 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 						CardData cd;
 						mainGame->dataManager.GetData(mcard->code, &cd);
 						mainGame->imgCard->setImage(mainGame->imageManager.GetTexture(mcard->code));
-						swprintf(formatBuffer, L"%s[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
+						myswprintf(formatBuffer, L"%ls[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
 						mainGame->stName->setText(formatBuffer);
 						if(cd.type & TYPE_MONSTER) {
-							swprintf(formatBuffer, L"[%s] %s/%s", DataManager::FormatType(cd.type), DataManager::FormatRace(cd.race), DataManager::FormatAttribute(cd.attribute));
+							myswprintf(formatBuffer, L"[%ls] %ls/%ls", DataManager::FormatType(cd.type), DataManager::FormatRace(cd.race), DataManager::FormatAttribute(cd.attribute));
 							mainGame->stInfo->setText(formatBuffer);
 							formatBuffer[0] = L'[';
 							for(int i = 1; i <= cd.level; ++i)
@@ -1166,17 +1166,17 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 							formatBuffer[cd.level + 1] = L']';
 							formatBuffer[cd.level + 2] = L' ';
 							if(cd.attack < 0 && cd.defence < 0)
-								swprintf(&formatBuffer[cd.level + 3], L"?/?");
+								myswprintf(&formatBuffer[cd.level + 3], L"?/?");
 							else if(cd.attack < 0)
-								swprintf(&formatBuffer[cd.level + 3], L"?/%d", cd.defence);
+								myswprintf(&formatBuffer[cd.level + 3], L"?/%d", cd.defence);
 							else if(cd.defence < 0)
-								swprintf(&formatBuffer[cd.level + 3], L"%d/?", cd.attack);
+								myswprintf(&formatBuffer[cd.level + 3], L"%d/?", cd.attack);
 							else
-								swprintf(&formatBuffer[cd.level + 3], L"%d/%d", cd.attack, cd.defence);
+								myswprintf(&formatBuffer[cd.level + 3], L"%d/%d", cd.attack, cd.defence);
 							mainGame->stDataInfo->setText(formatBuffer);
 							mainGame->stText->setRelativePosition(irr::core::position2di(15, 83));
 						} else {
-							swprintf(formatBuffer, L"[%s]", DataManager::FormatType(cd.type));
+							myswprintf(formatBuffer, L"[%ls]", DataManager::FormatType(cd.type));
 							mainGame->stInfo->setText(formatBuffer);
 							mainGame->stDataInfo->setText(L"");
 							mainGame->stText->setRelativePosition(irr::core::position2di(15, 60));
@@ -1185,41 +1185,41 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 						if(mcard->location & 0xe) {
 							std::wstring str;
 							if(mcard->type & TYPE_MONSTER) {
-								swprintf(formatBuffer, L"%s[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
+								myswprintf(formatBuffer, L"%ls[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
 								str.append(formatBuffer);
 								if(mcard->alias && mcard->alias != mcard->code) {
-									swprintf(formatBuffer, L"\n(%s[%d])", mainGame->dataManager.GetName(mcard->alias), mcard->alias);
+									myswprintf(formatBuffer, L"\n(%ls[%d])", mainGame->dataManager.GetName(mcard->alias), mcard->alias);
 									str.append(formatBuffer);
 								}
-								swprintf(formatBuffer, L"\n%s/%s", mcard->atkstring, mcard->defstring);
+								myswprintf(formatBuffer, L"\n%ls/%ls", mcard->atkstring, mcard->defstring);
 								str.append(formatBuffer);
-								swprintf(formatBuffer, L"\n★%d %s/%s", (mcard->level ? mcard->level : mcard->rank), DataManager::FormatRace(mcard->race), DataManager::FormatAttribute(mcard->attribute));
+								myswprintf(formatBuffer, L"\n★%d %ls/%ls", (mcard->level ? mcard->level : mcard->rank), DataManager::FormatRace(mcard->race), DataManager::FormatAttribute(mcard->attribute));
 								str.append(formatBuffer);
 								if(mcard->counters.size()) {
 									for(std::map<int, int>::iterator ctit = mcard->counters.begin(); ctit != mcard->counters.end(); ++ctit) {
-										swprintf(formatBuffer, L"\n[%s]：%d", mainGame->dataManager.GetCounterName(ctit->first), ctit->second);
+										myswprintf(formatBuffer, L"\n[%ls]：%d", mainGame->dataManager.GetCounterName(ctit->first), ctit->second);
 										str.append(formatBuffer);
 									}
 								}
 								if(mcard->turnCounter && (mcard->location & LOCATION_ONFIELD)) {
-									swprintf(formatBuffer, L"\n回合计数：%d", mcard->turnCounter);
+									myswprintf(formatBuffer, L"\n回合计数：%d", mcard->turnCounter);
 									str.append(formatBuffer);
 								}
 							} else {
-								swprintf(formatBuffer, L"%s[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
+								myswprintf(formatBuffer, L"%ls[%d]", mainGame->dataManager.GetName(mcard->code), mcard->code);
 								str.append(formatBuffer);
 								if(mcard->alias && mcard->alias != mcard->code) {
-									swprintf(formatBuffer, L"\n%s[%d]", mainGame->dataManager.GetName(mcard->alias), mcard->alias);
+									myswprintf(formatBuffer, L"\n%ls[%d]", mainGame->dataManager.GetName(mcard->alias), mcard->alias);
 									str.append(formatBuffer);
 								}
 								if(mcard->counters.size()) {
 									for(std::map<int, int>::iterator ctit = mcard->counters.begin(); ctit != mcard->counters.end(); ++ctit) {
-										swprintf(formatBuffer, L"\n[%s]：%d", mainGame->dataManager.GetCounterName(ctit->first), ctit->second);
+										myswprintf(formatBuffer, L"\n[%ls]：%d", mainGame->dataManager.GetCounterName(ctit->first), ctit->second);
 										str.append(formatBuffer);
 									}
 								}
 								if(mcard->turnCounter && (mcard->location & LOCATION_ONFIELD)) {
-									swprintf(formatBuffer, L"\n回合计数：%d", mcard->turnCounter);
+									myswprintf(formatBuffer, L"\n回合计数：%d", mcard->turnCounter);
 									str.append(formatBuffer);
 								}
 							}

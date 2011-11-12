@@ -224,7 +224,7 @@ void Game::DrawMisc() {
 	else driver->draw2DImage(imageManager.tLPBar, recti(986 - 290 * dInfo.lp[1] / 8000, 12, 986 , 28), recti(0, 0, 16, 16), 0, 0, true);
 	if(lpframe) {
 		dInfo.lp[lpplayer] -= lpd;
-		swprintf(dInfo.strLP[lpplayer], L"%d", dInfo.lp[lpplayer]);
+		myswprintf(dInfo.strLP[lpplayer], L"%d", dInfo.lp[lpplayer]);
 		lpccolor -= 0x19000000;
 		lpframe--;
 	}
@@ -597,21 +597,21 @@ void Game::DrawDeckBd() {
 			driver->draw2DRectangle(0x80000000, recti(806, 164 + i * 66, 1019, 230 + i * 66));
 		DrawThumb(ptr->first, position2di(810, 165 + i * 66), deckBuilder.filterList);
 		if(ptr->second.type & TYPE_MONSTER) {
-			swprintf(textBuffer, L"%s", dataManager.GetName(ptr->first));
+			myswprintf(textBuffer, L"%ls", dataManager.GetName(ptr->first));
 			textFont->draw(textBuffer, recti(860, 165 + i * 66, 955, 185 + i * 66), 0xffffffff, false, true);
-			swprintf(textBuffer, L"%s/%s ★%d", DataManager::FormatAttribute(ptr->second.attribute),
+			myswprintf(textBuffer, L"%ls/%ls ★%d", DataManager::FormatAttribute(ptr->second.attribute),
 			         DataManager::FormatRace(ptr->second.race), ptr->second.level);
 			textFont->draw(textBuffer, recti(860, 187 + i * 66, 955, 207 + i * 66), 0xffffffff, false, true);
 			if(ptr->second.attack < 0 && ptr->second.defence < 0)
-				swprintf(textBuffer, L"?/?");
+				myswprintf(textBuffer, L"?/?");
 			else if(ptr->second.attack < 0)
-				swprintf(textBuffer, L"?/%d", ptr->second.defence);
+				myswprintf(textBuffer, L"?/%d", ptr->second.defence);
 			else if(ptr->second.defence < 0)
-				swprintf(textBuffer, L"%d/?", ptr->second.attack);
-			else swprintf(textBuffer, L"%d/%d", ptr->second.attack, ptr->second.defence);
+				myswprintf(textBuffer, L"%d/?", ptr->second.attack);
+			else myswprintf(textBuffer, L"%d/%d", ptr->second.attack, ptr->second.defence);
 			textFont->draw(textBuffer, recti(860, 209 + i * 66, 955, 229 + i * 66), 0xffffffff, false, true);
 		} else {
-			swprintf(textBuffer, L"%s", dataManager.GetName(ptr->first));
+			myswprintf(textBuffer, L"%ls", dataManager.GetName(ptr->first));
 			textFont->draw(textBuffer, recti(860, 165 + i * 66, 955, 185 + i * 66), 0xffffffff, false, true);
 			textFont->draw(DataManager::FormatType(ptr->second.type), recti(860, 187 + i * 66, 955, 207 + i * 66), 0xffffffff, false, true);
 		}

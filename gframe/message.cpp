@@ -1029,7 +1029,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int data = NetManager::ReadInt32(pbuf);
 		switch (type) {
 		case HINT_EVENT: {
-			swprintf(pdInfo->strEvent, L"%s", mainGame->dataManager.GetDesc(data));
+			myswprintf(pdInfo->strEvent, L"%ls", mainGame->dataManager.GetDesc(data));
 			break;
 		}
 		case HINT_MESSAGE: {
@@ -1044,7 +1044,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			break;
 		}
 		case HINT_OPSELECTED: {
-			swprintf(textBuffer, L"对方选择了：[%s]", mainGame->dataManager.GetDesc(data));
+			myswprintf(textBuffer, L"对方选择了：[%ls]", mainGame->dataManager.GetDesc(data));
 			mainGame->lstLog->addItem(textBuffer);
 			mainGame->SetStaticText(mainGame->stACMessage, 310, mainGame->textFont, textBuffer);
 			mainGame->PopupElement(mainGame->wACMessage, 20);
@@ -1059,7 +1059,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			break;
 		}
 		case HINT_RACE: {
-			swprintf(textBuffer, L"对方宣言了：[%s]", DataManager::FormatRace(data));
+			myswprintf(textBuffer, L"对方宣言了：[%ls]", DataManager::FormatRace(data));
 			mainGame->lstLog->addItem(textBuffer);
 			mainGame->SetStaticText(mainGame->stACMessage, 310, mainGame->textFont, textBuffer);
 			mainGame->PopupElement(mainGame->wACMessage, 20);
@@ -1067,7 +1067,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			break;
 		}
 		case HINT_ATTRIB: {
-			swprintf(textBuffer, L"对方宣言了：[%s]", DataManager::FormatAttribute(data));
+			myswprintf(textBuffer, L"对方宣言了：[%ls]", DataManager::FormatAttribute(data));
 			mainGame->lstLog->addItem(textBuffer);
 			mainGame->SetStaticText(mainGame->stACMessage, 310, mainGame->textFont, textBuffer);
 			mainGame->PopupElement(mainGame->wACMessage, 20);
@@ -1075,7 +1075,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			break;
 		}
 		case HINT_CODE: {
-			swprintf(textBuffer, L"对方宣言了：[%s]", mainGame->dataManager.GetName(data));
+			myswprintf(textBuffer, L"对方宣言了：[%ls]", mainGame->dataManager.GetName(data));
 			mainGame->lstLog->addItem(textBuffer);
 			mainGame->SetStaticText(mainGame->stACMessage, 310, mainGame->textFont, textBuffer);
 			mainGame->PopupElement(mainGame->wACMessage, 20);
@@ -1083,7 +1083,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			break;
 		}
 		case HINT_NUMBER: {
-			swprintf(textBuffer, L"对方选择了：[%d]", data);
+			myswprintf(textBuffer, L"对方选择了：[%d]", data);
 			mainGame->lstLog->addItem(textBuffer);
 			mainGame->SetStaticText(mainGame->stACMessage, 310, mainGame->textFont, textBuffer);
 			mainGame->PopupElement(mainGame->wACMessage, 20);
@@ -1097,15 +1097,15 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int player = NetManager::ReadInt8(pbuf);
 		int type = NetManager::ReadInt8(pbuf);
 		if(player == 2)
-			swprintf(textBuffer, L"Draw Game.\n原因：%s", mainGame->dataManager.GetVictoryString(type));
+			myswprintf(textBuffer, L"Draw Game.\n原因：%ls", mainGame->dataManager.GetVictoryString(type));
 		else if(mainGame->LocalPlayer(player) == 0) {
 			if(type == 1 || type == 2)
-				swprintf(textBuffer, L"You Win！\n原因：%s %s", mainGame->LocalName(1), mainGame->dataManager.GetVictoryString(type));
-			else swprintf(textBuffer, L"You Win！\n原因：%s", mainGame->dataManager.GetVictoryString(type));
+				myswprintf(textBuffer, L"You Win！\n原因：%ls %ls", mainGame->LocalName(1), mainGame->dataManager.GetVictoryString(type));
+			else myswprintf(textBuffer, L"You Win！\n原因：%ls", mainGame->dataManager.GetVictoryString(type));
 		} else {
 			if(type == 1 || type == 2)
-				swprintf(textBuffer, L"You Lose！\n原因：%s %s", mainGame->LocalName(0), mainGame->dataManager.GetVictoryString(type));
-			else swprintf(textBuffer, L"You Lose！\n原因：%s", mainGame->dataManager.GetVictoryString(type));
+				myswprintf(textBuffer, L"You Lose！\n原因：%ls %ls", mainGame->LocalName(0), mainGame->dataManager.GetVictoryString(type));
+			else myswprintf(textBuffer, L"You Lose！\n原因：%ls", mainGame->dataManager.GetVictoryString(type));
 		}
 		mainGame->stACMessage->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wACMessage, 100);
@@ -1127,8 +1127,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		pdInfo->is_first_turn = NetManager::ReadInt32(pbuf) ? false : true;
 		pdInfo->lp[mainGame->LocalPlayer(0)] = NetManager::ReadInt32(pbuf);
 		pdInfo->lp[mainGame->LocalPlayer(1)] = NetManager::ReadInt32(pbuf);
-		swprintf(pdInfo->strLP[0], L"%d", pdInfo->lp[0]);
-		swprintf(pdInfo->strLP[1], L"%d", pdInfo->lp[1]);
+		myswprintf(pdInfo->strLP[0], L"%d", pdInfo->lp[0]);
+		myswprintf(pdInfo->strLP[1], L"%d", pdInfo->lp[1]);
 		int deckc = NetManager::ReadInt32(pbuf);
 		int extrac = NetManager::ReadInt32(pbuf);
 		mainGame->dField.Initial(mainGame->LocalPlayer(0), deckc, extrac);
@@ -1337,7 +1337,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		if (pcard->code != code)
 			pcard->SetCode(code);
 		NetManager::ReadInt8(pbuf);
-		swprintf(textBuffer, L"是否在[%s]发动[%s]的效果？", DataManager::FormatLocation(l), mainGame->dataManager.GetName(code));
+		myswprintf(textBuffer, L"是否在[%ls]发动[%ls]的效果？", DataManager::FormatLocation(l), mainGame->dataManager.GetName(code));
 		mainGame->gMutex.Lock();
 		mainGame->SetStaticText(mainGame->stQMessage, 310, mainGame->textFont, textBuffer);
 		mainGame->PopupElement(mainGame->wQuery);
@@ -1374,8 +1374,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		else mainGame->btnOptionn->setVisible(false);
 		mainGame->dField.selected_option = 0;
 		if(mainGame->dInfo.selectHint)
-			swprintf(textBuffer, L"%s", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
-		else swprintf(textBuffer, L"请选择一个选项：");
+			myswprintf(textBuffer, L"%ls", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
+		else myswprintf(textBuffer, L"请选择一个选项：");
 		mainGame->dInfo.selectHint = 0;
 		mainGame->wOptions->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wOptions);
@@ -1418,9 +1418,9 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		}
 		std::sort(mainGame->dField.selectable_cards.begin(), mainGame->dField.selectable_cards.end(), ClientCard::client_card_sort);
 		if(mainGame->dInfo.selectHint)
-			swprintf(textBuffer, L"%s(%d-%d)", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint),
+			myswprintf(textBuffer, L"%ls(%d-%d)", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint),
 			         mainGame->dField.select_min, mainGame->dField.select_max);
-		else swprintf(textBuffer, L"请选择卡：(%d-%d)", mainGame->dField.select_min, mainGame->dField.select_max);
+		else myswprintf(textBuffer, L"请选择卡：(%d-%d)", mainGame->dField.select_min, mainGame->dField.select_max);
 		mainGame->dInfo.selectHint = 0;
 		if (panelmode) {
 			mainGame->gMutex.Lock();
@@ -1474,9 +1474,9 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		}
 		mainGame->gMutex.Lock();
 		if(count == 0)
-			swprintf(textBuffer, L"此时没有可以发动的效果\n是否要确认场上的情况？");
+			myswprintf(textBuffer, L"此时没有可以发动的效果\n是否要确认场上的情况？");
 		else
-			swprintf(textBuffer, L"%s\n是否进行连锁？", pdInfo->strEvent);
+			myswprintf(textBuffer, L"%ls\n是否进行连锁？", pdInfo->strEvent);
 		mainGame->SetStaticText(mainGame->stQMessage, 310, mainGame->textFont, (wchar_t*)textBuffer);
 		mainGame->PopupElement(mainGame->wQuery);
 		mainGame->gMutex.Unlock();
@@ -1631,7 +1631,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			pcard->is_selectable = true;
 			mainGame->dInfo.responseB[i] = 0;
 		}
-		swprintf(textBuffer, L"请移除%d个[%s]:", mainGame->dField.select_counter_count, mainGame->dataManager.GetCounterName(mainGame->dField.select_counter_type));
+		myswprintf(textBuffer, L"请移除%d个[%ls]:", mainGame->dField.select_counter_count, mainGame->dataManager.GetCounterName(mainGame->dField.select_counter_type));
 		mainGame->gMutex.Lock();
 		mainGame->stHintMsg->setText(textBuffer);
 		mainGame->stHintMsg->setVisible(true);
@@ -1671,8 +1671,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		std::sort(mainGame->dField.selectsum_all.begin(), mainGame->dField.selectsum_all.end(), ClientCard::client_card_sort);
 		mainGame->dField.CheckSelectSum();
 		if(mainGame->dInfo.selectHint)
-			swprintf(textBuffer, L"%s(%d)", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint), mainGame->dField.select_max);
-		else swprintf(textBuffer, L"请选择卡：(%d)", mainGame->dField.select_max);
+			myswprintf(textBuffer, L"%ls(%d)", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint), mainGame->dField.select_max);
+		else myswprintf(textBuffer, L"请选择卡：(%d)", mainGame->dField.select_max);
 		mainGame->dInfo.selectHint = 0;
 		if (panelmode) {
 			mainGame->wCardSelect->setText(textBuffer);
@@ -1731,7 +1731,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int count = NetManager::ReadInt8(pbuf);
 		int code, c, l, s;
 		ClientCard* pcard;
-		swprintf(textBuffer, L"翻开卡组上方%d张卡：", count);
+		myswprintf(textBuffer, L"翻开卡组上方%d张卡：", count);
 		mainGame->lstLog->addItem(textBuffer);
 		mainGame->dField.selectable_cards.clear();
 		for (int i = 0; i < count; ++i) {
@@ -1742,7 +1742,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			pcard = mainGame->dField.GetCard(c, l, s);
 			if (code != 0)
 				pcard->SetCode(code);
-			swprintf(textBuffer, L"%d [%s]", i, mainGame->dataManager.GetName(code));
+			myswprintf(textBuffer, L"%d [%ls]", i, mainGame->dataManager.GetName(code));
 			mainGame->lstLog->addItem(textBuffer);
 			float shift = -0.15f;
 			if (player == 1) shift = 0.15f;
@@ -1762,7 +1762,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int code, c, l, s;
 		std::vector<ClientCard*> field_confirm;
 		ClientCard*  pcard;
-		swprintf(textBuffer, L"确认%d张卡：", count);
+		myswprintf(textBuffer, L"确认%d张卡：", count);
 		mainGame->lstLog->addItem(textBuffer);
 		for (int i = 0; i < count; ++i) {
 			code = NetManager::ReadInt32(pbuf);
@@ -1772,7 +1772,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			pcard = mainGame->dField.GetCard(c, l, s);
 			if (code != 0)
 				pcard->SetCode(code);
-			swprintf(textBuffer, L"%d [%s]", i, mainGame->dataManager.GetName(code));
+			myswprintf(textBuffer, L"%d [%ls]", i, mainGame->dataManager.GetName(code));
 			mainGame->lstLog->addItem(textBuffer);
 			if (l & 0x41) {
 				float shift = -0.15f;
@@ -1941,8 +1941,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 	case MSG_NEW_TURN: {
 		int player = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
 		mainGame->dInfo.turn++;
-		swprintf(mainGame->dInfo.strTurn, L"Turn:%d", mainGame->dInfo.turn);
-		swprintf(textBuffer, L"%s的回合", mainGame->LocalName(player));
+		myswprintf(mainGame->dInfo.strTurn, L"Turn:%d", mainGame->dInfo.turn);
+		myswprintf(textBuffer, L"%ls的回合", mainGame->LocalName(player));
 		mainGame->gMutex.Lock();
 		mainGame->stACMessage->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wACMessage, 20);
@@ -1962,33 +1962,33 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		switch (phase) {
 		case PHASE_DRAW:
 			mainGame->btnDP->setVisible(true);
-			swprintf(textBuffer, L"进入【抽卡阶段】");
+			myswprintf(textBuffer, L"进入【抽卡阶段】");
 			break;
 		case PHASE_STANDBY:
 			mainGame->btnSP->setVisible(true);
-			swprintf(textBuffer, L"进入【准备阶段】");
+			myswprintf(textBuffer, L"进入【准备阶段】");
 			break;
 		case PHASE_MAIN1:
 			mainGame->btnM1->setVisible(true);
-			swprintf(textBuffer, L"进入【主要阶段１】");
+			myswprintf(textBuffer, L"进入【主要阶段１】");
 			break;
 		case PHASE_BATTLE:
 			mainGame->btnBP->setVisible(true);
 			mainGame->btnBP->setPressed(true);
 			mainGame->btnBP->setEnabled(false);
-			swprintf(textBuffer, L"进入【战斗阶段】");
+			myswprintf(textBuffer, L"进入【战斗阶段】");
 			break;
 		case PHASE_MAIN2:
 			mainGame->btnM2->setVisible(true);
 			mainGame->btnM2->setPressed(true);
 			mainGame->btnM2->setEnabled(false);
-			swprintf(textBuffer, L"进入【主要阶段２】");
+			myswprintf(textBuffer, L"进入【主要阶段２】");
 			break;
 		case PHASE_END:
 			mainGame->btnEP->setVisible(true);
 			mainGame->btnEP->setPressed(true);
 			mainGame->btnEP->setEnabled(false);
-			swprintf(textBuffer, L"进入【结束阶段】");
+			myswprintf(textBuffer, L"进入【结束阶段】");
 			break;
 		}
 		mainGame->stACMessage->setText(textBuffer);
@@ -2140,7 +2140,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int cl = NetManager::ReadInt8(pbuf);
 		int cs = NetManager::ReadInt8(pbuf);
 		int cp = NetManager::ReadInt8(pbuf);
-		swprintf(pdInfo->strEvent, L"卡片被破坏了");
+		myswprintf(pdInfo->strEvent, L"卡片被破坏了");
 		return true;
 	}
 	case MSG_RELEASE: {
@@ -2149,7 +2149,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int cl = NetManager::ReadInt8(pbuf);
 		int cs = NetManager::ReadInt8(pbuf);
 		int cp = NetManager::ReadInt8(pbuf);
-		swprintf(pdInfo->strEvent, L"卡片被解放了");
+		myswprintf(pdInfo->strEvent, L"卡片被解放了");
 		return true;
 	}
 	case MSG_POS_CHANGE: {
@@ -2163,7 +2163,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		if (code != 0 && pcard->code != code)
 			pcard->SetCode(code);
 		pcard->position = cp;
-		swprintf(pdInfo->strEvent, L"卡片改变了表示形式");
+		myswprintf(pdInfo->strEvent, L"卡片改变了表示形式");
 		mainGame->dField.MoveCard(pcard, 10);
 		mainGame->WaitFrameSignal(10);
 		return true;
@@ -2174,7 +2174,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int cl = NetManager::ReadInt8(pbuf);
 		int cs = NetManager::ReadInt8(pbuf);
 		int cp = NetManager::ReadInt8(pbuf);
-		swprintf(pdInfo->strEvent, L"放置了卡片");
+		myswprintf(pdInfo->strEvent, L"放置了卡片");
 		return true;
 	}
 	case MSG_SWAP: {
@@ -2188,7 +2188,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int l2 = NetManager::ReadInt8(pbuf);
 		int s2 = NetManager::ReadInt8(pbuf);
 		int p2 = NetManager::ReadInt8(pbuf);
-		swprintf(pdInfo->strEvent, L"卡的控制权改变了");
+		myswprintf(pdInfo->strEvent, L"卡的控制权改变了");
 		ClientCard* pc1 = mainGame->dField.GetCard(c1, l1, s1);
 		ClientCard* pc2 = mainGame->dField.GetCard(c2, l2, s2);
 		mainGame->gMutex.Lock();
@@ -2219,7 +2219,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int cl = NetManager::ReadInt8(pbuf);
 		int cs = NetManager::ReadInt8(pbuf);
 		int cp = NetManager::ReadInt8(pbuf);
-		swprintf(pdInfo->strEvent, L"[%s]召唤中...", mainGame->dataManager.GetName(code));
+		myswprintf(pdInfo->strEvent, L"[%ls]召唤中...", mainGame->dataManager.GetName(code));
 		mainGame->showcardcode = code;
 		mainGame->showcarddif = 0;
 		mainGame->showcard = 4;
@@ -2229,7 +2229,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		return true;
 	}
 	case MSG_SUMMONED: {
-		swprintf(pdInfo->strEvent, L"怪兽召唤成功");
+		myswprintf(pdInfo->strEvent, L"怪兽召唤成功");
 		return true;
 	}
 	case MSG_SPSUMMONING: {
@@ -2238,8 +2238,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int cl = NetManager::ReadInt8(pbuf);
 		int cs = NetManager::ReadInt8(pbuf);
 		int cp = NetManager::ReadInt8(pbuf);
-		swprintf(pdInfo->strEvent, L"[%s]特殊召唤中...", mainGame->dataManager.GetName(code));
-		swprintf(pdInfo->strEvent, L"[%s]召唤中...", mainGame->dataManager.GetName(code));
+		myswprintf(pdInfo->strEvent, L"[%ls]特殊召唤中...", mainGame->dataManager.GetName(code));
+		myswprintf(pdInfo->strEvent, L"[%ls]召唤中...", mainGame->dataManager.GetName(code));
 		mainGame->showcardcode = code;
 		mainGame->showcarddif = 1;
 		mainGame->showcard = 5;
@@ -2249,7 +2249,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		return true;
 	}
 	case MSG_SPSUMMONED: {
-		swprintf(pdInfo->strEvent, L"怪兽特殊召唤成功");
+		myswprintf(pdInfo->strEvent, L"怪兽特殊召唤成功");
 		return true;
 	}
 	case MSG_FLIPSUMMONING: {
@@ -2261,7 +2261,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		ClientCard* pcard = mainGame->dField.GetCard(cc, cl, cs);
 		pcard->SetCode(code);
 		pcard->position = cp;
-		swprintf(pdInfo->strEvent, L"[%s]反转召唤中...", mainGame->dataManager.GetName(code));
+		myswprintf(pdInfo->strEvent, L"[%ls]反转召唤中...", mainGame->dataManager.GetName(code));
 		mainGame->dField.MoveCard(pcard, 10);
 		mainGame->WaitFrameSignal(10);
 		mainGame->showcardcode = code;
@@ -2273,7 +2273,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		return true;
 	}
 	case MSG_FLIPSUMMONED: {
-		swprintf(pdInfo->strEvent, L"怪兽反转召唤成功");
+		myswprintf(pdInfo->strEvent, L"怪兽反转召唤成功");
 		return true;
 	}
 	case MSG_CHAINING: {
@@ -2320,7 +2320,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 	}
 	case MSG_CHAINED: {
 		int ct = NetManager::ReadInt8(pbuf);
-		swprintf(mainGame->dInfo.strEvent, L"[%s]的效果发动", mainGame->dataManager.GetName(mainGame->dField.current_chain.code));
+		myswprintf(mainGame->dInfo.strEvent, L"[%ls]的效果发动", mainGame->dataManager.GetName(mainGame->dField.current_chain.code));
 		mainGame->gMutex.Lock();
 		mainGame->dField.chains.push_back(mainGame->dField.current_chain);
 		mainGame->gMutex.Unlock();
@@ -2398,7 +2398,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 				}
 			} else
 				mainGame->WaitFrameSignal(30);
-			swprintf(textBuffer, L"[%s](%s,%d)成为对象", mainGame->dataManager.GetName(pcard->code), DataManager::FormatLocation(l), s);
+			myswprintf(textBuffer, L"[%ls](%ls,%d)成为对象", mainGame->dataManager.GetName(pcard->code), DataManager::FormatLocation(l), s);
 			mainGame->lstLog->addItem(textBuffer);
 			pcard->is_highlighting = false;
 		}
@@ -2421,8 +2421,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			mainGame->WaitFrameSignal(5);
 		}
 		if (player == 0)
-			swprintf(pdInfo->strEvent, L"我方抽了%d张卡", count);
-		else swprintf(pdInfo->strEvent, L"对手抽了%d张卡", count);
+			myswprintf(pdInfo->strEvent, L"我方抽了%d张卡", count);
+		else myswprintf(pdInfo->strEvent, L"对手抽了%d张卡", count);
 		return true;
 	}
 	case MSG_DAMAGE: {
@@ -2433,12 +2433,12 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			final = 0;
 		mainGame->lpd = (mainGame->dInfo.lp[player] - final) / 10;
 		if (player == 0)
-			swprintf(pdInfo->strEvent, L"我方受到%d伤害", val);
+			myswprintf(pdInfo->strEvent, L"我方受到%d伤害", val);
 		else
-			swprintf(pdInfo->strEvent, L"对方受到%d伤害", val);
+			myswprintf(pdInfo->strEvent, L"对方受到%d伤害", val);
 		mainGame->lpccolor = 0xffff0000;
 		mainGame->lpplayer = player;
-		swprintf(textBuffer, L"-%d", val);
+		myswprintf(textBuffer, L"-%d", val);
 		mainGame->lpcstring = textBuffer;
 		mainGame->WaitFrameSignal(30);
 		mainGame->lpframe = 10;
@@ -2446,7 +2446,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->lpcstring = 0;
 		mainGame->dInfo.lp[player] = final;
 		mainGame->gMutex.Lock();
-		swprintf(mainGame->dInfo.strLP[player], L"%d", mainGame->dInfo.lp[player]);
+		myswprintf(mainGame->dInfo.strLP[player], L"%d", mainGame->dInfo.lp[player]);
 		mainGame->gMutex.Unlock();
 		return true;
 	}
@@ -2456,12 +2456,12 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int final = mainGame->dInfo.lp[player] + val;
 		mainGame->lpd = (mainGame->dInfo.lp[player] - final) / 10;
 		if (player == 0)
-			swprintf(pdInfo->strEvent, L"我方回复%dLP", val);
+			myswprintf(pdInfo->strEvent, L"我方回复%dLP", val);
 		else
-			swprintf(pdInfo->strEvent, L"对方回复%dLP", val);
+			myswprintf(pdInfo->strEvent, L"对方回复%dLP", val);
 		mainGame->lpccolor = 0xff00ff00;
 		mainGame->lpplayer = player;
-		swprintf(textBuffer, L"+%d", val);
+		myswprintf(textBuffer, L"+%d", val);
 		mainGame->lpcstring = textBuffer;
 		mainGame->WaitFrameSignal(30);
 		mainGame->lpframe = 10;
@@ -2469,7 +2469,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->lpcstring = 0;
 		mainGame->dInfo.lp[player] = final;
 		mainGame->gMutex.Lock();
-		swprintf(mainGame->dInfo.strLP[player], L"%d", mainGame->dInfo.lp[player]);
+		myswprintf(mainGame->dInfo.strLP[player], L"%d", mainGame->dInfo.lp[player]);
 		mainGame->gMutex.Unlock();
 		return true;
 	}
@@ -2503,7 +2503,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->WaitFrameSignal(10);
 		mainGame->dInfo.lp[player] = val;
 		mainGame->gMutex.Lock();
-		swprintf(mainGame->dInfo.strLP[player], L"%d", mainGame->dInfo.lp[player]);
+		myswprintf(mainGame->dInfo.strLP[player], L"%d", mainGame->dInfo.lp[player]);
 		mainGame->gMutex.Unlock();
 		return true;
 	}
@@ -2532,7 +2532,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->lpd = (mainGame->dInfo.lp[player] - final) / 10;
 		mainGame->lpccolor = 0xff0000ff;
 		mainGame->lpplayer = player;
-		swprintf(textBuffer, L"-%d", cost);
+		myswprintf(textBuffer, L"-%d", cost);
 		mainGame->lpcstring = textBuffer;
 		mainGame->WaitFrameSignal(30);
 		mainGame->lpframe = 10;
@@ -2540,7 +2540,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->lpcstring = 0;
 		mainGame->dInfo.lp[player] = final;
 		mainGame->gMutex.Lock();
-		swprintf(mainGame->dInfo.strLP[player], L"%d", mainGame->dInfo.lp[player]);
+		myswprintf(mainGame->dInfo.strLP[player], L"%d", mainGame->dInfo.lp[player]);
 		mainGame->gMutex.Unlock();
 		return true;
 	}
@@ -2554,7 +2554,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		if (pc->counters.count(type))
 			pc->counters[type] += count;
 		else pc->counters[type] = count;
-		swprintf(textBuffer, L"[%s]放置了%d个[%s]", mainGame->dataManager.GetName(pc->code), count, mainGame->dataManager.GetCounterName(type));
+		myswprintf(textBuffer, L"[%ls]放置了%d个[%ls]", mainGame->dataManager.GetName(pc->code), count, mainGame->dataManager.GetCounterName(type));
 		pc->is_highlighting = true;
 		mainGame->gMutex.Lock();
 		mainGame->stACMessage->setText(textBuffer);
@@ -2574,7 +2574,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		pc->counters[type] -= count;
 		if (pc->counters[type] <= 0)
 			pc->counters.erase(type);
-		swprintf(textBuffer, L"[%s]移除了%d个[%s]", mainGame->dataManager.GetName(pc->code), count, mainGame->dataManager.GetCounterName(type));
+		myswprintf(textBuffer, L"[%ls]移除了%d个[%ls]", mainGame->dataManager.GetName(pc->code), count, mainGame->dataManager.GetCounterName(type));
 		pc->is_highlighting = true;
 		mainGame->gMutex.Lock();
 		mainGame->stACMessage->setText(textBuffer);
@@ -2597,7 +2597,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		float sy;
 		if (ld != 0) {
 			mainGame->dField.attack_target = mainGame->dField.GetCard(cd, ld, sd);
-			swprintf(pdInfo->strEvent, L"[%s]攻击[%s]", mainGame->dataManager.GetName(mainGame->dField.attacker->code),
+			myswprintf(pdInfo->strEvent, L"[%ls]攻击[%ls]", mainGame->dataManager.GetName(mainGame->dField.attacker->code),
 			         mainGame->dataManager.GetName(mainGame->dField.attack_target->code));
 			float xa = mainGame->dField.attacker->curPos.X;
 			float ya = mainGame->dField.attacker->curPos.Y;
@@ -2610,7 +2610,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			else
 				mainGame->atk_r = vector3df(0, 0, 3.1415926 - atan((xd - xa) / (yd - ya)));
 		} else {
-			swprintf(pdInfo->strEvent, L"[%s]直接攻击", mainGame->dataManager.GetName(mainGame->dField.attacker->code));
+			myswprintf(pdInfo->strEvent, L"[%ls]直接攻击", mainGame->dataManager.GetName(mainGame->dField.attacker->code));
 			float xa = mainGame->dField.attacker->curPos.X;
 			float ya = mainGame->dField.attacker->curPos.Y;
 			float xd = 3.95f;
@@ -2647,7 +2647,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		return true;
 	}
 	case MSG_ATTACK_DISABLED: {
-		swprintf(pdInfo->strEvent, L"攻击被无效", mainGame->dataManager.GetName(mainGame->dField.attacker->code));
+		myswprintf(pdInfo->strEvent, L"攻击被无效", mainGame->dataManager.GetName(mainGame->dField.attacker->code));
 		return true;
 	}
 	case MSG_DAMAGE_STEP_START: {
@@ -2708,8 +2708,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			else mainGame->chkRace[i]->setVisible(false);
 		}
 		if(mainGame->dInfo.selectHint)
-			swprintf(textBuffer, L"%s", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
-		else swprintf(textBuffer, L"请宣言种族");
+			myswprintf(textBuffer, L"%ls", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
+		else myswprintf(textBuffer, L"请宣言种族");
 		mainGame->dInfo.selectHint = 0;
 		mainGame->wANRace->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wANRace);
@@ -2729,8 +2729,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			else mainGame->chkAttribute[i]->setVisible(false);
 		}
 		if(mainGame->dInfo.selectHint)
-			swprintf(textBuffer, L"%s", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
-		else swprintf(textBuffer, L"请宣言属性");
+			myswprintf(textBuffer, L"%ls", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
+		else myswprintf(textBuffer, L"请宣言属性");
 		mainGame->dInfo.selectHint = 0;
 		mainGame->wANAttribute->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wANAttribute);
@@ -2743,8 +2743,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int player = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
 		mainGame->ebANCard->setText(L"");
 		if(mainGame->dInfo.selectHint)
-			swprintf(textBuffer, L"%s", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
-		else swprintf(textBuffer, L"请宣言卡名");
+			myswprintf(textBuffer, L"%ls", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
+		else myswprintf(textBuffer, L"请宣言卡名");
 		mainGame->dInfo.selectHint = 0;
 		mainGame->wANCard->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wANCard);
@@ -2760,13 +2760,13 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->cbANNumber->clear();
 		for (int i = 0; i < count; ++i) {
 			int value = NetManager::ReadInt32(pbuf);
-			swprintf(textBuffer, L"%d", value);
+			myswprintf(textBuffer, L"%d", value);
 			mainGame->cbANNumber->addItem(textBuffer, value);
 		}
 		mainGame->cbANNumber->setSelected(0);
 		if(mainGame->dInfo.selectHint)
-			swprintf(textBuffer, L"%s", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
-		else swprintf(textBuffer, L"请宣言数字");
+			myswprintf(textBuffer, L"%ls", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint));
+		else myswprintf(textBuffer, L"请宣言数字");
 		mainGame->dInfo.selectHint = 0;
 		mainGame->wANNumber->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wANNumber);

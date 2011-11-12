@@ -2,6 +2,11 @@
 #include "game.h"
 #include "network.h"
 
+#ifndef WIN32
+#include <sys/types.h>
+#include <dirent.h>
+#endif
+
 extern ygo::Game* mainGame;
 
 namespace ygo {
@@ -47,7 +52,7 @@ bool Game::Initialize() {
 	smgr = device->getSceneManager();
 	device->setWindowCaption(L"[---]");
 	device->setResizable(false);
-	swprintf(dataManager.strBuffer, L"模式选择(当前IP:%d.%d.%d.%d  版本:0x%X)", netManager.local_addr & 0xff, (netManager.local_addr >> 8) & 0xff,
+	myswprintf(dataManager.strBuffer, L"模式选择(当前IP:%d.%d.%d.%d  版本:0x%X)", netManager.local_addr & 0xff, (netManager.local_addr >> 8) & 0xff,
 	         (netManager.local_addr >> 16) & 0xff, (netManager.local_addr >> 24) & 0xff, PROTO_VERSION);
 	wModeSelection = env->addWindow(rect<s32>(270, 100, 750, 490), false, dataManager.strBuffer);
 	wModeSelection->getCloseButton()->setVisible(false);
@@ -61,15 +66,15 @@ bool Game::Initialize() {
 	chkAttackFT = env->addCheckBox(false, rect<s32>(10, 85, 210, 105), tabLanS, -1, L"第一回合可以攻击");
 	chkNoChainHint = env->addCheckBox(false, rect<s32>(10, 110, 210, 130), tabLanS, -1, L"没有可用连锁时不等待");
 	env->addStaticText(L"起始ＬＰ：", rect<s32>(200, 10, 300, 30), false, false, tabLanS);
-	swprintf(dataManager.strBuffer, L"%d", 8000);
+	myswprintf(dataManager.strBuffer, L"%d", 8000);
 	ebStartLP = env->addEditBox(dataManager.strBuffer, rect<s32>(310, 10, 390, 30), true, tabLanS);
 	ebStartLP->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	env->addStaticText(L"起始手牌：", rect<s32>(200, 35, 300, 55), false, false, tabLanS);
-	swprintf(dataManager.strBuffer, L"%d", 5);
+	myswprintf(dataManager.strBuffer, L"%d", 5);
 	ebStartHand = env->addEditBox(dataManager.strBuffer, rect<s32>(310, 35, 390, 55), true, tabLanS);
 	ebStartHand->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	env->addStaticText(L"每回合抽卡：", rect<s32>(200, 60, 300, 80), false, false, tabLanS);
-	swprintf(dataManager.strBuffer, L"%d", 1);
+	myswprintf(dataManager.strBuffer, L"%d", 1);
 	ebDrawCount = env->addEditBox(dataManager.strBuffer, rect<s32>(310, 60, 390, 80), true, tabLanS);
 	ebDrawCount->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	env->addStaticText(L"禁限卡表：", rect<s32>(200, 85, 300, 105), false, false, tabLanS);
@@ -431,7 +436,7 @@ void Game::MainLoop() {
 			gTimer.Wait(16900 + st - ed);
 		}
 		if(ed >= 1000000.0f) {
-			swprintf(cap, L"FPS: %d", fps);
+			myswprintf(cap, L"FPS: %d", fps);
 			device->setWindowCaption(cap);
 			fps = 0;
 			gTimer.Reset();
@@ -491,6 +496,21 @@ void Game::RefreshDeck(irr::gui::IGUIComboBox* cbDeck) {
 		}
 	} while(FindNextFileW(fh, &fdataw));
 	FindClose(fh);
+#else
+	DIR * dir;
+	struct dirent * dirp;
+	if((dir = opendir("./deck/")) == NULL)
+		return;
+	while((dirp = readdir(dir)) != NULL)
+	{
+		size_t len = strlen(dirp->d_name);
+		if(len < 5 || strcasecmp(dirp->d_name + len - 4, ".ydk") != 0)
+			continue;
+		dirp->d_name[len - 4] = 0;
+		wchar_t wname[256];
+		DataManager::DecodeUTF8(dirp->d_name, wname);
+		cbDeck->addItem(wname);
+	}
 #endif
 }
 void Game::LoadConfig() {
