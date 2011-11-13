@@ -10,6 +10,7 @@
 #include "deck_con.h"
 #include "network.h"
 #include "deck_manager.h"
+#include "replay.h"
 #include <string>
 #include "../ocgcore/mtrandom.h"
 #include <unordered_map>
@@ -94,7 +95,6 @@ public:
 	static int RecvThread(void*);
 	static int GameThread(void*);
 	static bool SolveMessage(void*, char*, int);
-	static void ReplayThread(void*);
 	
 	//
 	char msgBuffer[0x1000];
@@ -115,6 +115,7 @@ public:
 	ImageManager imageManager;
 	DeckManager deckManager;
 	Materials matManager;
+	Replay lastReplay;
 	
 	unsigned short linePattern;
 	int waitFrame;

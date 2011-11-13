@@ -45,9 +45,8 @@
 #define SOCKET_ERRNO() (errno)
 
 #include <wchar.h>
-#define myswprintf(buf, fmt, ...) swprintf(buf, sizeof(buf), fmt, ##__VA_ARGS__)
-inline int _wtoi(const wchar_t * s)
-{
+#define myswprintf(buf, fmt, ...) swprintf(buf, 4096, fmt, ##__VA_ARGS__)
+inline int _wtoi(const wchar_t * s) {
 	wchar_t * endptr;
 	return (int)wcstol(s, &endptr, 10);
 }

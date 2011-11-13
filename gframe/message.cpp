@@ -1419,7 +1419,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		std::sort(mainGame->dField.selectable_cards.begin(), mainGame->dField.selectable_cards.end(), ClientCard::client_card_sort);
 		if(mainGame->dInfo.selectHint)
 			myswprintf(textBuffer, L"%ls(%d-%d)", mainGame->dataManager.GetDesc(mainGame->dInfo.selectHint),
-			         mainGame->dField.select_min, mainGame->dField.select_max);
+			           mainGame->dField.select_min, mainGame->dField.select_max);
 		else myswprintf(textBuffer, L"请选择卡：(%d-%d)", mainGame->dField.select_min, mainGame->dField.select_max);
 		mainGame->dInfo.selectHint = 0;
 		if (panelmode) {
@@ -1844,6 +1844,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 	case MSG_SHUFFLE_HAND: {
 		int player = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
 		std::vector<ClientCard*>::iterator cit;
+		mainGame->WaitFrameSignal(5);
 		if(player == 1) {
 			bool flip = false;
 			for (cit = mainGame->dField.hand[player].begin(); cit != mainGame->dField.hand[player].end(); ++cit)
@@ -1886,6 +1887,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 	case MSG_SWAP_GRAVE_DECK: {
 		int player = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
 		std::vector<ClientCard*>::iterator cit;
+		mainGame->gMutex.Lock();
 		mainGame->dField.grave[player].swap(mainGame->dField.deck[player]);
 		for (cit = mainGame->dField.grave[player].begin(); cit != mainGame->dField.grave[player].end(); ++cit) {
 			(*cit)->location = LOCATION_GRAVE;
@@ -1895,6 +1897,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			(*cit)->location = LOCATION_DECK;
 			mainGame->dField.MoveCard(*cit, 10);
 		}
+		mainGame->gMutex.Unlock();
 		mainGame->WaitFrameSignal(10);
 		return true;
 	}
@@ -2055,7 +2058,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 						for (int i = 0; i < pcard->overlayed.size(); ++i)
 							mainGame->dField.MoveCard(pcard->overlayed[i], 10);
 						mainGame->gMutex.Unlock();
-						mainGame->WaitFrameSignal(10);
+						mainGame->WaitFrameSignal(5);
 					}
 					if (cl == 0x2) {
 						mainGame->gMutex.Lock();
@@ -2070,7 +2073,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 								mainGame->dField.MoveCard(mainGame->dField.hand[pc][i], 10);
 						mainGame->gMutex.Unlock();
 					}
-					mainGame->WaitFrameSignal(10);
+					mainGame->WaitFrameSignal(5);
 				}
 			} else if (!(pl & 0x80)) {
 				ClientCard* pcard = mainGame->dField.GetCard(pc, pl, ps);
@@ -2092,7 +2095,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 						for (int i = 0; i < mainGame->dField.hand[pc].size(); ++i)
 							mainGame->dField.MoveCard(mainGame->dField.hand[pc][i], 10);
 					mainGame->gMutex.Unlock();
-					mainGame->WaitFrameSignal(10);
+					mainGame->WaitFrameSignal(5);
 				}
 			} else if (!(cl & 0x80)) {
 				ClientCard* olcard = mainGame->dField.GetCard(pc, pl & 0x7f, ps);
@@ -2108,11 +2111,11 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 					mainGame->dField.MoveCard(olcard->overlayed[i], 2);
 				}
 				mainGame->gMutex.Unlock();
-				mainGame->WaitFrameSignal(10);
+				mainGame->WaitFrameSignal(5);
 				mainGame->gMutex.Lock();
 				mainGame->dField.MoveCard(pcard, 10);
 				mainGame->gMutex.Unlock();
-				mainGame->WaitFrameSignal(10);
+				mainGame->WaitFrameSignal(5);
 			} else {
 				ClientCard* olcard1 = mainGame->dField.GetCard(pc, pl & 0x7f, ps);
 				ClientCard* pcard = olcard1->overlayed[pp];
@@ -2129,7 +2132,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 				}
 				mainGame->dField.MoveCard(pcard, 10);
 				mainGame->gMutex.Unlock();
-				mainGame->WaitFrameSignal(10);
+				mainGame->WaitFrameSignal(5);
 			}
 		}
 		return true;
@@ -2410,14 +2413,14 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		ClientCard* pcard;
 		for (int i = 0; i < count; ++i) {
 			int code = NetManager::ReadInt32(pbuf);
+			mainGame->gMutex.Lock();
 			pcard = mainGame->dField.GetCard(player, LOCATION_DECK, mainGame->dField.deck[player].size() - 1);
 			pcard->SetCode(code);
-			mainGame->gMutex.Lock();
 			mainGame->dField.deck[player].erase(mainGame->dField.deck[player].end() - 1);
 			mainGame->dField.AddCard(pcard, player, LOCATION_HAND, 0);
-			mainGame->gMutex.Unlock();
 			for(int i = 0; i < mainGame->dField.hand[player].size(); ++i)
 				mainGame->dField.MoveCard(mainGame->dField.hand[player][i], 10);
+			mainGame->gMutex.Unlock();
 			mainGame->WaitFrameSignal(5);
 		}
 		if (player == 0)
@@ -2598,7 +2601,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		if (ld != 0) {
 			mainGame->dField.attack_target = mainGame->dField.GetCard(cd, ld, sd);
 			myswprintf(pdInfo->strEvent, L"[%ls]攻击[%ls]", mainGame->dataManager.GetName(mainGame->dField.attacker->code),
-			         mainGame->dataManager.GetName(mainGame->dField.attack_target->code));
+			           mainGame->dataManager.GetName(mainGame->dField.attack_target->code));
 			float xa = mainGame->dField.attacker->curPos.X;
 			float ya = mainGame->dField.attacker->curPos.Y;
 			float xd = mainGame->dField.attack_target->curPos.X;
@@ -2784,6 +2787,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int ct = NetManager::ReadInt16(pbuf);
 		ClientCard* pcard = mainGame->dField.GetCard(c, l, s);
 		pcard->turnCounter = ct;
+		if(ct == 0)
+			return true;
 		if(pcard->location & LOCATION_ONFIELD)
 			pcard->is_selectable = true;
 		mainGame->showcardcode = pcard->code;

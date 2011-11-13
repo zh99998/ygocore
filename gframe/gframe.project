@@ -70,6 +70,7 @@
     <File Name="mysignal.h"/>
     <File Name="mythread.h"/>
     <File Name="mytimer.h"/>
+    <File Name="replay.h"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

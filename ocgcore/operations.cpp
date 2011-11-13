@@ -326,7 +326,7 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 		}
 		core.hint_timing[playerid] |= TIMING_DRAW + TIMING_TOHAND;
 		adjust_instant();
-		core.units.begin()->arg2 = drawed;
+		core.units.begin()->arg2 = (core.units.begin()->arg2 & 0xff000000) + drawed;
 		if(drawed > 0) {
 			pduel->write_buffer8(MSG_DRAW);
 			pduel->write_buffer8(playerid);
