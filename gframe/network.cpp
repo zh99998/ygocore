@@ -279,10 +279,10 @@ int NetManager::ListenThread(void* np) {
 		cn = ReadInt16(pbuf);
 		off = 0;
 		while(cn != 0 && off < 19) {
-			mainGame->dInfo.cnname[off++] = cn;
+			mainGame->dInfo.clientname[off++] = cn;
 			cn = ReadInt16(pbuf);
 		}
-		mainGame->dInfo.cnname[off] = 0;
+		mainGame->dInfo.clientname[off] = 0;
 		int maincount = ReadInt16(pbuf);
 		int sidecount = ReadInt16(pbuf);
 		mainGame->deckManager.LoadDeck(mainGame->deckManager.deckclient, (int*)pbuf, maincount, sidecount);
@@ -298,8 +298,11 @@ int NetManager::ListenThread(void* np) {
 		WriteInt8(psbuf, 0);
 		const wchar_t* ln = mainGame->ebUsername->getText();
 		int li = 0;
-		while(ln[li] && li < 19)
+		while(ln[li] && li < 19) {
+			mainGame->dInfo.hostname[li] = ln[li];
 			WriteInt16(psbuf, ln[li++]);
+		}
+		mainGame->dInfo.hostname[li] = 0;
 		WriteInt16(psbuf, 0);
 		send(net->sRemote, net->send_buf, 3 + li * 2, 0);
 		mainGame->gMutex.Lock();
@@ -352,9 +355,12 @@ int NetManager::JoinThread(void* adr) {
 	NetManager::WriteInt16(pbuf, 0);
 	i = 0;
 	pname = mainGame->ebUsername->getText();
-	while(pname[i] != 0 && i < 19)
+	while(pname[i] != 0 && i < 19) {
+		mainGame->dInfo.hostname[i] = pname[i];
 		NetManager::WriteInt16(pbuf, pname[i++]);
+	}
 	NetManager::WriteInt16(pbuf, 0);
+	mainGame->dInfo.hostname[i] = 0;
 	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.main.size() + mainGame->deckManager.deckhost.extra.size());
 	NetManager::WriteInt16(pbuf, mainGame->deckManager.deckhost.side.size());
 	for(int i = 0; i < mainGame->deckManager.deckhost.main.size(); ++i)
@@ -389,10 +395,10 @@ int NetManager::JoinThread(void* adr) {
 	wchar_t* pn = (wchar_t*)&pnet->recv_buf[1];
 	int pi = 0;
 	while(pn[pi] && pi < 19) {
-		mainGame->dInfo.cnname[pi] = pn[pi];
+		mainGame->dInfo.clientname[pi] = pn[pi];
 		pi++;
 	}
-	mainGame->dInfo.cnname[pi] = 0;
+	mainGame->dInfo.clientname[pi] = 0;
 	mainGame->gMutex.Lock();
 	mainGame->imgCard->setImage(mainGame->imageManager.tCover);
 	mainGame->wCardImg->setVisible(true);

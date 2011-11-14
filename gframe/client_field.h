@@ -39,6 +39,8 @@ public:
 	std::vector<int> select_options;
 	std::vector<ChainInfo> chains;
 	
+	bool is_replaying;
+	
 	int selected_option;
 	ClientCard* attacker;
 	ClientCard* attack_target;

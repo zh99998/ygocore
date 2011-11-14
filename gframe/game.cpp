@@ -53,7 +53,7 @@ bool Game::Initialize() {
 	device->setWindowCaption(L"[---]");
 	device->setResizable(false);
 	myswprintf(dataManager.strBuffer, L"模式选择(当前IP:%d.%d.%d.%d  版本:0x%X)", netManager.local_addr & 0xff, (netManager.local_addr >> 8) & 0xff,
-	         (netManager.local_addr >> 16) & 0xff, (netManager.local_addr >> 24) & 0xff, PROTO_VERSION);
+	           (netManager.local_addr >> 16) & 0xff, (netManager.local_addr >> 24) & 0xff, PROTO_VERSION);
 	wModeSelection = env->addWindow(rect<s32>(270, 100, 750, 490), false, dataManager.strBuffer);
 	wModeSelection->getCloseButton()->setVisible(false);
 	wModes = env->addTabControl(rect<s32>(5, 60, 475, 350), wModeSelection, false, true, TAB_MODES);
@@ -114,7 +114,7 @@ bool Game::Initialize() {
 	ebJoinPass = env->addEditBox(L"", rect<s32>(100, 215, 240, 240), true, tabLanC);
 	ebJoinPass->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	btnLanConnect = env->addButton(rect<s32>(320, 215, 460, 240), tabLanC, BUTTON_LAN_CONNECT, L"加入游戏！");
-	lstReplayList = env->addListBox(rect<s32>(10, 10, 460, 190), tabReplay, -1, true);
+	lstReplayList = env->addListBox(rect<s32>(10, 10, 460, 190), tabReplay, LISTBOX_REPLAY_LIST, true);
 	lstReplayList->setItemHeight(18);
 	btnLoadReplay = env->addButton(rect<s32>(180, 200, 280, 225), tabReplay, BUTTON_LOAD_REPLAY, L"载入录像");
 	env->addStaticText(L"昵称：", rect<s32>(10, 30, 90, 50), false, false, wModeSelection);
@@ -501,8 +501,7 @@ void Game::RefreshDeck(irr::gui::IGUIComboBox* cbDeck) {
 	struct dirent * dirp;
 	if((dir = opendir("./deck/")) == NULL)
 		return;
-	while((dirp = readdir(dir)) != NULL)
-	{
+	while((dirp = readdir(dir)) != NULL) {
 		size_t len = strlen(dirp->d_name);
 		if(len < 5 || strcasecmp(dirp->d_name + len - 4, ".ydk") != 0)
 			continue;
@@ -510,6 +509,34 @@ void Game::RefreshDeck(irr::gui::IGUIComboBox* cbDeck) {
 		wchar_t wname[256];
 		DataManager::DecodeUTF8(dirp->d_name, wname);
 		cbDeck->addItem(wname);
+	}
+#endif
+}
+void Game::RefreshReplay() {
+	lstReplayList->clear();
+#ifdef _WIN32
+	WIN32_FIND_DATAW fdataw;
+	HANDLE fh = FindFirstFileW(L"./replay/*.yrp", &fdataw);
+	if(fh == INVALID_HANDLE_VALUE)
+		return;
+	do {
+		if(!(fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+			lstReplayList->addItem(fdataw.cFileName);
+		}
+	} while(FindNextFileW(fh, &fdataw));
+	FindClose(fh);
+#else
+	DIR * dir;
+	struct dirent * dirp;
+	if((dir = opendir("./replay/")) == NULL)
+		return;
+	while((dirp = readdir(dir)) != NULL) {
+		size_t len = strlen(dirp->d_name);
+		if(len < 5 || strcasecmp(dirp->d_name + len - 4, ".yrp") != 0)
+			continue;
+		wchar_t wname[256];
+		DataManager::DecodeUTF8(dirp->d_name, wname);
+		lstReplayList->addItem(wname);
 	}
 #endif
 }

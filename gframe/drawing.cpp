@@ -241,8 +241,8 @@ void Game::DrawMisc() {
 	numFont->draw(dInfo.strLP[0], recti(330, 12, 631, 30), 0xffffff00, true, false, 0);
 	numFont->draw(dInfo.strLP[1], recti(691, 11, 990, 30), 0xff000000, true, false, 0);
 	numFont->draw(dInfo.strLP[1], recti(691, 12, 992, 30), 0xffffff00, true, false, 0);
-	textFont->draw(ebUsername->getText(), recti(330, 31, 629, 50), 0xffffffff, true, false, 0);
-	textFont->draw(dInfo.cnname, recti(691, 31, 990, 50), 0xffffffff, true, false, 0);
+	textFont->draw(dInfo.hostname, recti(330, 31, 629, 50), 0xffffffff, true, false, 0);
+	textFont->draw(dInfo.clientname, recti(691, 31, 990, 50), 0xffffffff, true, false, 0);
 	driver->draw2DRectangle(recti(632, 10, 688, 30), 0xff000000, 0xff000000, 0xffffffff, 0xffffffff);
 	driver->draw2DRectangle(recti(632, 30, 688, 50), 0xffffffff, 0xffffffff, 0xff000000, 0xff000000);
 	lpcFont->draw(dataManager.GetNumString(dInfo.turn), recti(635, 5, 685, 40), 0x80000000, true, false, 0);

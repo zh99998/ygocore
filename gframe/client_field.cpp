@@ -13,6 +13,7 @@ ClientField::ClientField() {
 	grave_act = false;
 	remove_act = false;
 	extra_act = false;
+	is_replaying = false;
 	for(int p = 0; p < 2; ++p) {
 		for(int i = 0; i < 5; ++i)
 			mzone[p].push_back(0);

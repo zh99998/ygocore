@@ -12,7 +12,7 @@ int Game::LocalPlayer(int player) {
 	return dInfo.is_first_turn ? player : 1 - player;
 }
 const wchar_t* Game::LocalName(int local_player) {
-	return local_player == 0 ? ebUsername->getText() : dInfo.cnname;
+	return local_player == 0 ? dInfo.hostname : dInfo.clientname;
 }
 bool Game::SendByte(int player, char val) {
 	netManager.send_buf[2] = val;
@@ -48,6 +48,8 @@ void Game::SetResponseI() {
 	dInfo.is_responsed = true;
 	if(dInfo.is_local_host) {
 		set_responsei(dInfo.pDuel, dInfo.responseI);
+		lastReplay.WriteInt8(1, false);
+		lastReplay.WriteInt32(dInfo.responseI);
 	} else {
 		char* pbuf = netManager.send_buf;
 		NetManager::WriteInt8(pbuf, 1);
@@ -61,6 +63,9 @@ void Game::SetResponseB(int len) {
 	dInfo.is_responsed = true;
 	if(dInfo.is_local_host) {
 		set_responseb(dInfo.pDuel, (byte*)dInfo.responseB);
+		lastReplay.WriteInt8(2, false);
+		lastReplay.WriteInt8(len, false);
+		lastReplay.WriteData(dInfo.responseB, len);
 	} else {
 		char* pbuf = netManager.send_buf;
 		NetManager::WriteInt8(pbuf, 2);
@@ -168,6 +173,28 @@ bool Game::RefreshSingle(int player, int location, int sequence, int flag) {
 		return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 8);
 	return true;
 }
+void Game::ReplayRefresh(int flag) {
+	int len = query_field_card(dInfo.pDuel, 0, LOCATION_MZONE, flag, (unsigned char*)queryBuffer);
+	dField.UpdateFieldCard(0, LOCATION_MZONE, queryBuffer, flag);
+	len = query_field_card(dInfo.pDuel, 1, LOCATION_MZONE, flag, (unsigned char*)queryBuffer);
+	dField.UpdateFieldCard(1, LOCATION_MZONE, queryBuffer, flag);
+	len = query_field_card(dInfo.pDuel, 0, LOCATION_SZONE, flag, (unsigned char*)queryBuffer);
+	dField.UpdateFieldCard(0, LOCATION_SZONE, queryBuffer, flag);
+	len = query_field_card(dInfo.pDuel, 1, LOCATION_SZONE, flag, (unsigned char*)queryBuffer);
+	dField.UpdateFieldCard(1, LOCATION_SZONE, queryBuffer, flag);
+	len = query_field_card(dInfo.pDuel, 0, LOCATION_HAND, flag, (unsigned char*)queryBuffer);
+	dField.UpdateFieldCard(0, LOCATION_HAND, queryBuffer, flag);
+	len = query_field_card(dInfo.pDuel, 1, LOCATION_HAND, flag, (unsigned char*)queryBuffer);
+	dField.UpdateFieldCard(1, LOCATION_HAND, queryBuffer, flag);
+}
+void Game::ReplayRefreshGrave(int player, int flag) {
+	int len = query_field_card(dInfo.pDuel, 0, LOCATION_GRAVE, flag, (unsigned char*)queryBuffer);
+	dField.UpdateFieldCard(0, LOCATION_GRAVE, queryBuffer, flag);
+}
+void Game::ReplayRefreshSingle(int player, int location, int sequence, int flag) {
+	int len = query_card(dInfo.pDuel, player, location, sequence, flag, (unsigned char*)queryBuffer);
+	dField.UpdateCard(player, location, sequence, queryBuffer, flag);
+}
 int Game::CardReader(int code, void* pData) {
 	mainGame->dataManager.GetData(code, (CardData*)pData);
 	return 0;
@@ -182,17 +209,25 @@ int Game::MessageHandler(long fduel, int type) {
 }
 int Game::EngineThread(void* pd) {
 	DuelInfo* pdInfo = (DuelInfo*)pd;
+	ReplayHeader rh;
+	rh.id = 0x31707279;
+	rh.version = PROTO_VERSION;
 	pdInfo->is_local_host = true;
-	long seed = time(0);
-	mainGame->rnd.init(seed);
+	time_t seed = time(0);
+	rh.seed = seed;
+	mainGame->rnd.reset(seed);
 	if(mainGame->netManager.hInfo.no_shuffle_player || mainGame->rnd.real() < 0.5) {
 		pdInfo->is_host_player[0] = true;
 		pdInfo->is_host_player[1] = false;
 		pdInfo->is_first_turn = true;
+		myswprintf(rh.player1, L"%ls", pdInfo->hostname);
+		myswprintf(rh.player2, L"%ls", pdInfo->clientname);
 	} else {
 		pdInfo->is_host_player[0] = false;
 		pdInfo->is_host_player[1] = true;
 		pdInfo->is_first_turn = false;
+		myswprintf(rh.player2, L"%ls", pdInfo->hostname);
+		myswprintf(rh.player1, L"%ls", pdInfo->clientname);
 	}
 	if(!mainGame->netManager.hInfo.no_shuffle_deck) {
 		for(int i = 0; i < mainGame->deckManager.deckhost.main.size(); ++i) {
@@ -215,29 +250,66 @@ int Game::EngineThread(void* pd) {
 	mainGame->dField.clicked_card = 0;
 	set_card_reader((card_reader)Game::CardReader);
 	set_message_handler((message_handler)Game::MessageHandler);
+	mainGame->rnd.reset(seed);
 	pdInfo->pDuel = create_duel(mainGame->rnd.rand());
 	HostInfo& hi = mainGame->netManager.hInfo;
 	set_player_info(pdInfo->pDuel, 0, hi.start_lp, hi.start_hand, hi.draw_count);
 	set_player_info(pdInfo->pDuel, 1, hi.start_lp, hi.start_hand, hi.draw_count);
+	int opt = 0;
+	if(mainGame->netManager.hInfo.no_chain_hint)
+		opt |= DUEL_NO_CHAIN_HINT;
+	if(mainGame->netManager.hInfo.attack_ft)
+		opt |= DUEL_ATTACK_FIRST_TURN;
+	rh.startlp = hi.start_lp;
+	rh.starthand = hi.start_hand;
+	rh.drawcount = hi.draw_count;
+	rh.option = opt;
+	mainGame->lastReplay.BeginRecord(seed);
+	mainGame->lastReplay.WriteData(&rh, sizeof(rh));
 	if(pdInfo->is_first_turn) {
-		for(int i = mainGame->deckManager.deckhost.main.size() - 1; i >= 0; --i)
+		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.main.size(), false);
+		for(int i = mainGame->deckManager.deckhost.main.size() - 1; i >= 0; --i) {
 			new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.main[i]->first, 0, 0, LOCATION_DECK, 0, 0);
-		for(int i = mainGame->deckManager.deckhost.extra.size() - 1; i >= 0; --i)
+			mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.main[i]->first, false);
+		}
+		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.extra.size(), false);
+		for(int i = mainGame->deckManager.deckhost.extra.size() - 1; i >= 0; --i) {
 			new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.extra[i]->first, 0, 0, LOCATION_EXTRA, 0, 0);
-		for(int i = mainGame->deckManager.deckclient.main.size() - 1; i >= 0; --i)
+			mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.extra[i]->first, false);
+		}
+		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckclient.main.size(), false);
+		for(int i = mainGame->deckManager.deckclient.main.size() - 1; i >= 0; --i) {
 			new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.main[i]->first, 1, 1, LOCATION_DECK, 0, 0);
-		for(int i = mainGame->deckManager.deckclient.extra.size() - 1; i >= 0; --i)
+			mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckclient.main[i]->first, false);
+		}
+		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckclient.extra.size(), false);
+		for(int i = mainGame->deckManager.deckclient.extra.size() - 1; i >= 0; --i) {
 			new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.extra[i]->first, 1, 1, LOCATION_EXTRA, 0, 0);
+			mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckclient.extra[i]->first, false);
+		}
 	} else {
-		for(int i = mainGame->deckManager.deckclient.main.size() - 1; i >= 0; --i)
+		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckclient.main.size(), false);
+		for(int i = mainGame->deckManager.deckclient.main.size() - 1; i >= 0; --i) {
 			new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.main[i]->first, 0, 0, LOCATION_DECK, 0, 0);
-		for(int i = mainGame->deckManager.deckclient.extra.size() - 1; i >= 0; --i)
+			mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckclient.main[i]->first, false);
+		}
+		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckclient.extra.size(), false);
+		for(int i = mainGame->deckManager.deckclient.extra.size() - 1; i >= 0; --i) {
 			new_card(pdInfo->pDuel, mainGame->deckManager.deckclient.extra[i]->first, 0, 0, LOCATION_EXTRA, 0, 0);
-		for(int i = mainGame->deckManager.deckhost.main.size() - 1; i >= 0; --i)
+			mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckclient.extra[i]->first, false);
+		}
+		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.main.size(), false);
+		for(int i = mainGame->deckManager.deckhost.main.size() - 1; i >= 0; --i) {
 			new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.main[i]->first, 1, 1, LOCATION_DECK, 0, 0);
-		for(int i = mainGame->deckManager.deckhost.extra.size() - 1; i >= 0; --i)
+			mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.main[i]->first, false);
+		}
+		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.extra.size(), false);
+		for(int i = mainGame->deckManager.deckhost.extra.size() - 1; i >= 0; --i) {
 			new_card(pdInfo->pDuel, mainGame->deckManager.deckhost.extra[i]->first, 1, 1, LOCATION_EXTRA, 0, 0);
+			mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.extra[i]->first, false);
+		}
 	}
+	mainGame->lastReplay.Flush();
 	char* pbuf = mainGame->netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_START);
 	NetManager::WriteInt32(pbuf, 0);
@@ -252,11 +324,6 @@ int Game::EngineThread(void* pd) {
 	mainGame->SendGameMessage(1, mainGame->netManager.send_buffer_ptr, 29);
 	mainGame->RefreshExtra(0);
 	mainGame->RefreshExtra(1);
-	int opt = 0;
-	if(mainGame->netManager.hInfo.no_chain_hint)
-		opt |= DUEL_NO_CHAIN_HINT;
-	if(mainGame->netManager.hInfo.attack_ft)
-		opt |= DUEL_ATTACK_FIRST_TURN;
 	start_duel(pdInfo->pDuel, opt);
 	Proceed(pd);
 	end_duel(pdInfo->pDuel);
@@ -265,6 +332,7 @@ int Game::EngineThread(void* pd) {
 	shutdown(mainGame->netManager.sRemote, SD_BOTH);
 	closesocket(mainGame->netManager.sRemote);
 	pdInfo->isStarted = false;
+	mainGame->lastReplay.EndRecord();
 	mainGame->localMessage.Set();
 	mainGame->localResponse.Set();
 	if(!mainGame->is_closing) {
@@ -1019,8 +1087,10 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->stACMessage->setText(L"Error occurs.");
 		mainGame->PopupElement(mainGame->wACMessage, 100);
 		mainGame->WaitFrameSignal(120);
-		pdInfo->isStarted = false;
-		mainGame->localResponse.Set();
+		if(!mainGame->dField.is_replaying) {
+			pdInfo->isStarted = false;
+			mainGame->localResponse.Set();
+		}
 		return false;
 	}
 	case MSG_HINT: {
@@ -1110,8 +1180,10 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->stACMessage->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wACMessage, 100);
 		mainGame->WaitFrameSignal(120);
-		pdInfo->isStarted = false;
-		mainGame->localResponse.Set();
+		if(!mainGame->dField.is_replaying) {
+			pdInfo->isStarted = false;
+			mainGame->localResponse.Set();
+		}
 		return false;
 	}
 	case MSG_WAITING: {
@@ -2800,6 +2872,552 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->showcard = 0;
 		return true;
 	}
+	}
+	return true;
+}
+int Game::ReplayThread(void* pd) {
+	DuelInfo* pdInfo = (DuelInfo*)pd;
+	Replay& rep = mainGame->lastReplay;
+	ReplayHeader rh;
+	rep.ReadData(&rh, sizeof(rh));
+	pdInfo->is_local_host = true;
+	int seed = rh.seed;
+	mainGame->rnd.reset(seed);
+	pdInfo->is_host_player[0] = true;
+	pdInfo->is_host_player[1] = false;
+	pdInfo->is_first_turn = true;
+	myswprintf(pdInfo->hostname, L"%ls", rh.player1);
+	myswprintf(pdInfo->clientname, L"%ls", rh.player2);
+
+	mainGame->gMutex.Lock();
+	mainGame->imgCard->setImage(mainGame->imageManager.tCover);
+	mainGame->wCardImg->setVisible(true);
+	mainGame->wInfos->setVisible(true);
+	mainGame->stName->setText(L"");
+	mainGame->stInfo->setText(L"");
+	mainGame->stDataInfo->setText(L"");
+	mainGame->stText->setText(L"");
+	mainGame->lstServerList->clear();
+	mainGame->stModeStatus->setText(L"");
+	mainGame->dInfo.engLen = 0;
+	mainGame->dInfo.msgLen = 0;
+	mainGame->dInfo.is_local_host = false;
+	mainGame->btnLanStartServer->setEnabled(true);
+	mainGame->btnLanConnect->setEnabled(true);
+	mainGame->btnRefreshList->setEnabled(true);
+	mainGame->btnLoadReplay->setEnabled(true);
+	mainGame->btnDeckEdit->setEnabled(true);
+	mainGame->HideElement(mainGame->wModeSelection);
+	mainGame->dField.panel = 0;
+	mainGame->dField.hovered_card = 0;
+	mainGame->dField.clicked_card = 0;
+	mainGame->gMutex.Unlock();
+	mainGame->WaitFrameSignal(10);
+
+	set_card_reader((card_reader)Game::CardReader);
+	set_message_handler((message_handler)Game::MessageHandler);
+	pdInfo->pDuel = create_duel(mainGame->rnd.rand());
+	set_player_info(pdInfo->pDuel, 0, rh.startlp, rh.starthand, rh.drawcount);
+	set_player_info(pdInfo->pDuel, 1, rh.startlp, rh.starthand, rh.drawcount);
+	pdInfo->lp[0] = rh.startlp;
+	pdInfo->lp[1] = rh.startlp;
+	myswprintf(pdInfo->strLP[0], L"%d", pdInfo->lp[0]);
+	myswprintf(pdInfo->strLP[1], L"%d", pdInfo->lp[1]);
+	pdInfo->turn = 0;
+	pdInfo->strTurn[0] = 0;
+	mainGame->dField.Clear();
+	int main = rep.ReadInt32();
+	for(int i = 0; i < main; ++i)
+		new_card(pdInfo->pDuel, rep.ReadInt32(), 0, 0, LOCATION_DECK, 0, 0);
+	int extra = rep.ReadInt32();
+	for(int i = 0; i < extra; ++i)
+		new_card(pdInfo->pDuel, rep.ReadInt32(), 0, 0, LOCATION_EXTRA, 0, 0);
+	mainGame->dField.Initial(0, main, extra);
+	main = rep.ReadInt32();
+	for(int i = 0; i < main; ++i)
+		new_card(pdInfo->pDuel, rep.ReadInt32(), 1, 1, LOCATION_DECK, 0, 0);
+	extra = rep.ReadInt32();
+	for(int i = 0; i < extra; ++i)
+		new_card(pdInfo->pDuel, rep.ReadInt32(), 1, 1, LOCATION_EXTRA, 0, 0);
+	mainGame->dField.Initial(1, main, extra);
+
+	start_duel(pdInfo->pDuel, rh.option);
+	mainGame->dField.is_replaying = true;
+	pdInfo->isStarted = true;
+	char engineBuffer[0x1000];
+	pdInfo->netError = false;
+	pdInfo->engFlag = 0;
+	bool replaying = true;
+	while (replaying && pdInfo->isStarted && !mainGame->is_closing) {
+		if (pdInfo->engFlag == 2) {
+			pdInfo->engFlag = 0;
+			break;
+		}
+		int result = process(pdInfo->pDuel);
+		pdInfo->engLen = result & 0xffff;
+		pdInfo->engFlag = result >> 16;
+		if (pdInfo->engLen > 0) {
+			get_message(pdInfo->pDuel, (byte*)&engineBuffer[2]);
+			replaying = AnalyzeReplay(pd, engineBuffer);
+		}
+	}
+	end_duel(pdInfo->pDuel);
+	if(!mainGame->is_closing) {
+		mainGame->stMessage->setText(L"录像结束");
+		mainGame->localAction.Reset();
+		mainGame->ShowElement(mainGame->wMessage);
+		mainGame->localAction.Wait();
+	}
+	pdInfo->isStarted = false;
+	mainGame->dField.is_replaying = false;
+	if(!mainGame->is_closing) {
+		mainGame->gMutex.Lock();
+		mainGame->wCardImg->setVisible(false);
+		mainGame->stHintMsg->setVisible(false);
+		mainGame->stTip->setVisible(false);
+		mainGame->wInfos->setVisible(false);
+		mainGame->btnDP->setVisible(false);
+		mainGame->btnSP->setVisible(false);
+		mainGame->btnM1->setVisible(false);
+		mainGame->btnBP->setVisible(false);
+		mainGame->btnM2->setVisible(false);
+		mainGame->btnEP->setVisible(false);
+		mainGame->lstLog->clear();
+		mainGame->imgCard->setImage(0);
+		mainGame->stName->setText(L"");
+		mainGame->stDataInfo->setText(L"");
+		mainGame->stText->setText(L"");
+		mainGame->ShowElement(mainGame->wModeSelection);
+		mainGame->imageManager.ClearTexture();
+		mainGame->gMutex.Unlock();
+	}
+	return 0;
+}
+bool Game::AnalyzeReplay(void* pd, char* engbuf) {
+	DuelInfo* pdInfo = (DuelInfo*)pd;
+	Replay& rep = mainGame->lastReplay;
+	char* offset, *pbufw, *pbuf = &engbuf[2];
+	int player, count, type;
+	while (pbuf - &engbuf[2] < pdInfo->engLen) {
+		if(mainGame->is_closing)
+			return false;
+		offset = pbuf;
+		pdInfo->engType = NetManager::ReadUInt8(pbuf);
+		switch (pdInfo->engType) {
+		case MSG_RETRY: {
+			SolveMessage(pd, offset, pbuf - offset);
+			pdInfo->engFlag = 2;
+			return false;
+		}
+		case MSG_HINT: {
+			pbuf += 6;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_WIN: {
+			pbuf += 2;
+			SolveMessage(pd, offset, pbuf - offset);
+			return false;
+		}
+		case MSG_SELECT_BATTLECMD: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 11;
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 8 + 2;
+			mainGame->ReplayRefresh();
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_IDLECMD: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 7;
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 7;
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 7;
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 7;
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 7;
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 11 + 2;
+			mainGame->ReplayRefresh();
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_EFFECTYN: {
+			player = NetManager::ReadInt8(pbuf);
+			pbuf += 8;
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_YESNO: {
+			player = NetManager::ReadInt8(pbuf);
+			pbuf += 4;
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_OPTION: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 4;
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_CARD:
+		case MSG_SELECT_TRIBUTE: {
+			player = NetManager::ReadInt8(pbuf);
+			pbuf += 3;
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 8;
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_CHAIN: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 12;
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_PLACE:
+		case MSG_SELECT_DISFIELD: {
+			player = NetManager::ReadInt8(pbuf);
+			pbuf += 5;
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_POSITION: {
+			player = NetManager::ReadInt8(pbuf);
+			pbuf += 5;
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_COUNTER: {
+			player = NetManager::ReadInt8(pbuf);
+			pbuf += 3;
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 8;
+			return rep.ReadNextResponse();
+		}
+		case MSG_SELECT_SUM: {
+			pbuf++;
+			player = NetManager::ReadInt8(pbuf);
+			pbuf += 5;
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 11;
+			return rep.ReadNextResponse();
+		}
+		case MSG_SORT_CARD:
+		case MSG_SORT_CHAIN: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 7;
+			return rep.ReadNextResponse();
+		}
+		case MSG_CONFIRM_DECKTOP: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 7;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_CONFIRM_CARDS: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 7;
+			break;
+		}
+		case MSG_SHUFFLE_DECK: {
+			pbuf++;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_SHUFFLE_HAND: {
+			player = NetManager::ReadInt8(pbuf);
+			mainGame->WaitFrameSignal(5);
+			for (auto cit = mainGame->dField.hand[player].begin(); cit != mainGame->dField.hand[player].end(); ++cit) {
+				(*cit)->dPos = irr::core::vector3df((3.9f - (*cit)->curPos.X) / 5, 0, 0);
+				(*cit)->dRot = irr::core::vector3df(0, 0, 0);
+				(*cit)->is_moving = true;
+				(*cit)->is_hovered = false;
+				(*cit)->aniFrame = 5;
+			}
+			mainGame->WaitFrameSignal(20);
+			mainGame->ReplayRefresh();
+			for (auto cit = mainGame->dField.hand[player].begin(); cit != mainGame->dField.hand[player].end(); ++cit) {
+				(*cit)->is_hovered = false;
+				mainGame->dField.MoveCard(*cit, 5);
+			}
+			mainGame->WaitFrameSignal(5);
+			break;
+		}
+		case MSG_REFRESH_DECK: {
+			pbuf++;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_SWAP_GRAVE_DECK: {
+			player = NetManager::ReadInt8(pbuf);
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefreshGrave(player);
+			break;
+		}
+		case MSG_SHUFFLE_SET_CARD: {
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_NEW_TURN: {
+			pbuf++;
+			mainGame->ReplayRefresh();
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_NEW_PHASE: {
+			pbuf++;
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();
+			break;
+		}
+		case MSG_MOVE: {
+			int code = NetManager::ReadInt32(pbuf);
+			int pc = NetManager::ReadInt8(pbuf);
+			int pl = NetManager::ReadInt8(pbuf);
+			int ps = NetManager::ReadInt8(pbuf);
+			int pp = NetManager::ReadInt8(pbuf);
+			int cc = NetManager::ReadInt8(pbuf);
+			int cl = NetManager::ReadInt8(pbuf);
+			int cs = NetManager::ReadInt8(pbuf);
+			int cp = NetManager::ReadInt8(pbuf);
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefreshSingle(cc, cl, cs);
+			break;
+		}
+		case MSG_DESTROY: {
+			pbuf += 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_RELEASE: {
+			pbuf += 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_POS_CHANGE: {
+			pbuf += 9;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_SET: {
+			pbuf += 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_SWAP: {
+			pbuf += 16;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_FIELD_DISABLED: {
+			pbuf += 4;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_SUMMONING: {
+			pbuf += 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_SUMMONED: {
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();
+			break;
+		}
+		case MSG_SPSUMMONING: {
+			pbuf += 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_SPSUMMONED: {
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();
+			break;
+		}
+		case MSG_FLIPSUMMONING: {
+			pbuf += 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_FLIPSUMMONED: {
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();
+			break;
+		}
+		case MSG_CHAINING: {
+			pbuf += 16;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_CHAINED: {
+			pbuf++;
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();
+			break;
+		}
+		case MSG_CHAIN_SOLVING: {
+			pbuf++;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_CHAIN_SOLVED: {
+			pbuf++;
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();
+			break;
+		}
+		case MSG_CHAIN_END: {
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();
+			break;
+		}
+		case MSG_CHAIN_INACTIVATED: {
+			pbuf++;
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();
+			break;
+		}
+		case MSG_CHAIN_DISABLED: {
+			pbuf++;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_CARD_SELECTED:
+		case MSG_RANDOM_SELECTED: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 4;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_BECOME_TARGET: {
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count * 4;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_DRAW: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbufw = pbuf;
+			pbuf += count * 4;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_DAMAGE: {
+			pbuf += 5;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_RECOVER: {
+			pbuf += 5;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_EQUIP: {
+			pbuf += 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_LPUPDATE: {
+			pbuf += 5;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_UNEQUIP: {
+			pbuf += 4;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_PAY_LPCOST: {
+			pbuf += 5;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_ADD_COUNTER: {
+			pbuf += 6;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_REMOVE_COUNTER: {
+			pbuf += 6;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_ATTACK: {
+			pbuf += 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_BATTLE: {
+			pbuf += 18;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_ATTACK_DISABLED: {
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_DAMAGE_STEP_START: {
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();;
+			break;
+		}
+		case MSG_DAMAGE_STEP_END: {
+			SolveMessage(pd, offset, pbuf - offset);
+			mainGame->ReplayRefresh();
+			break;
+		}
+		case MSG_MISSED_EFFECT: {
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += 8;
+//			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_TOSS_COIN: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_TOSS_DICE: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += count;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		case MSG_ANNOUNCE_RACE: {
+			player = NetManager::ReadInt8(pbuf);
+			pbuf += 5;
+			return rep.ReadNextResponse();
+		}
+		case MSG_ANNOUNCE_ATTRIB: {
+			player = NetManager::ReadInt8(pbuf);
+			pbuf += 5;
+			return rep.ReadNextResponse();
+		}
+		case MSG_ANNOUNCE_CARD: {
+			player = NetManager::ReadInt8(pbuf);
+			return rep.ReadNextResponse();
+		}
+		case MSG_ANNOUNCE_NUMBER: {
+			player = NetManager::ReadInt8(pbuf);
+			count = NetManager::ReadInt8(pbuf);
+			pbuf += 4 * count;
+			return rep.ReadNextResponse();
+		}
+		case MSG_COUNT_TURN: {
+			pbuf += 6;
+			SolveMessage(pd, offset, pbuf - offset);
+			break;
+		}
+		}
 	}
 	return true;
 }

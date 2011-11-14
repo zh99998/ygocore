@@ -125,6 +125,14 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					mainGame->chkCategory[i]->setChecked(false);
 				break;
 			}
+			case BUTTON_LOAD_REPLAY: {
+				if(mainGame->lstReplayList->getSelected() == -1)
+					break;
+				if(!mainGame->lastReplay.BeginReplay(mainGame->lstReplayList->getListItem(mainGame->lstReplayList->getSelected())))
+					break;
+				Thread::NewThread(Game::ReplayThread, &mainGame->dInfo);
+				break;
+			}
 			case BUTTON_MSG_OK: {
 				mainGame->HideElement(mainGame->wMessage, true);
 				break;
@@ -685,7 +693,7 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 						mainGame->btnCardSelect[i]->setImage(mainGame->imageManager.tCover);
 					mainGame->btnCardSelect[i]->setRelativePosition(rect<s32>(30 + i * 125, 55, 30 + 120 + i * 125, 225));
 					myswprintf(formatBuffer, L"%ls[%d]", DataManager::FormatLocation(selectable_cards[i + pos]->location),
-					         selectable_cards[i + pos]->sequence + 1);
+					           selectable_cards[i + pos]->sequence + 1);
 					mainGame->stCardPos[i]->setText(formatBuffer);
 					if(selectable_cards[i + pos]->is_selected)
 						mainGame->stCardPos[i]->setBackgroundColor(0xffffff00);
@@ -701,16 +709,18 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 		case irr::gui::EGET_TAB_CHANGED: {
 			switch(id) {
 			case TAB_MODES: {
-				if(mainGame->wModes->getActiveTab() != 1)
-					break;
-				if(mainGame->is_refreshing)
-					break;
-				if(mainGame->netManager.RefreshHost()) {
-					mainGame->btnLanStartServer->setEnabled(false);
-					mainGame->btnLanConnect->setEnabled(false);
-					mainGame->btnRefreshList->setEnabled(false);
-					mainGame->btnLoadReplay->setEnabled(false);
-					mainGame->btnDeckEdit->setEnabled(false);
+				if(mainGame->wModes->getActiveTab() == 1) {
+					if(mainGame->is_refreshing)
+						break;
+					if(mainGame->netManager.RefreshHost()) {
+						mainGame->btnLanStartServer->setEnabled(false);
+						mainGame->btnLanConnect->setEnabled(false);
+						mainGame->btnRefreshList->setEnabled(false);
+						mainGame->btnLoadReplay->setEnabled(false);
+						mainGame->btnDeckEdit->setEnabled(false);
+					}
+				} else if(mainGame->wModes->getActiveTab() == 2) {
+					mainGame->RefreshReplay();
 				}
 				break;
 			}
@@ -771,6 +781,8 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 	case irr::EET_MOUSE_INPUT_EVENT: {
 		switch(event.MouseInput.Event) {
 		case irr::EMIE_LMOUSE_LEFT_UP: {
+			if(is_replaying)
+				break;
 			if(!mainGame->dInfo.isStarted)
 				break;
 			s32 x = event.MouseInput.X;
@@ -1025,6 +1037,8 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 			break;
 		}
 		case irr::EMIE_RMOUSE_LEFT_UP: {
+			if(is_replaying)
+				break;
 			mainGame->wCmdMenu->setVisible(false);
 			if(mainGame->fadingFrame)
 				break;

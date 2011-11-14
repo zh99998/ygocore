@@ -39,7 +39,8 @@ struct DuelInfo {
 	short curMsg;
 	short preMsg;
 	int selectHint;
-	wchar_t cnname[20];
+	wchar_t hostname[20];
+	wchar_t clientname[20];
 	wchar_t pass[20];
 	wchar_t strLP[2][16];
 	wchar_t strTurn[8];
@@ -57,6 +58,7 @@ public:
 	void BuildProjectionMatrix(irr::core::matrix4& mProjection, f32 left, f32 right, f32 bottom, f32 top, f32 znear, f32 zfar);
 	void SetStaticText(irr::gui::IGUIStaticText* pControl, u32 cWidth, irr::gui::CGUITTFont* font, wchar_t* text);
 	void RefreshDeck(irr::gui::IGUIComboBox* cbDeck);
+	void RefreshReplay();
 	void DrawSelectionLine(irr::video::S3DVertex* vec, bool strip, int width, float* cv);
 	void DrawBackGround();
 	void DrawCards();
@@ -86,6 +88,9 @@ public:
 	bool RefreshGrave(int player, int flag = 0x181fff);
 	bool RefreshExtra(int player, int flag = 0x181fff);
 	bool RefreshSingle(int player, int location, int sequence, int flag = 0x181fff);
+	void ReplayRefresh(int flag = 0x181fff);
+	void ReplayRefreshGrave(int player, int flag = 0x181fff);
+	void ReplayRefreshSingle(int player, int location, int sequence, int flag = 0x181fff);
 
 	static int CardReader(int, void*);
 	static int MessageHandler(long, int);
@@ -95,6 +100,8 @@ public:
 	static int RecvThread(void*);
 	static int GameThread(void*);
 	static bool SolveMessage(void*, char*, int);
+	static int ReplayThread(void* pd);
+	static bool AnalyzeReplay(void*, char*);
 	
 	//
 	char msgBuffer[0x1000];
@@ -329,7 +336,8 @@ public:
 #define BUTTON_LOAD_REPLAY			114
 #define BUTTON_DECK_EDIT			115
 #define BUTTON_MODE_EXIT			116
-#define LISTBOX_SERVER_LIST			116
+#define LISTBOX_SERVER_LIST			117
+#define LISTBOX_REPLAY_LIST			118
 #define BUTTON_MSG_OK				120
 #define BUTTON_YES					121
 #define BUTTON_NO					122
