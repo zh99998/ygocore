@@ -14,6 +14,7 @@ ClientField::ClientField() {
 	remove_act = false;
 	extra_act = false;
 	is_replaying = false;
+	is_paused = false;
 	for(int p = 0; p < 2; ++p) {
 		for(int i = 0; i < 5; ++i)
 			mzone[p].push_back(0);

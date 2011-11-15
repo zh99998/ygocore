@@ -2893,6 +2893,7 @@ int Game::ReplayThread(void* pd) {
 	mainGame->imgCard->setImage(mainGame->imageManager.tCover);
 	mainGame->wCardImg->setVisible(true);
 	mainGame->wInfos->setVisible(true);
+	mainGame->wReplay->setVisible(true);
 	mainGame->stName->setText(L"");
 	mainGame->stInfo->setText(L"");
 	mainGame->stDataInfo->setText(L"");
@@ -2945,10 +2946,9 @@ int Game::ReplayThread(void* pd) {
 	mainGame->dField.is_replaying = true;
 	pdInfo->isStarted = true;
 	char engineBuffer[0x1000];
-	pdInfo->netError = false;
 	pdInfo->engFlag = 0;
 	bool replaying = true;
-	while (replaying && pdInfo->isStarted && !mainGame->is_closing) {
+	while (replaying && mainGame->dField.is_replaying && pdInfo->isStarted && !mainGame->is_closing) {
 		if (pdInfo->engFlag == 2) {
 			pdInfo->engFlag = 0;
 			break;
@@ -2965,7 +2965,7 @@ int Game::ReplayThread(void* pd) {
 	if(!mainGame->is_closing) {
 		mainGame->stMessage->setText(L"录像结束");
 		mainGame->localAction.Reset();
-		mainGame->ShowElement(mainGame->wMessage);
+		mainGame->PopupElement(mainGame->wMessage);
 		mainGame->localAction.Wait();
 	}
 	pdInfo->isStarted = false;
@@ -2976,6 +2976,7 @@ int Game::ReplayThread(void* pd) {
 		mainGame->stHintMsg->setVisible(false);
 		mainGame->stTip->setVisible(false);
 		mainGame->wInfos->setVisible(false);
+		mainGame->wReplay->setVisible(false);
 		mainGame->btnDP->setVisible(false);
 		mainGame->btnSP->setVisible(false);
 		mainGame->btnM1->setVisible(false);
@@ -2998,10 +2999,12 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 	Replay& rep = mainGame->lastReplay;
 	char* offset, *pbufw, *pbuf = &engbuf[2];
 	int player, count, type;
+	bool pauseable;
 	while (pbuf - &engbuf[2] < pdInfo->engLen) {
 		if(mainGame->is_closing)
 			return false;
 		offset = pbuf;
+		pauseable = true;
 		pdInfo->engType = NetManager::ReadUInt8(pbuf);
 		switch (pdInfo->engType) {
 		case MSG_RETRY: {
@@ -3191,11 +3194,13 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_DESTROY: {
 			pbuf += 8;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_RELEASE: {
 			pbuf += 8;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_POS_CHANGE: {
@@ -3206,6 +3211,7 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_SET: {
 			pbuf += 8;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_SWAP: {
@@ -3216,11 +3222,13 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_FIELD_DISABLED: {
 			pbuf += 4;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_SUMMONING: {
 			pbuf += 8;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_SUMMONED: {
@@ -3231,6 +3239,7 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_SPSUMMONING: {
 			pbuf += 8;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_SPSUMMONED: {
@@ -3241,6 +3250,7 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_FLIPSUMMONING: {
 			pbuf += 8;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_FLIPSUMMONED: {
@@ -3262,17 +3272,20 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_CHAIN_SOLVING: {
 			pbuf++;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_CHAIN_SOLVED: {
 			pbuf++;
 			SolveMessage(pd, offset, pbuf - offset);
 			mainGame->ReplayRefresh();
+			pauseable = false;
 			break;
 		}
 		case MSG_CHAIN_END: {
 			SolveMessage(pd, offset, pbuf - offset);
 			mainGame->ReplayRefresh();
+			pauseable = false;
 			break;
 		}
 		case MSG_CHAIN_INACTIVATED: {
@@ -3292,6 +3305,7 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 			count = NetManager::ReadInt8(pbuf);
 			pbuf += count * 4;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_BECOME_TARGET: {
@@ -3321,6 +3335,7 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_EQUIP: {
 			pbuf += 8;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_LPUPDATE: {
@@ -3331,6 +3346,7 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_UNEQUIP: {
 			pbuf += 4;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_PAY_LPCOST: {
@@ -3364,12 +3380,14 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		}
 		case MSG_DAMAGE_STEP_START: {
 			SolveMessage(pd, offset, pbuf - offset);
-			mainGame->ReplayRefresh();;
+			mainGame->ReplayRefresh();
+			pauseable = false;
 			break;
 		}
 		case MSG_DAMAGE_STEP_END: {
 			SolveMessage(pd, offset, pbuf - offset);
 			mainGame->ReplayRefresh();
+			pauseable = false;
 			break;
 		}
 		case MSG_MISSED_EFFECT: {
@@ -3417,6 +3435,10 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 			SolveMessage(pd, offset, pbuf - offset);
 			break;
 		}
+		}
+		if(pauseable && mainGame->dField.is_paused){
+			mainGame->localAction.Reset();
+			mainGame->localAction.Wait();
 		}
 	}
 	return true;

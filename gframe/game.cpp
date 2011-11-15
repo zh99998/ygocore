@@ -368,6 +368,14 @@ bool Game::Initialize() {
 	scrFilter->setLargeStep(10);
 	scrFilter->setSmallStep(1);
 	scrFilter->setVisible(false);
+	//replay control
+	wReplay = env->addStaticText(L"", rect<s32>(205, 143, 295, 273), true, false, 0, -1, true);
+	wReplay->setVisible(false);
+	btnReplayStart = env->addButton(rect<s32>(5, 5, 85, 25), wReplay, BUTTON_REPLAY_START, L"开始");
+	btnReplayPause = env->addButton(rect<s32>(5, 30, 85, 50), wReplay, BUTTON_REPLAY_PAUSE, L"暂停");
+	btnReplayStep = env->addButton(rect<s32>(5, 55, 85, 75), wReplay, BUTTON_REPLAY_STEP, L"下一步");
+	btnReplaySwap = env->addButton(rect<s32>(5, 80, 85, 100), wReplay, BUTTON_REPLAY_SWAP, L"切换视角");
+	btnReplayExit = env->addButton(rect<s32>(5, 105, 85, 125), wReplay, BUTTON_REPLAY_EXIT, L"退出");
 	device->setEventReceiver(&dField);
 	LoadConfig();
 	env->getSkin()->setFont(guiFont);

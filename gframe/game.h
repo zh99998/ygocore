@@ -74,7 +74,7 @@ public:
 	void DrawDeckBd();
 	void LoadConfig();
 	void SaveConfig();
-	
+
 	int LocalPlayer(int player);
 	const wchar_t* LocalName(int local_player);
 	bool SendByte(int player, char val);
@@ -102,11 +102,11 @@ public:
 	static bool SolveMessage(void*, char*, int);
 	static int ReplayThread(void* pd);
 	static bool AnalyzeReplay(void*, char*);
-	
+
 	//
 	char msgBuffer[0x1000];
 	char queryBuffer[0x1000];
-	
+
 	bool is_closing;
 	bool is_refreshing;
 	mtrandom rnd;
@@ -123,7 +123,7 @@ public:
 	DeckManager deckManager;
 	Materials matManager;
 	Replay lastReplay;
-	
+
 	unsigned short linePattern;
 	int waitFrame;
 	int signalFrame;
@@ -152,9 +152,9 @@ public:
 	wchar_t* lpcstring;
 	bool always_chain;
 	bool ignore_chain;
-	
+
 	bool is_building;
-	
+
 	DuelInfo dInfo;
 	ClientField dField;
 	DeckBuilder deckBuilder;
@@ -313,6 +313,14 @@ public:
 	irr::gui::IGUIWindow* wCategories;
 	irr::gui::IGUICheckBox* chkCategory[32];
 	irr::gui::IGUIButton* btnCategoryOK;
+	//replay control
+	irr::gui::IGUIStaticText* wReplay;
+	irr::gui::IGUIButton* btnReplayStart;
+	irr::gui::IGUIButton* btnReplayPause;
+	irr::gui::IGUIButton* btnReplayStep;
+	irr::gui::IGUIButton* btnReplayExit;
+	irr::gui::IGUIButton* btnReplaySwap;
+
 };
 
 }
@@ -384,4 +392,9 @@ public:
 #define BUTTON_RESULT_FILTER		213
 #define SCROLL_FILTER				214
 #define BUTTON_GETCODE				215
+#define BUTTON_REPLAY_START			220
+#define BUTTON_REPLAY_PAUSE			221
+#define BUTTON_REPLAY_STEP			222
+#define BUTTON_REPLAY_EXIT			223
+#define BUTTON_REPLAY_SWAP			224
 #endif // GAME_H

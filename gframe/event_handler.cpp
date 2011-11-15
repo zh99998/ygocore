@@ -133,6 +133,55 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				Thread::NewThread(Game::ReplayThread, &mainGame->dInfo);
 				break;
 			}
+			case BUTTON_REPLAY_START: {
+				is_paused = false;
+				mainGame->localAction.Set();
+				break;
+			}
+			case BUTTON_REPLAY_PAUSE: {
+				is_paused = true;
+				break;
+			}
+			case BUTTON_REPLAY_STEP: {
+				mainGame->localAction.Set();
+				break;
+			}
+			case BUTTON_REPLAY_EXIT: {
+				mainGame->dField.is_replaying = false;
+				mainGame->localAction.Set();
+				break;
+			}
+			case BUTTON_REPLAY_SWAP: {
+				std::swap(deck[0], deck[1]);
+				std::swap(hand[0], hand[1]);
+				std::swap(mzone[0], mzone[1]);
+				std::swap(szone[0], szone[1]);
+				std::swap(grave[0], grave[1]);
+				std::swap(remove[0], remove[1]);
+				std::swap(extra[0], extra[1]);
+				for(int p = 0; p < 2; ++p) {
+					for(auto cit = deck[p].begin(); cit != deck[p].end(); ++cit)
+						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+					for(auto cit = hand[p].begin(); cit != hand[p].end(); ++cit)
+						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+					for(auto cit = mzone[p].begin(); cit != mzone[p].end(); ++cit)
+						if(*cit)
+							GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+					for(auto cit = szone[p].begin(); cit != szone[p].end(); ++cit)
+						if(*cit)
+							GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+					for(auto cit = grave[p].begin(); cit != grave[p].end(); ++cit)
+						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+					for(auto cit = remove[p].begin(); cit != remove[p].end(); ++cit)
+						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+					for(auto cit = extra[p].begin(); cit != extra[p].end(); ++cit)
+						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+				}
+				mainGame->dInfo.is_first_turn = !mainGame->dInfo.is_first_turn;
+				std::swap(mainGame->dInfo.is_host_player[0], mainGame->dInfo.is_host_player[1]);
+				std::swap(mainGame->dInfo.lp[0], mainGame->dInfo.lp[1]);
+				break;
+			}
 			case BUTTON_MSG_OK: {
 				mainGame->HideElement(mainGame->wMessage, true);
 				break;
