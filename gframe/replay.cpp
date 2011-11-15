@@ -68,8 +68,6 @@ bool Replay::BeginReplay(const wchar_t* name) {
 	return true;
 }
 bool Replay::ReadNextResponse() {
-	if(feof(fp))
-		return false;
 	char resType = ReadInt8();
 	if(resType == 1) {
 		fread(&mainGame->dInfo.responseI, 4, 1, fp);
@@ -79,6 +77,8 @@ bool Replay::ReadNextResponse() {
 		fread(mainGame->dInfo.responseB, len, 1, fp);
 		set_responseb(mainGame->dInfo.pDuel, (byte*)mainGame->dInfo.responseB);
 	} else
+		return false;
+	if(feof(fp))
 		return false;
 	return true;
 }

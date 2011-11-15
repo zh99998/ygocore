@@ -381,6 +381,80 @@ void ClientField::ShowSelectCard(bool buttonok) {
 	else mainGame->btnSelectOK->setVisible(false);
 	mainGame->PopupElement(mainGame->wCardSelect);
 }
+void ClientField::ReplaySwap() {
+	std::swap(deck[0], deck[1]);
+	std::swap(hand[0], hand[1]);
+	std::swap(mzone[0], mzone[1]);
+	std::swap(szone[0], szone[1]);
+	std::swap(grave[0], grave[1]);
+	std::swap(remove[0], remove[1]);
+	std::swap(extra[0], extra[1]);
+	for(int p = 0; p < 2; ++p) {
+		for(auto cit = deck[p].begin(); cit != deck[p].end(); ++cit) {
+			(*cit)->controler = 1 - (*cit)->controler;
+			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+			(*cit)->mTransform.setTranslation((*cit)->curPos);
+			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+		}
+		for(auto cit = hand[p].begin(); cit != hand[p].end(); ++cit) {
+			(*cit)->controler = 1 - (*cit)->controler;
+			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+			(*cit)->mTransform.setTranslation((*cit)->curPos);
+			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+		}
+		for(auto cit = mzone[p].begin(); cit != mzone[p].end(); ++cit) {
+			if(*cit) {
+				(*cit)->controler = 1 - (*cit)->controler;
+				GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+				(*cit)->mTransform.setTranslation((*cit)->curPos);
+				(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+			}
+		}
+		for(auto cit = szone[p].begin(); cit != szone[p].end(); ++cit) {
+			if(*cit) {
+				(*cit)->controler = 1 - (*cit)->controler;
+				GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+				(*cit)->mTransform.setTranslation((*cit)->curPos);
+				(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+			}
+		}
+		for(auto cit = grave[p].begin(); cit != grave[p].end(); ++cit) {
+			(*cit)->controler = 1 - (*cit)->controler;
+			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+			(*cit)->mTransform.setTranslation((*cit)->curPos);
+			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+		}
+		for(auto cit = remove[p].begin(); cit != remove[p].end(); ++cit) {
+			(*cit)->controler = 1 - (*cit)->controler;
+			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+			(*cit)->mTransform.setTranslation((*cit)->curPos);
+			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+		}
+		for(auto cit = extra[p].begin(); cit != extra[p].end(); ++cit) {
+			(*cit)->controler = 1 - (*cit)->controler;
+			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+			(*cit)->mTransform.setTranslation((*cit)->curPos);
+			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+		}
+	}
+	for(auto cit = overlay_cards.begin(); cit != overlay_cards.end(); ++cit) {
+		(*cit)->controler = 1 - (*cit)->controler;
+		GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
+		(*cit)->mTransform.setTranslation((*cit)->curPos);
+		(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+	}
+	mainGame->dInfo.is_first_turn = !mainGame->dInfo.is_first_turn;
+	std::swap(mainGame->dInfo.is_host_player[0], mainGame->dInfo.is_host_player[1]);
+	std::swap(mainGame->dInfo.lp[0], mainGame->dInfo.lp[1]);
+	for(int i = 0; i < 16; ++i)
+		std::swap(mainGame->dInfo.strLP[0][i], mainGame->dInfo.strLP[1][i]);
+	for(int i = 0; i < 20; ++i)
+		std::swap(mainGame->dInfo.hostname[i], mainGame->dInfo.clientname[i]);
+	for(auto chit = chains.begin(); chit != chains.end(); ++chit) {
+		chit->controler = 1 - chit->controler;
+		GetChainLocation(chit->controler, chit->location, chit->sequence, &chit->chain_pos);
+	}
+}
 void ClientField::GetChainLocation(int controler, int location, int sequence, irr::core::vector3df* t) {
 	t->X = 0;
 	t->Y = 0;

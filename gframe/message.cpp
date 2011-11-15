@@ -175,25 +175,25 @@ bool Game::RefreshSingle(int player, int location, int sequence, int flag) {
 }
 void Game::ReplayRefresh(int flag) {
 	int len = query_field_card(dInfo.pDuel, 0, LOCATION_MZONE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(0, LOCATION_MZONE, queryBuffer, flag);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(0), LOCATION_MZONE, queryBuffer, flag);
 	len = query_field_card(dInfo.pDuel, 1, LOCATION_MZONE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(1, LOCATION_MZONE, queryBuffer, flag);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_MZONE, queryBuffer, flag);
 	len = query_field_card(dInfo.pDuel, 0, LOCATION_SZONE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(0, LOCATION_SZONE, queryBuffer, flag);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(0), LOCATION_SZONE, queryBuffer, flag);
 	len = query_field_card(dInfo.pDuel, 1, LOCATION_SZONE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(1, LOCATION_SZONE, queryBuffer, flag);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_SZONE, queryBuffer, flag);
 	len = query_field_card(dInfo.pDuel, 0, LOCATION_HAND, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(0, LOCATION_HAND, queryBuffer, flag);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(0), LOCATION_HAND, queryBuffer, flag);
 	len = query_field_card(dInfo.pDuel, 1, LOCATION_HAND, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(1, LOCATION_HAND, queryBuffer, flag);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_HAND, queryBuffer, flag);
 }
 void Game::ReplayRefreshGrave(int player, int flag) {
 	int len = query_field_card(dInfo.pDuel, 0, LOCATION_GRAVE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(0, LOCATION_GRAVE, queryBuffer, flag);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(player), LOCATION_GRAVE, queryBuffer, flag);
 }
 void Game::ReplayRefreshSingle(int player, int location, int sequence, int flag) {
 	int len = query_card(dInfo.pDuel, player, location, sequence, flag, (unsigned char*)queryBuffer);
-	dField.UpdateCard(player, location, sequence, queryBuffer, flag);
+	dField.UpdateCard(mainGame->LocalPlayer(player), location, sequence, queryBuffer, flag);
 }
 int Game::CardReader(int code, void* pData) {
 	mainGame->dataManager.GetData(code, (CardData*)pData);
@@ -2900,6 +2900,9 @@ int Game::ReplayThread(void* pd) {
 	mainGame->stText->setText(L"");
 	mainGame->lstServerList->clear();
 	mainGame->stModeStatus->setText(L"");
+	mainGame->btnReplayStart->setVisible(false);
+	mainGame->btnReplayPause->setVisible(true);
+	mainGame->btnReplayStep->setVisible(false);
 	mainGame->dInfo.engLen = 0;
 	mainGame->dInfo.msgLen = 0;
 	mainGame->dInfo.is_local_host = false;
@@ -2944,6 +2947,9 @@ int Game::ReplayThread(void* pd) {
 
 	start_duel(pdInfo->pDuel, rh.option);
 	mainGame->dField.is_replaying = true;
+	mainGame->dField.is_pausing = false;
+	mainGame->dField.is_paused = false;
+	mainGame->dField.is_swaping = false;
 	pdInfo->isStarted = true;
 	char engineBuffer[0x1000];
 	pdInfo->engFlag = 0;
@@ -3003,6 +3009,12 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 	while (pbuf - &engbuf[2] < pdInfo->engLen) {
 		if(mainGame->is_closing)
 			return false;
+		if(mainGame->dField.is_swaping) {
+			mainGame->gMutex.Lock();
+			mainGame->dField.ReplaySwap();
+			mainGame->gMutex.Unlock();
+			mainGame->dField.is_swaping = false;
+		}
 		offset = pbuf;
 		pauseable = true;
 		pdInfo->engType = NetManager::ReadUInt8(pbuf);
@@ -3122,6 +3134,7 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 			player = NetManager::ReadInt8(pbuf);
 			count = NetManager::ReadInt8(pbuf);
 			pbuf += count * 7;
+			pauseable = false;
 			break;
 		}
 		case MSG_SHUFFLE_DECK: {
@@ -3188,7 +3201,8 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 			int cs = NetManager::ReadInt8(pbuf);
 			int cp = NetManager::ReadInt8(pbuf);
 			SolveMessage(pd, offset, pbuf - offset);
-			mainGame->ReplayRefreshSingle(cc, cl, cs);
+			if(pl != cl || pc != cc)
+				mainGame->ReplayRefreshSingle(cc, cl, cs);
 			break;
 		}
 		case MSG_DESTROY: {
@@ -3291,7 +3305,6 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_CHAIN_INACTIVATED: {
 			pbuf++;
 			SolveMessage(pd, offset, pbuf - offset);
-			mainGame->ReplayRefresh();
 			break;
 		}
 		case MSG_CHAIN_DISABLED: {
@@ -3372,10 +3385,12 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		case MSG_BATTLE: {
 			pbuf += 18;
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_ATTACK_DISABLED: {
 			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
 			break;
 		}
 		case MSG_DAMAGE_STEP_START: {
@@ -3436,7 +3451,8 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 			break;
 		}
 		}
-		if(pauseable && mainGame->dField.is_paused){
+		if(pauseable && mainGame->dField.is_pausing) {
+			mainGame->dField.is_paused = true;
 			mainGame->localAction.Reset();
 			mainGame->localAction.Wait();
 		}

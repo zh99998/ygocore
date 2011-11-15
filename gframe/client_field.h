@@ -40,7 +40,9 @@ public:
 	std::vector<ChainInfo> chains;
 	
 	bool is_replaying;
+	bool is_pausing;
 	bool is_paused;
+	bool is_swaping;
 	
 	int selected_option;
 	ClientCard* attacker;
@@ -80,7 +82,8 @@ public:
 	void ClearSelect();
 	void ClearChainSelect();
 	void ShowSelectCard(bool buttonok = false);
-
+	void ReplaySwap();
+	
 	void GetChainLocation(int controler, int location, int sequence, irr::core::vector3df* t);
 	void GetCardLocation(ClientCard* pcard, irr::core::vector3df* t, irr::core::vector3df* r);
 	void MoveCard(ClientCard* pcard, int frame);

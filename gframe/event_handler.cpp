@@ -134,52 +134,46 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				break;
 			}
 			case BUTTON_REPLAY_START: {
+				if(!mainGame->dField.is_replaying)
+					break;
+				is_pausing = false;
 				is_paused = false;
+				mainGame->btnReplayStart->setVisible(false);
+				mainGame->btnReplayPause->setVisible(true);
+				mainGame->btnReplayStep->setVisible(false);
 				mainGame->localAction.Set();
 				break;
 			}
 			case BUTTON_REPLAY_PAUSE: {
-				is_paused = true;
+				if(!mainGame->dField.is_replaying)
+					break;
+				is_pausing = true;
+				mainGame->btnReplayStart->setVisible(true);
+				mainGame->btnReplayPause->setVisible(false);
+				mainGame->btnReplayStep->setVisible(true);
 				break;
 			}
 			case BUTTON_REPLAY_STEP: {
+				if(!mainGame->dField.is_replaying)
+					break;
+				is_paused = false;
 				mainGame->localAction.Set();
 				break;
 			}
 			case BUTTON_REPLAY_EXIT: {
+				if(!mainGame->dField.is_replaying)
+					break;
 				mainGame->dField.is_replaying = false;
 				mainGame->localAction.Set();
 				break;
 			}
 			case BUTTON_REPLAY_SWAP: {
-				std::swap(deck[0], deck[1]);
-				std::swap(hand[0], hand[1]);
-				std::swap(mzone[0], mzone[1]);
-				std::swap(szone[0], szone[1]);
-				std::swap(grave[0], grave[1]);
-				std::swap(remove[0], remove[1]);
-				std::swap(extra[0], extra[1]);
-				for(int p = 0; p < 2; ++p) {
-					for(auto cit = deck[p].begin(); cit != deck[p].end(); ++cit)
-						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
-					for(auto cit = hand[p].begin(); cit != hand[p].end(); ++cit)
-						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
-					for(auto cit = mzone[p].begin(); cit != mzone[p].end(); ++cit)
-						if(*cit)
-							GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
-					for(auto cit = szone[p].begin(); cit != szone[p].end(); ++cit)
-						if(*cit)
-							GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
-					for(auto cit = grave[p].begin(); cit != grave[p].end(); ++cit)
-						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
-					for(auto cit = remove[p].begin(); cit != remove[p].end(); ++cit)
-						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
-					for(auto cit = extra[p].begin(); cit != extra[p].end(); ++cit)
-						GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
-				}
-				mainGame->dInfo.is_first_turn = !mainGame->dInfo.is_first_turn;
-				std::swap(mainGame->dInfo.is_host_player[0], mainGame->dInfo.is_host_player[1]);
-				std::swap(mainGame->dInfo.lp[0], mainGame->dInfo.lp[1]);
+				if(!mainGame->dField.is_replaying)
+					break;
+				if(is_paused)
+					ReplaySwap();
+				else
+					is_swaping = true;
 				break;
 			}
 			case BUTTON_MSG_OK: {
