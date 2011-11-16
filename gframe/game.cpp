@@ -17,7 +17,7 @@ Game::~Game() {
 }
 bool Game::Initialize() {
 	irr::SIrrlichtCreationParameters params = irr::SIrrlichtCreationParameters();
-	params.AntiAlias = 4;
+	params.AntiAlias = 2;
 	params.DriverType = irr::video::EDT_OPENGL;
 	params.WindowSize = irr::core::dimension2d<u32>(1024, 640);
 	device = irr::createDeviceEx(params);
@@ -368,6 +368,16 @@ bool Game::Initialize() {
 	scrFilter->setLargeStep(10);
 	scrFilter->setSmallStep(1);
 	scrFilter->setVisible(false);
+	//replay save
+	//yes/no (310)
+	wReplaySave = env->addWindow(rect<s32>(510, 200, 820, 320), false, L"是否要保存Replay？");
+	wReplaySave->getCloseButton()->setVisible(false);
+	wReplaySave->setVisible(false);
+	env->addStaticText(L"Replay文件：", rect<s32>(20, 25, 290, 45), false, false, wReplaySave);
+	ebRSName =  env->addEditBox(L"", rect<s32>(20, 50, 290, 70), true, wReplaySave, -1);
+	ebRSName->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	btnRSYes = env->addButton(rect<s32>(70, 80, 140, 105), wReplaySave, BUTTON_REPLAY_SAVE, L"保存");
+	btnRSNo = env->addButton(rect<s32>(170, 80, 240, 105), wReplaySave, BUTTON_REPLAY_CANCEL, L"取消");
 	//replay control
 	wReplay = env->addStaticText(L"", rect<s32>(205, 143, 295, 273), true, false, 0, -1, true);
 	wReplay->setVisible(false);
@@ -407,17 +417,22 @@ void Game::MainLoop() {
 		atkframe += 0.1f;
 		atkdy = (float)sin(atkframe);
 		st = gTimer.GetElapsedTime();
-		gMutex.Lock();
 		driver->beginScene(true, true, SColor(0, 0, 0, 0));
+		if(imageManager.tBackGround)
+			driver->draw2DImage(imageManager.tBackGround, recti(0, 0, 1024, 640), recti(0, 0, imageManager.tBackGround->getSize().Width, imageManager.tBackGround->getSize().Height));
 		if(dInfo.isStarted) {
 			DrawBackGround();
+			gMutex.Lock();
 			DrawCards();
 			DrawMisc();
+			gMutex.Unlock();
 			smgr->drawAll();
 			driver->setMaterial(irr::video::IdentityMaterial);
 			driver->clearZBuffer();
 		} else if(is_building) {
+			gMutex.Lock();
 			DrawDeckBd();
+			gMutex.Unlock();
 		}
 		DrawGUI();
 		DrawSpec();
@@ -437,7 +452,6 @@ void Game::MainLoop() {
 			}
 		}
 		driver->endScene();
-		gMutex.Unlock();
 		fps++;
 		ed = gTimer.GetElapsedTime();
 		if(ed - st < 16900) {

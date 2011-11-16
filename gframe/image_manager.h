@@ -32,6 +32,7 @@ public:
 	irr::video::ITexture* tMask;
 	irr::video::ITexture* tEquip;
 	irr::video::ITexture* tLim;
+	irr::video::ITexture* tBackGround;
 };
 
 }

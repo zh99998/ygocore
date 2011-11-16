@@ -337,9 +337,12 @@ struct Materials {
 		mTexture.ColorMaterial = irr::video::ECM_NONE;
 		mTexture.MaterialType = irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL;
 		mBackLine.ColorMaterial = irr::video::ECM_NONE;
-		mBackLine.AmbientColor = 0xffc0c0c0;
+		mBackLine.AmbientColor = 0xffffffff;
 		mBackLine.DiffuseColor = 0xff000000;
-		mSelField.ColorMaterial = irr::video::ECM_AMBIENT;
+		mBackLine.AntiAliasing = EAAM_FULL_BASIC;
+		mBackLine.Thickness = 2;
+		mSelField.ColorMaterial = irr::video::ECM_NONE;
+		mSelField.AmbientColor = 0xffffffff;
 		mSelField.DiffuseColor = 0xff000000;
 		mSelField.MaterialType = irr::video::EMT_ONETEXTURE_BLEND;
 		mSelField.MaterialTypeParam = pack_texureBlendFunc(EBF_SRC_ALPHA, EBF_ONE_MINUS_SRC_ALPHA, EMFN_MODULATE_1X, EAS_VERTEX_COLOR);

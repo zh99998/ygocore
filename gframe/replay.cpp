@@ -4,23 +4,40 @@
 #include "../ocgcore/card.h"
 #include <algorithm>
 
+extern "C" {
+#include "7z/LzmaLib.h"
+}
+
 extern ygo::Game* mainGame;
 
 namespace ygo {
 
-void Replay::BeginRecord(time_t seed) {
-	tm* ptime = localtime(&seed);
-	char fname[32];
-	sprintf(fname, "./replay/%d-%02d-%02d %d.yrp", ptime->tm_year + 1900, ptime->tm_mon, ptime->tm_mday, seed);
-	fp = fopen(fname, "wb+");
+Replay::Replay() {
+	is_recording = false;
+	is_replaying = false;
+	replay_data = new unsigned char[0x20000];
+	comp_data = new unsigned char[0x1000];
+}
+Replay::~Replay() {
+	delete replay_data;
+	delete comp_data;
+}
+void Replay::BeginRecord() {
+	fp = fopen("./replay/_LastReplay.yrp", "wb");
 	if(!fp)
 		return;
+	pdata = replay_data;
 	is_recording = true;
+}
+void Replay::WriteHeader(ReplayHeader& header) {
+	pheader = header;
+	WriteData(&header, sizeof(header));
 }
 void Replay::WriteData(const void* data, unsigned int length, bool flush) {
 	if(!is_recording)
 		return;
 	fwrite(data, length, 1, fp);
+	memcpy(pdata, data, length);
 	if(flush)
 		fflush(fp);
 }
@@ -28,6 +45,8 @@ void Replay::WriteInt32(int data, bool flush) {
 	if(!is_recording)
 		return;
 	fwrite(&data, sizeof(int), 1, fp);
+	*((int*)(pdata)) = data;
+	pdata += 4;
 	if(flush)
 		fflush(fp);
 }
@@ -35,6 +54,8 @@ void Replay::WriteInt16(short data, bool flush) {
 	if(!is_recording)
 		return;
 	fwrite(&data, sizeof(short), 1, fp);
+	*((int*)(pdata)) = data;
+	pdata += 2;
 	if(flush)
 		fflush(fp);
 }
@@ -42,6 +63,8 @@ void Replay::WriteInt8(char data, bool flush) {
 	if(!is_recording)
 		return;
 	fwrite(&data, sizeof(char), 1, fp);
+	*pdata = data;
+	pdata++;
 	if(flush)
 		fflush(fp);
 }
@@ -54,9 +77,26 @@ void Replay::EndRecord() {
 	if(!is_recording)
 		return;
 	fclose(fp);
+	pheader.datasize = pdata - replay_data;
+	pheader.flag |= REPLAY_COMPRESSED;
+	size_t propsize = 5;
+	comp_size = 0x10000;
+	LzmaCompress(comp_data, &comp_size, replay_data, pdata - replay_data, pheader.props, &propsize, 5, 1 << 24, 3, 0, 2, 32, 1);
 	is_recording = false;
 }
-bool Replay::BeginReplay(const wchar_t* name) {
+void Replay::SaveReplay(const wchar_t* name) {
+	wchar_t fname[64];
+	myswprintf(fname, L"./replay/%ls.yrp", name);
+	char fname2[64];
+	DataManager::EncodeUTF8(fname, fname2);
+	fp = fopen(fname2, "wb");
+	if(!fp)
+		return;
+	fwrite(&pheader, sizeof(pheader), 1, fp);
+	fwrite(comp_data, comp_size, 1, fp);
+	fclose(fp);
+}
+bool Replay::OpenReplay(const wchar_t* name) {
 	wchar_t fname[64];
 	myswprintf(fname, L"./replay/%ls", name);
 	char fname2[64];
@@ -64,55 +104,64 @@ bool Replay::BeginReplay(const wchar_t* name) {
 	fp = fopen(fname2, "r");
 	if(!fp)
 		return false;
+	fseek(fp, 0, SEEK_END);
+	comp_size = ftell(fp) - sizeof(pheader);
+	fseek(fp, 0, SEEK_SET);
+	fread(&pheader, sizeof(pheader), 1, fp);
+	if(pheader.flag & REPLAY_COMPRESSED) {
+		fread(comp_data, 0x20000, 1, fp);
+		replay_size = 0x20000;
+		LzmaUncompress(replay_data, &replay_size, comp_data, &comp_size, pheader.props, 5);
+	} else {
+		fread(replay_data, 0x20000, 1, fp);
+		replay_size = comp_size;
+	}
+	fclose(fp);
+	pdata = replay_data;
 	is_replaying = true;
 	return true;
 }
 bool Replay::ReadNextResponse() {
-	char resType = ReadInt8();
+	char resType = *pdata++;
+	if(pdata - replay_data >= replay_size)
+		return false;
 	if(resType == 1) {
-		fread(&mainGame->dInfo.responseI, 4, 1, fp);
+		mainGame->dInfo.responseI = *((int*)pdata);
+		pdata += 4;
 		set_responsei(mainGame->dInfo.pDuel, mainGame->dInfo.responseI);
 	} else if(resType = 2) {
-		int len = ReadInt8();
-		fread(mainGame->dInfo.responseB, len, 1, fp);
+		int len = *pdata++;
+		for(int i = 0; i < len; ++i)
+			mainGame->dInfo.responseB[i] = *pdata++;
 		set_responseb(mainGame->dInfo.pDuel, (byte*)mainGame->dInfo.responseB);
 	} else
-		return false;
-	if(feof(fp))
 		return false;
 	return true;
 }
 void Replay::ReadData(void* data, unsigned int length) {
 	if(!is_replaying)
 		return;
-	fread(data, length, 1, fp);
+	memcpy(data, pdata, length);
+	pdata += length;
 }
 int Replay::ReadInt32() {
 	if(!is_replaying)
 		return -1;
-	int ret;
-	fread(&ret, sizeof(int), 1, fp);
+	int ret = *((int*)pdata);
+	pdata += 4;
 	return ret;
 }
 short Replay::ReadInt16() {
 	if(!is_replaying)
 		return -1;
-	short ret;
-	fread(&ret, sizeof(short), 1, fp);
+	short ret = *((short*)pdata);
+	pdata += 4;
 	return ret;
 }
 char Replay::ReadInt8() {
 	if(!is_replaying)
 		return -1;
-	char ret;
-	fread(&ret, sizeof(char), 1, fp);
-	return ret;
-}
-void Replay::EndReplay() {
-	if(!is_replaying)
-		return;
-	fclose(fp);
-	is_replaying = false;
+	return *pdata++;
 }
 
 }

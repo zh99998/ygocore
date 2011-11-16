@@ -17,6 +17,7 @@ bool ImageManager::Initial() {
 	tMask = driver->getTexture("textures/mask.png");
 	tEquip = driver->getTexture("textures/equip.png");
 	tLim = driver->getTexture("textures/lim.png");
+	tBackGround = driver->getTexture("textures/bg.jpg");
 	return true;
 }
 void ImageManager::SetDevice(irr::IrrlichtDevice* dev) {

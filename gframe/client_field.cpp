@@ -395,12 +395,14 @@ void ClientField::ReplaySwap() {
 			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
 			(*cit)->mTransform.setTranslation((*cit)->curPos);
 			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+			(*cit)->is_moving = false;
 		}
 		for(auto cit = hand[p].begin(); cit != hand[p].end(); ++cit) {
 			(*cit)->controler = 1 - (*cit)->controler;
 			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
 			(*cit)->mTransform.setTranslation((*cit)->curPos);
 			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+			(*cit)->is_moving = false;
 		}
 		for(auto cit = mzone[p].begin(); cit != mzone[p].end(); ++cit) {
 			if(*cit) {
@@ -408,6 +410,7 @@ void ClientField::ReplaySwap() {
 				GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
 				(*cit)->mTransform.setTranslation((*cit)->curPos);
 				(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+				(*cit)->is_moving = false;
 			}
 		}
 		for(auto cit = szone[p].begin(); cit != szone[p].end(); ++cit) {
@@ -416,6 +419,7 @@ void ClientField::ReplaySwap() {
 				GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
 				(*cit)->mTransform.setTranslation((*cit)->curPos);
 				(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+				(*cit)->is_moving = false;
 			}
 		}
 		for(auto cit = grave[p].begin(); cit != grave[p].end(); ++cit) {
@@ -423,18 +427,21 @@ void ClientField::ReplaySwap() {
 			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
 			(*cit)->mTransform.setTranslation((*cit)->curPos);
 			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+			(*cit)->is_moving = false;
 		}
 		for(auto cit = remove[p].begin(); cit != remove[p].end(); ++cit) {
 			(*cit)->controler = 1 - (*cit)->controler;
 			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
 			(*cit)->mTransform.setTranslation((*cit)->curPos);
 			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+			(*cit)->is_moving = false;
 		}
 		for(auto cit = extra[p].begin(); cit != extra[p].end(); ++cit) {
 			(*cit)->controler = 1 - (*cit)->controler;
 			GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
 			(*cit)->mTransform.setTranslation((*cit)->curPos);
 			(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+			(*cit)->is_moving = false;
 		}
 	}
 	for(auto cit = overlay_cards.begin(); cit != overlay_cards.end(); ++cit) {
@@ -442,6 +449,7 @@ void ClientField::ReplaySwap() {
 		GetCardLocation(*cit, &(*cit)->curPos, &(*cit)->curRot);
 		(*cit)->mTransform.setTranslation((*cit)->curPos);
 		(*cit)->mTransform.setRotationRadians((*cit)->curRot);
+		(*cit)->is_moving = false;
 	}
 	mainGame->dInfo.is_first_turn = !mainGame->dInfo.is_first_turn;
 	std::swap(mainGame->dInfo.is_host_player[0], mainGame->dInfo.is_host_player[1]);
@@ -454,6 +462,7 @@ void ClientField::ReplaySwap() {
 		chit->controler = 1 - chit->controler;
 		GetChainLocation(chit->controler, chit->location, chit->sequence, &chit->chain_pos);
 	}
+	disabled_field = (disabled_field >> 16) | (disabled_field << 16);
 }
 void ClientField::GetChainLocation(int controler, int location, int sequence, irr::core::vector3df* t) {
 	t->X = 0;

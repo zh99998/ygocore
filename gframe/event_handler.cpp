@@ -128,7 +128,7 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 			case BUTTON_LOAD_REPLAY: {
 				if(mainGame->lstReplayList->getSelected() == -1)
 					break;
-				if(!mainGame->lastReplay.BeginReplay(mainGame->lstReplayList->getListItem(mainGame->lstReplayList->getSelected())))
+				if(!mainGame->lastReplay.OpenReplay(mainGame->lstReplayList->getListItem(mainGame->lstReplayList->getSelected())))
 					break;
 				Thread::NewThread(Game::ReplayThread, &mainGame->dInfo);
 				break;
@@ -174,6 +174,17 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					ReplaySwap();
 				else
 					is_swaping = true;
+				break;
+			}
+			case BUTTON_REPLAY_SAVE: {
+				if(mainGame->ebRSName->getText()[0] == 0)
+					break;
+				mainGame->lastReplay.SaveReplay(mainGame->ebRSName->getText());
+				mainGame->localAction.Set();
+				break;
+			}
+			case BUTTON_REPLAY_CANCEL: {
+				mainGame->localAction.Set();
 				break;
 			}
 			case BUTTON_MSG_OK: {

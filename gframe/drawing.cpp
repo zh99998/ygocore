@@ -24,6 +24,15 @@ void Game::DrawSelectionLine(irr::video::S3DVertex* vec, bool strip, int width, 
 void Game::DrawBackGround() {
 	static int selFieldAlpha = 255;
 	static int selFieldDAlpha = -10;
+	matrix4 im = irr::core::IdentityMatrix;
+	im.setTranslation(vector3df(0, 0, -0.01));
+	driver->setTransform(irr::video::ETS_WORLD, im);
+	//dark shade
+	matManager.mSelField.AmbientColor = 0xff000000;
+	matManager.mSelField.DiffuseColor = 0x80000000;
+	driver->setMaterial(matManager.mSelField);
+	for(int i = 0; i < 120; i += 4)
+		driver->drawVertexPrimitiveList(&matManager.vFields[i], 4, matManager.iRectangle, 2);
 	driver->setTransform(irr::video::ETS_WORLD, irr::core::IdentityMatrix);
 	driver->setMaterial(matManager.mBackLine);
 	driver->drawVertexPrimitiveList(matManager.vBackLine, 76, matManager.iBackLine, 58, irr::video::EVT_STANDARD, irr::scene::EPT_LINES);
@@ -49,6 +58,38 @@ void Game::DrawBackGround() {
 		for (int i = 0; i < 5; ++i, filter <<= 1) {
 			if ((dField.selectable_field & filter) > 0)
 				DrawSelectionLine(&matManager.vFields[96 + i * 4], !(dField.selected_field & filter), 2, cv);
+		}
+	}
+	//disabled field
+	{
+		float cv[4] = {0.0f, 0.0f, 1.0f, 1.0f};
+		int filter = 0x1;
+		for (int i = 0; i < 5; ++i, filter <<= 1) {
+			if ((dField.disabled_field & filter) > 0) {
+				driver->draw3DLine(matManager.vFields[16 + i * 4].Pos, matManager.vFields[16 + i * 4 + 3].Pos, 0xffffffff);
+				driver->draw3DLine(matManager.vFields[16 + i * 4 + 1].Pos, matManager.vFields[16 + i * 4 + 2].Pos, 0xffffffff);
+			}
+		}
+		filter = 0x100;
+		for (int i = 0; i < 5; ++i, filter <<= 1) {
+			if ((dField.disabled_field & filter) > 0) {
+				driver->draw3DLine(matManager.vFields[36 + i * 4].Pos, matManager.vFields[36 + i * 4 + 3].Pos, 0xffffffff);
+				driver->draw3DLine(matManager.vFields[36 + i * 4 + 1].Pos, matManager.vFields[36 + i * 4 + 2].Pos, 0xffffffff);
+			}
+		}
+		filter = 0x10000;
+		for (int i = 0; i < 5; ++i, filter <<= 1) {
+			if ((dField.disabled_field & filter) > 0) {
+				driver->draw3DLine(matManager.vFields[76 + i * 4].Pos, matManager.vFields[76 + i * 4 + 3].Pos, 0xffffffff);
+				driver->draw3DLine(matManager.vFields[76 + i * 4 + 1].Pos, matManager.vFields[76 + i * 4 + 2].Pos, 0xffffffff);
+			}
+		}
+		filter = 0x1000000;
+		for (int i = 0; i < 5; ++i, filter <<= 1) {
+			if ((dField.disabled_field & filter) > 0) {
+				driver->draw3DLine(matManager.vFields[96 + i * 4].Pos, matManager.vFields[96 + i * 4 + 3].Pos, 0xffffffff);
+				driver->draw3DLine(matManager.vFields[96 + i * 4 + 1].Pos, matManager.vFields[96 + i * 4 + 2].Pos, 0xffffffff);
+			}
 		}
 	}
 	//current sel
@@ -78,6 +119,7 @@ void Game::DrawBackGround() {
 			selFieldAlpha = 205;
 			selFieldDAlpha = -10;
 		}
+		matManager.mSelField.AmbientColor = 0xffffffff;
 		matManager.mSelField.DiffuseColor = selFieldAlpha << 24;
 		driver->setMaterial(matManager.mSelField);
 		driver->drawVertexPrimitiveList(&matManager.vFields[index], 4, matManager.iRectangle, 2);
@@ -216,6 +258,14 @@ void Game::DrawMisc() {
 	}
 	driver->draw2DImage(imageManager.tLPFrame, recti(330, 10, 629, 30), recti(0, 0, 200, 20), 0, 0, true);
 	driver->draw2DImage(imageManager.tLPFrame, recti(691, 10, 990, 30), recti(0, 0, 200, 20), 0, 0, true);
+	//lp bar
+	if((dInfo.turn % 2 && dInfo.is_first_turn) || (!(dInfo.turn % 2) && !dInfo.is_first_turn)) {
+		driver->draw2DRectangle(0x80000000, recti(327, 8, 630, 51));
+		driver->draw2DRectangleOutline(recti(327, 8, 630, 51), 0xffff8080);
+	} else {
+		driver->draw2DRectangle(0x80000000, recti(689, 8, 991, 51));
+		driver->draw2DRectangleOutline(recti(689, 8, 991, 51), 0xffff8080);
+	}
 	if(dInfo.lp[0] >= 8000)
 		driver->draw2DImage(imageManager.tLPBar, recti(335, 12, 625, 28), recti(0, 0, 16, 16), 0, 0, true);
 	else driver->draw2DImage(imageManager.tLPBar, recti(335, 12, 335 + 290 * dInfo.lp[0] / 8000, 28), recti(0, 0, 16, 16), 0, 0, true);
@@ -243,14 +293,10 @@ void Game::DrawMisc() {
 	numFont->draw(dInfo.strLP[1], recti(691, 12, 992, 30), 0xffffff00, true, false, 0);
 	textFont->draw(dInfo.hostname, recti(330, 31, 629, 50), 0xffffffff, true, false, 0);
 	textFont->draw(dInfo.clientname, recti(691, 31, 990, 50), 0xffffffff, true, false, 0);
-	driver->draw2DRectangle(recti(632, 10, 688, 30), 0xff000000, 0xff000000, 0xffffffff, 0xffffffff);
-	driver->draw2DRectangle(recti(632, 30, 688, 50), 0xffffffff, 0xffffffff, 0xff000000, 0xff000000);
+	driver->draw2DRectangle(recti(632, 10, 688, 30), 0x00000000, 0x00000000, 0xffffffff, 0xffffffff);
+	driver->draw2DRectangle(recti(632, 30, 688, 50), 0xffffffff, 0xffffffff, 0x00000000, 0x00000000);
 	lpcFont->draw(dataManager.GetNumString(dInfo.turn), recti(635, 5, 685, 40), 0x80000000, true, false, 0);
 	lpcFont->draw(dataManager.GetNumString(dInfo.turn), recti(635, 5, 687, 40), 0x8000ffff, true, false, 0);
-	if((dInfo.turn % 2 && dInfo.is_first_turn) || (!(dInfo.turn % 2) && !dInfo.is_first_turn))
-		driver->draw2DRectangleOutline(recti(327, 8, 630, 51), 0xffff8080);
-	else
-		driver->draw2DRectangleOutline(recti(689, 8, 991, 51), 0xffff8080);
 	for(int i = 0; i < 5; ++i) {
 		ClientCard* pcard = dField.mzone[0][i];
 		if(pcard) {
@@ -600,7 +646,7 @@ void Game::DrawDeckBd() {
 			myswprintf(textBuffer, L"%ls", dataManager.GetName(ptr->first));
 			textFont->draw(textBuffer, recti(860, 165 + i * 66, 955, 185 + i * 66), 0xffffffff, false, true);
 			myswprintf(textBuffer, L"%ls/%ls ★%d", DataManager::FormatAttribute(ptr->second.attribute),
-			         DataManager::FormatRace(ptr->second.race), ptr->second.level);
+			           DataManager::FormatRace(ptr->second.race), ptr->second.level);
 			textFont->draw(textBuffer, recti(860, 187 + i * 66, 955, 207 + i * 66), 0xffffffff, false, true);
 			if(ptr->second.attack < 0 && ptr->second.defence < 0)
 				myswprintf(textBuffer, L"?/?");

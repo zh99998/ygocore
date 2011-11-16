@@ -3128,7 +3128,7 @@ int32 field::toss_dice(uint16 step, uint8 playerid, uint8 count) {
 		for(uint8 i = 0; i < 5; ++i)
 			core.dice_result[i] = 0;
 		filter_field_effect(EFFECT_TOSS_DICE_REPLACE, &eset);
-		for(int32 i = eset.count; i >= 0; --i) {
+		for(int32 i = eset.count - 1; i >= 0; --i) {
 			if(eset[i]->is_activateable(eset[i]->get_handler_player(), e)) {
 				peffect = eset[i];
 				break;

@@ -313,6 +313,11 @@ public:
 	irr::gui::IGUIWindow* wCategories;
 	irr::gui::IGUICheckBox* chkCategory[32];
 	irr::gui::IGUIButton* btnCategoryOK;
+	//replay save
+	irr::gui::IGUIWindow* wReplaySave;
+	irr::gui::IGUIEditBox* ebRSName;
+	irr::gui::IGUIButton* btnRSYes;
+	irr::gui::IGUIButton* btnRSNo;
 	//replay control
 	irr::gui::IGUIStaticText* wReplay;
 	irr::gui::IGUIButton* btnReplayStart;
@@ -397,4 +402,6 @@ public:
 #define BUTTON_REPLAY_STEP			222
 #define BUTTON_REPLAY_EXIT			223
 #define BUTTON_REPLAY_SWAP			224
+#define BUTTON_REPLAY_SAVE			230
+#define BUTTON_REPLAY_CANCEL		231
 #endif // GAME_H

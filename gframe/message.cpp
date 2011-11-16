@@ -6,6 +6,9 @@
 
 extern ygo::Game* mainGame;
 
+#define MSG_REPLAY 		0xf0
+#define MSG_DUEL_END	0xf1
+
 namespace ygo {
 
 int Game::LocalPlayer(int player) {
@@ -264,8 +267,8 @@ int Game::EngineThread(void* pd) {
 	rh.starthand = hi.start_hand;
 	rh.drawcount = hi.draw_count;
 	rh.option = opt;
-	mainGame->lastReplay.BeginRecord(seed);
-	mainGame->lastReplay.WriteData(&rh, sizeof(rh));
+	mainGame->lastReplay.BeginRecord();
+	mainGame->lastReplay.WriteHeader(rh);
 	if(pdInfo->is_first_turn) {
 		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.main.size(), false);
 		for(int i = mainGame->deckManager.deckhost.main.size() - 1; i >= 0; --i) {
@@ -332,7 +335,6 @@ int Game::EngineThread(void* pd) {
 	shutdown(mainGame->netManager.sRemote, SD_BOTH);
 	closesocket(mainGame->netManager.sRemote);
 	pdInfo->isStarted = false;
-	mainGame->lastReplay.EndRecord();
 	mainGame->localMessage.Set();
 	mainGame->localResponse.Set();
 	if(!mainGame->is_closing) {
@@ -425,11 +427,30 @@ void Game::Analyze(void* pd, char* engbuf) {
 		case MSG_WIN: {
 			player = NetManager::ReadInt8(pbuf);
 			type = NetManager::ReadInt8(pbuf);
+			mainGame->localResponse.Reset();
 			mainGame->SendGameMessage(0, offset, pbuf - offset);
 			mainGame->SendGameMessage(1, offset, pbuf - offset);
 			pdInfo->engFlag = 2;
-			mainGame->localResponse.Reset();
+			mainGame->lastReplay.EndRecord();
+			char* pbuf = mainGame->netManager.send_buf;
+			NetManager::WriteInt16(pbuf, sizeof(ReplayHeader) + mainGame->lastReplay.comp_size + 1);
+			NetManager::WriteInt8(pbuf, MSG_REPLAY);
+			memcpy(pbuf, &mainGame->lastReplay.pheader, sizeof(ReplayHeader));
+			pbuf += sizeof(ReplayHeader);
+			memcpy(pbuf, mainGame->lastReplay.comp_data, mainGame->lastReplay.comp_size);
+			mainGame->netManager.SendtoRemote(mainGame->netManager.send_buf, 3 + sizeof(ReplayHeader) + mainGame->lastReplay.comp_size);
+			mainGame->msgBuffer[2] = MSG_DUEL_END;
+			if(mainGame->dInfo.is_host_player[0])
+				mainGame->SendGameMessage(1, &mainGame->msgBuffer[2], 1);
+			else mainGame->SendGameMessage(0, &mainGame->msgBuffer[2], 1);
 			mainGame->localResponse.Wait();
+			mainGame->ebRSName->setText(L"");
+			mainGame->PopupElement(mainGame->wReplaySave);
+			mainGame->localAction.Reset();
+			mainGame->localAction.Wait();
+			if(mainGame->dInfo.is_host_player[0])
+				mainGame->SendGameMessage(0, &mainGame->msgBuffer[2], 1);
+			else mainGame->SendGameMessage(1, &mainGame->msgBuffer[2], 1);
 			break;
 		}
 		case MSG_SELECT_BATTLECMD: {
@@ -1180,11 +1201,24 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->stACMessage->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wACMessage, 100);
 		mainGame->WaitFrameSignal(120);
-		if(!mainGame->dField.is_replaying) {
-			pdInfo->isStarted = false;
-			mainGame->localResponse.Set();
-		}
+		mainGame->localResponse.Set();
+		break;
+	}
+	case MSG_DUEL_END: {
+		pdInfo->isStarted = false;
+		mainGame->localResponse.Set();
 		return false;
+	}
+	case MSG_REPLAY: {
+		pbuf -= 3;
+		int size = NetManager::ReadInt16(pbuf);
+		pbuf++;
+		memcpy(&mainGame->lastReplay.pheader, pbuf, sizeof(ReplayHeader));
+		pbuf += sizeof(ReplayHeader);
+		memcpy(mainGame->lastReplay.comp_data, pbuf, size - 129);
+		mainGame->PopupElement(mainGame->wReplaySave);
+		mainGame->localAction.Wait();
+		break;
 	}
 	case MSG_WAITING: {
 		mainGame->waitFrame = 0;
@@ -2878,8 +2912,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 int Game::ReplayThread(void* pd) {
 	DuelInfo* pdInfo = (DuelInfo*)pd;
 	Replay& rep = mainGame->lastReplay;
-	ReplayHeader rh;
-	rep.ReadData(&rh, sizeof(rh));
+	ReplayHeader rh = mainGame->lastReplay.pheader;
 	pdInfo->is_local_host = true;
 	int seed = rh.seed;
 	mainGame->rnd.reset(seed);
