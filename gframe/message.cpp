@@ -3143,7 +3143,7 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 			break;
 		}
 		case MSG_SHUFFLE_HAND: {
-			player = NetManager::ReadInt8(pbuf);
+			player = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
 			mainGame->WaitFrameSignal(5);
 			for (auto cit = mainGame->dField.hand[player].begin(); cit != mainGame->dField.hand[player].end(); ++cit) {
 				(*cit)->dPos = irr::core::vector3df((3.9f - (*cit)->curPos.X) / 5, 0, 0);

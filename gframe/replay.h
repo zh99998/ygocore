@@ -11,7 +11,7 @@ struct ReplayHeader {
 	unsigned int version;
 	wchar_t player1[20];
 	wchar_t player2[20];
-	int result;
+	int flag;
 	int seed;
 	int startlp;
 	int starthand;

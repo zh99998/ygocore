@@ -20,7 +20,7 @@ bool effect_sort_id(const effect* e1, const effect* e2);
 struct effect_set {
 	effect_set(): count(0) {}
 	void add_item(effect* peffect) {
-		if(count >= 32) return;
+		if(count >= 64) return;
 		container[count++] = peffect;
 	}
 	void remove_item(int index) {
@@ -51,7 +51,7 @@ struct effect_set {
 	effect*& at(int index) {
 		return container[index];
 	}
-	std::array<effect*, 32> container;
+	std::array<effect*, 64> container;
 	int count;
 };
 
