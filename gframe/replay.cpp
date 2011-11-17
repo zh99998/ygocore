@@ -80,9 +80,6 @@ void Replay::EndRecord() {
 	pheader.flag |= REPLAY_COMPRESSED;
 	size_t propsize = 5;
 	comp_size = 0x1000;
-	FILE* ffp=fopen("raw.yrp","wb");
-	fwrite(replay_data,pheader.datasize,1,ffp);
-	fclose(ffp);
 	LzmaCompress(comp_data, &comp_size, replay_data, pdata - replay_data, pheader.props, &propsize, 5, 1 << 24, 3, 0, 2, 32, 1);
 	is_recording = false;
 }
@@ -103,7 +100,7 @@ bool Replay::OpenReplay(const wchar_t* name) {
 	myswprintf(fname, L"./replay/%ls", name);
 	char fname2[64];
 	DataManager::EncodeUTF8(fname, fname2);
-	fp = fopen(fname2, "r");
+	fp = fopen(fname2, "rb");
 	if(!fp)
 		return false;
 	fseek(fp, 0, SEEK_END);
@@ -112,19 +109,30 @@ bool Replay::OpenReplay(const wchar_t* name) {
 	fread(&pheader, sizeof(pheader), 1, fp);
 	if(pheader.flag & REPLAY_COMPRESSED) {
 		fread(comp_data, 0x1000, 1, fp);
+		fclose(fp);
 		replay_size = pheader.datasize;
-		LzmaUncompress(replay_data, &replay_size, comp_data, &comp_size, pheader.props, 5);
-		FILE* ffp=fopen("rawd.yrp","wb");
-		fwrite(replay_data,replay_size,1,ffp);
-		fclose(ffp);
+		if(LzmaUncompress(replay_data, &replay_size, comp_data, &comp_size, pheader.props, 5) != SZ_OK)
+			return false;
 	} else {
 		fread(replay_data, 0x20000, 1, fp);
+		fclose(fp);
 		replay_size = comp_size;
 	}
-	fclose(fp);
 	pdata = replay_data;
 	is_replaying = true;
 	return true;
+}
+bool Replay::CheckReplay(const wchar_t* name) {
+	wchar_t fname[64];
+	myswprintf(fname, L"./replay/%ls", name);
+	char fname2[64];
+	DataManager::EncodeUTF8(fname, fname2);
+	fp = fopen(fname2, "rb");
+	if(!fp)
+		return false;
+	fread(&pheader, sizeof(pheader), 1, fp);
+	fclose(fp);
+	return pheader.id==0x31707279 && pheader.version == PROTO_VERSION;
 }
 bool Replay::ReadNextResponse() {
 	char resType = *pdata++;

@@ -381,7 +381,7 @@ bool Game::Initialize() {
 	//replay control
 	wReplay = env->addStaticText(L"", rect<s32>(205, 143, 295, 273), true, false, 0, -1, true);
 	wReplay->setVisible(false);
-	btnReplayStart = env->addButton(rect<s32>(5, 5, 85, 25), wReplay, BUTTON_REPLAY_START, L"开始");
+	btnReplayStart = env->addButton(rect<s32>(5, 5, 85, 25), wReplay, BUTTON_REPLAY_START, L"播放");
 	btnReplayPause = env->addButton(rect<s32>(5, 30, 85, 50), wReplay, BUTTON_REPLAY_PAUSE, L"暂停");
 	btnReplayStep = env->addButton(rect<s32>(5, 55, 85, 75), wReplay, BUTTON_REPLAY_STEP, L"下一步");
 	btnReplaySwap = env->addButton(rect<s32>(5, 80, 85, 100), wReplay, BUTTON_REPLAY_SWAP, L"切换视角");
@@ -420,22 +420,20 @@ void Game::MainLoop() {
 		driver->beginScene(true, true, SColor(0, 0, 0, 0));
 		if(imageManager.tBackGround)
 			driver->draw2DImage(imageManager.tBackGround, recti(0, 0, 1024, 640), recti(0, 0, imageManager.tBackGround->getSize().Width, imageManager.tBackGround->getSize().Height));
+		gMutex.Lock();
 		if(dInfo.isStarted) {
 			DrawBackGround();
-			gMutex.Lock();
 			DrawCards();
 			DrawMisc();
-			gMutex.Unlock();
 			smgr->drawAll();
 			driver->setMaterial(irr::video::IdentityMaterial);
 			driver->clearZBuffer();
 		} else if(is_building) {
-			gMutex.Lock();
 			DrawDeckBd();
-			gMutex.Unlock();
 		}
 		DrawGUI();
 		DrawSpec();
+		gMutex.Unlock();
 		if(signalFrame > 0) {
 			signalFrame--;
 			if(!signalFrame)
@@ -542,7 +540,7 @@ void Game::RefreshReplay() {
 	if(fh == INVALID_HANDLE_VALUE)
 		return;
 	do {
-		if(!(fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+		if(!(fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && lastReplay.CheckReplay(fdataw.cFileName)) {
 			lstReplayList->addItem(fdataw.cFileName);
 		}
 	} while(FindNextFileW(fh, &fdataw));
@@ -558,6 +556,7 @@ void Game::RefreshReplay() {
 			continue;
 		wchar_t wname[256];
 		DataManager::DecodeUTF8(dirp->d_name, wname);
+		if(lastReplay.CheckReplay(dirp->d_name));
 		lstReplayList->addItem(wname);
 	}
 #endif

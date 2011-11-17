@@ -11,14 +11,8 @@ namespace ygo {
 struct ReplayHeader {
 	unsigned int id;
 	unsigned int version;
-	wchar_t player1[20];
-	wchar_t player2[20];
 	unsigned int flag;
 	unsigned int seed;
-	unsigned int startlp;
-	unsigned int starthand;
-	unsigned int drawcount;
-	unsigned int option;
 	unsigned int datasize;
 	unsigned int hash;
 	unsigned char props[8];
@@ -38,6 +32,7 @@ public:
 	void EndRecord();
 	void SaveReplay(const wchar_t* name);
 	bool OpenReplay(const wchar_t* name);
+	bool CheckReplay(const wchar_t* name);
 	bool ReadNextResponse();
 	void ReadHeader(ReplayHeader& header);
 	void ReadData(void* data, unsigned int length);

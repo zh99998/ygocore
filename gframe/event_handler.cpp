@@ -128,8 +128,11 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 			case BUTTON_LOAD_REPLAY: {
 				if(mainGame->lstReplayList->getSelected() == -1)
 					break;
-				if(!mainGame->lastReplay.OpenReplay(mainGame->lstReplayList->getListItem(mainGame->lstReplayList->getSelected())))
+				if(!mainGame->lastReplay.OpenReplay(mainGame->lstReplayList->getListItem(mainGame->lstReplayList->getSelected()))) {
+					mainGame->stModeStatus->setText(L"录像损坏或丢失，无法播放");
 					break;
+				}
+				mainGame->stModeStatus->setText(L"");
 				Thread::NewThread(Game::ReplayThread, &mainGame->dInfo);
 				break;
 			}

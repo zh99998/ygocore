@@ -218,19 +218,21 @@ int Game::EngineThread(void* pd) {
 	pdInfo->is_local_host = true;
 	time_t seed = time(0);
 	rh.seed = seed;
+	mainGame->lastReplay.BeginRecord();
+	mainGame->lastReplay.WriteHeader(rh);
 	mainGame->rnd.reset(seed);
 	if(mainGame->netManager.hInfo.no_shuffle_player || mainGame->rnd.real() < 0.5) {
 		pdInfo->is_host_player[0] = true;
 		pdInfo->is_host_player[1] = false;
 		pdInfo->is_first_turn = true;
-		myswprintf(rh.player1, L"%ls", pdInfo->hostname);
-		myswprintf(rh.player2, L"%ls", pdInfo->clientname);
+		mainGame->lastReplay.WriteData(pdInfo->hostname, 40, false);
+		mainGame->lastReplay.WriteData(pdInfo->clientname, 40, false);
 	} else {
 		pdInfo->is_host_player[0] = false;
 		pdInfo->is_host_player[1] = true;
 		pdInfo->is_first_turn = false;
-		myswprintf(rh.player2, L"%ls", pdInfo->hostname);
-		myswprintf(rh.player1, L"%ls", pdInfo->clientname);
+		mainGame->lastReplay.WriteData(pdInfo->clientname, 40, false);
+		mainGame->lastReplay.WriteData(pdInfo->hostname, 40, false);
 	}
 	if(!mainGame->netManager.hInfo.no_shuffle_deck) {
 		for(int i = 0; i < mainGame->deckManager.deckhost.main.size(); ++i) {
@@ -263,12 +265,12 @@ int Game::EngineThread(void* pd) {
 		opt |= DUEL_NO_CHAIN_HINT;
 	if(mainGame->netManager.hInfo.attack_ft)
 		opt |= DUEL_ATTACK_FIRST_TURN;
-	rh.startlp = hi.start_lp;
-	rh.starthand = hi.start_hand;
-	rh.drawcount = hi.draw_count;
-	rh.option = opt;
-	mainGame->lastReplay.BeginRecord();
-	mainGame->lastReplay.WriteHeader(rh);
+	mainGame->lastReplay.WriteInt32(hi.start_lp, false);
+	mainGame->lastReplay.WriteInt32(hi.start_hand, false);
+	mainGame->lastReplay.WriteInt32(hi.draw_count, false);
+	mainGame->lastReplay.WriteInt32(opt, false);
+	mainGame->lastReplay.Flush();
+
 	if(pdInfo->is_first_turn) {
 		mainGame->lastReplay.WriteInt32(mainGame->deckManager.deckhost.main.size(), false);
 		for(int i = mainGame->deckManager.deckhost.main.size() - 1; i >= 0; --i) {
@@ -1190,13 +1192,25 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		if(player == 2)
 			myswprintf(textBuffer, L"Draw Game.\n原因：%ls", mainGame->dataManager.GetVictoryString(type));
 		else if(mainGame->LocalPlayer(player) == 0) {
-			if(type == 1 || type == 2)
-				myswprintf(textBuffer, L"You Win！\n原因：%ls %ls", mainGame->LocalName(1), mainGame->dataManager.GetVictoryString(type));
-			else myswprintf(textBuffer, L"You Win！\n原因：%ls", mainGame->dataManager.GetVictoryString(type));
+			if(!mainGame->dField.is_replaying) {
+				if(type == 1 || type == 2)
+					myswprintf(textBuffer, L"You Win！\n原因：%ls %ls", mainGame->LocalName(1), mainGame->dataManager.GetVictoryString(type));
+				else myswprintf(textBuffer, L"You Win！\n原因：%ls", mainGame->dataManager.GetVictoryString(type));
+			} else {
+				if(type == 1 || type == 2)
+					myswprintf(textBuffer, L"%ls Win！\n原因：%ls %ls", mainGame->LocalName(0), mainGame->LocalName(1), mainGame->dataManager.GetVictoryString(type));
+				else myswprintf(textBuffer, L"%ls Win！\n原因：%ls", mainGame->LocalName(0), mainGame->dataManager.GetVictoryString(type));
+			}
 		} else {
-			if(type == 1 || type == 2)
-				myswprintf(textBuffer, L"You Lose！\n原因：%ls %ls", mainGame->LocalName(0), mainGame->dataManager.GetVictoryString(type));
-			else myswprintf(textBuffer, L"You Lose！\n原因：%ls", mainGame->dataManager.GetVictoryString(type));
+			if(!mainGame->dField.is_replaying) {
+				if(type == 1 || type == 2)
+					myswprintf(textBuffer, L"You Lose！\n原因：%ls %ls", mainGame->LocalName(0), mainGame->dataManager.GetVictoryString(type));
+				else myswprintf(textBuffer, L"You Lose！\n原因：%ls", mainGame->dataManager.GetVictoryString(type));
+			} else {
+				if(type == 1 || type == 2)
+					myswprintf(textBuffer, L"%ls Win！\n原因：%ls %ls", mainGame->LocalName(1), mainGame->LocalName(0), mainGame->dataManager.GetVictoryString(type));
+				else myswprintf(textBuffer, L"%ls Win！\n原因：%ls", mainGame->LocalName(1), mainGame->dataManager.GetVictoryString(type));
+			}
 		}
 		mainGame->stACMessage->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wACMessage, 100);
@@ -1216,8 +1230,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		pbuf++;
 		memcpy(&mainGame->lastReplay.pheader, pbuf, sizeof(ReplayHeader));
 		pbuf += sizeof(ReplayHeader);
-		memcpy(mainGame->lastReplay.comp_data, pbuf, size - 129);
-		mainGame->lastReplay.comp_size = size - 129;
+		memcpy(mainGame->lastReplay.comp_data, pbuf, size - sizeof(ReplayHeader) - 1);
+		mainGame->lastReplay.comp_size = size - sizeof(ReplayHeader) - 1;
 		mainGame->PopupElement(mainGame->wReplaySave);
 		mainGame->localAction.Reset();
 		mainGame->localAction.Wait();
@@ -2922,8 +2936,8 @@ int Game::ReplayThread(void* pd) {
 	pdInfo->is_host_player[0] = true;
 	pdInfo->is_host_player[1] = false;
 	pdInfo->is_first_turn = true;
-	myswprintf(pdInfo->hostname, L"%ls", rh.player1);
-	myswprintf(pdInfo->clientname, L"%ls", rh.player2);
+	mainGame->lastReplay.ReadData(pdInfo->hostname, 40);
+	mainGame->lastReplay.ReadData(pdInfo->clientname, 40);
 
 	mainGame->gMutex.Lock();
 	mainGame->imgCard->setImage(mainGame->imageManager.tCover);
@@ -2957,10 +2971,14 @@ int Game::ReplayThread(void* pd) {
 	set_card_reader((card_reader)Game::CardReader);
 	set_message_handler((message_handler)Game::MessageHandler);
 	pdInfo->pDuel = create_duel(mainGame->rnd.rand());
-	set_player_info(pdInfo->pDuel, 0, rh.startlp, rh.starthand, rh.drawcount);
-	set_player_info(pdInfo->pDuel, 1, rh.startlp, rh.starthand, rh.drawcount);
-	pdInfo->lp[0] = rh.startlp;
-	pdInfo->lp[1] = rh.startlp;
+	int start_lp = mainGame->lastReplay.ReadInt32();
+	int start_hand = mainGame->lastReplay.ReadInt32();
+	int draw_count = mainGame->lastReplay.ReadInt32();
+	int opt = mainGame->lastReplay.ReadInt32();
+	set_player_info(pdInfo->pDuel, 0, start_lp, start_hand, draw_count);
+	set_player_info(pdInfo->pDuel, 1, start_lp, start_hand, draw_count);
+	pdInfo->lp[0] = start_lp;
+	pdInfo->lp[1] = start_lp;
 	myswprintf(pdInfo->strLP[0], L"%d", pdInfo->lp[0]);
 	myswprintf(pdInfo->strLP[1], L"%d", pdInfo->lp[1]);
 	pdInfo->turn = 0;
@@ -2981,7 +2999,7 @@ int Game::ReplayThread(void* pd) {
 		new_card(pdInfo->pDuel, rep.ReadInt32(), 1, 1, LOCATION_EXTRA, 0, 0);
 	mainGame->dField.Initial(1, main, extra);
 
-	start_duel(pdInfo->pDuel, rh.option);
+	start_duel(pdInfo->pDuel, opt);
 	mainGame->dField.is_replaying = true;
 	mainGame->dField.is_pausing = false;
 	mainGame->dField.is_paused = false;
