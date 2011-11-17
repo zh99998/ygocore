@@ -55,10 +55,20 @@ void ClientCard::UpdateInfo(char* buf, int flag) {
 		alias = NetManager::ReadInt32(buf);
 	if(flag & QUERY_TYPE)
 		type = NetManager::ReadInt32(buf);
-	if(flag & QUERY_LEVEL)
-		level = NetManager::ReadInt32(buf);
-	if(flag & QUERY_RANK)
-		rank = NetManager::ReadInt32(buf);
+	if(flag & QUERY_LEVEL) {
+		pdata = NetManager::ReadInt32(buf);
+		if(level != pdata) {
+			level = pdata;
+			myswprintf(lvstring, L"L%d", level);
+		}
+	}
+	if(flag & QUERY_RANK) {
+		pdata = NetManager::ReadInt32(buf);
+		if(rank != pdata) {
+			rank = pdata;
+			myswprintf(lvstring, L"R%d", rank);
+		}
+	}
 	if(flag & QUERY_ATTRIBUTE)
 		attribute = NetManager::ReadInt32(buf);
 	if(flag & QUERY_RACE)

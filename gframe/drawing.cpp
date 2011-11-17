@@ -303,23 +303,39 @@ void Game::DrawMisc() {
 	for(int i = 0; i < 5; ++i) {
 		ClientCard* pcard = dField.mzone[0][i];
 		if(pcard) {
-			adFont->draw(pcard->atkstring, recti(450 + i * 86, 403, 534 + i * 86, 423), 0xff000000, true, false, 0);
-			adFont->draw(pcard->atkstring, recti(450 + i * 86, 404, 536 + i * 86, 424),
-			             pcard->attack > pcard->base_attack ? 0xffffff00 : pcard->attack < pcard->base_attack ? 0xffff2090 : 0xffffffff , true, false, 0);
-			adFont->draw(pcard->defstring, recti(450 + i * 86, 414, 534 + i * 86, 434), 0xff000000, true, false, 0);
-			adFont->draw(pcard->defstring, recti(450 + i * 86, 415, 536 + i * 86, 435),
-			             pcard->defence > pcard->base_defence ? 0xffffff00 : pcard->defence < pcard->base_defence ? 0xffff2090 : 0xffffffff , true, false, 0);
+			int m = 491 + i * 86;
+			adFont->draw(L"/", recti(m - 4, 403, m + 4, 423), 0xff000000, true, false, 0);
+			adFont->draw(L"/", recti(m - 3, 404, m + 5, 424), 0xffffffff, true, false, 0);
+			int w = adFont->getDimension(pcard->atkstring).Width;
+			adFont->draw(pcard->atkstring, recti(m - 5 - w, 403, m - 5, 423), 0xff000000, false, false, 0);
+			adFont->draw(pcard->atkstring, recti(m - 4 - w, 404, m - 4, 424),
+			             pcard->attack > pcard->base_attack ? 0xffffff00 : pcard->attack < pcard->base_attack ? 0xffff2090 : 0xffffffff , false, false, 0);
+			w = adFont->getDimension(pcard->defstring).Width;
+			adFont->draw(pcard->defstring, recti(m + 4, 403, m + 4 + w, 423), 0xff000000, false, false, 0);
+			adFont->draw(pcard->defstring, recti(m + 5, 404, m + 5 + w, 424),
+			             pcard->defence > pcard->base_defence ? 0xffffff00 : pcard->defence < pcard->base_defence ? 0xffff2090 : 0xffffffff , false, false, 0);
+			adFont->draw(pcard->lvstring, recti(468 + i * 83, 347, 500 + i * 83, 367), 0xff000000, false, false, 0);
+			adFont->draw(pcard->lvstring, recti(469 + i * 83, 348, 501 + i * 83, 368),
+			             (pcard->type & TYPE_XYZ) ? 0xffff80ff : (pcard->type & TYPE_TUNER) ? 0xffffff00 : 0xffffffff, false, false, 0);
 		}
 	}
 	for(int i = 0; i < 5; ++i) {
 		ClientCard* pcard = dField.mzone[1][i];
 		if(pcard && (pcard->position & POS_FACEUP)) {
-			adFont->draw(pcard->atkstring, recti(845 - i * 72, 220, 773 - i * 72, 240), 0xff000000, true, false, 0);
-			adFont->draw(pcard->atkstring, recti(845 - i * 72, 221, 775 - i * 72, 241),
-			             pcard->attack > pcard->base_attack ? 0xffffff00 : pcard->attack < pcard->base_attack ? 0xffff2090 : 0xffffffff , true, false, 0);
-			adFont->draw(pcard->defstring, recti(845 - i * 72, 231, 773 - i * 72, 251), 0xff000000, true, false, 0);
-			adFont->draw(pcard->defstring, recti(845 - i * 72, 232, 775 - i * 72, 252),
-			             pcard->defence > pcard->base_defence ? 0xffffff00 : pcard->defence < pcard->base_defence ? 0xffff2090 : 0xffffffff , true, false, 0);
+			int m = 808 - i * 72;
+			adFont->draw(L"/", recti(m - 4, 235, m + 4, 255), 0xff000000, true, false, 0);
+			adFont->draw(L"/", recti(m - 3, 236, m + 5, 256), 0xffffffff, true, false, 0);
+			int w = adFont->getDimension(pcard->atkstring).Width;
+			adFont->draw(pcard->atkstring, recti(m - 5 - w, 235, m - 5, 255), 0xff000000, false, false, 0);
+			adFont->draw(pcard->atkstring, recti(m - 4 - w, 236, m - 4, 256),
+			             pcard->attack > pcard->base_attack ? 0xffffff00 : pcard->attack < pcard->base_attack ? 0xffff2090 : 0xffffffff , false, false, 0);
+			w = adFont->getDimension(pcard->defstring).Width;
+			adFont->draw(pcard->defstring, recti(m + 4, 235, m + 4 + w, 255), 0xff000000, false, false, 0);
+			adFont->draw(pcard->defstring, recti(m + 5, 236, m + 5 + w, 256),
+			             pcard->defence > pcard->base_defence ? 0xffffff00 : pcard->defence < pcard->base_defence ? 0xffff2090 : 0xffffffff , false, false, 0);
+			adFont->draw(pcard->lvstring, recti(789 - i * 76, 280, 820 - i * 76, 300), 0xff000000, false, false, 0);
+			adFont->draw(pcard->lvstring, recti(789 - i * 76, 281, 820 - i * 76, 301),
+			             (pcard->type & TYPE_XYZ) ? 0xffff80ff : (pcard->type & TYPE_TUNER) ? 0xffffff00 : 0xffffffff, false, false, 0);
 		}
 	}
 	if(dField.extra[0].size()) {
@@ -584,11 +600,11 @@ void Game::DrawThumb(int code, position2di pos, std::unordered_map<int, int>* lf
 void Game::DrawDeckBd() {
 	wchar_t textBuffer[32];
 	//main deck
-	driver->draw2DRectangle(recti(310, 137, 410, 157), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangle(recti(310, 137, 410, 157), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 136, 410, 157));
 	textFont->draw(L"主卡组：", recti(315, 137, 410, 157), 0xffffffff, false, true);
 	numFont->draw(dataManager.numStrings[deckManager.deckhost.main.size()], recti(380, 138, 440, 158), 0xffffffff, false, true);
-	driver->draw2DRectangle(recti(310, 160, 797, 436), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangle(recti(310, 160, 797, 436), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 159, 797, 436));
 	int lx;
 	float dx;
@@ -605,11 +621,11 @@ void Game::DrawDeckBd() {
 			driver->draw2DRectangleOutline(recti(313 + (i % lx) * dx, 163 + (i / lx) * 68, 359 + (i % lx) * dx, 228 + (i / lx) * 68));
 	}
 	//extra deck
-	driver->draw2DRectangle(recti(310, 440, 410, 460), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
+	driver->draw2DRectangle(recti(310, 440, 410, 460), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 439, 410, 460));
 	textFont->draw(L"额外卡组：", recti(315, 440, 410, 460), 0xffffffff, false, true);
 	numFont->draw(dataManager.numStrings[deckManager.deckhost.extra.size()], recti(380, 441, 440, 461), 0xffffffff, false, true);
-	driver->draw2DRectangle(recti(310, 463, 797, 533), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
+	driver->draw2DRectangle(recti(310, 463, 797, 533), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 462, 797, 533));
 	if(deckManager.deckhost.extra.size() <= 10)
 		dx = 436.0f / 9;
@@ -620,11 +636,11 @@ void Game::DrawDeckBd() {
 			driver->draw2DRectangleOutline(recti(313 + i * dx, 465, 359 + i * dx, 531));
 	}
 	//side deck
-	driver->draw2DRectangle(recti(310, 537, 410, 557), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
+	driver->draw2DRectangle(recti(310, 537, 410, 557), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 536, 410, 557));
 	textFont->draw(L"副卡组：", recti(315, 537, 410, 557), 0xffffffff, false, true);
 	numFont->draw(dataManager.numStrings[deckManager.deckhost.side.size()], recti(380, 538, 440, 558), 0xffffffff, false, true);
-	driver->draw2DRectangle(recti(310, 560, 797, 630), 0x400000ff, 0x400000ff, 0x40ffffff, 0x40000000);
+	driver->draw2DRectangle(recti(310, 560, 797, 630), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 559, 797, 630));
 	if(deckManager.deckhost.side.size() <= 10)
 		dx = 436.0f / 9;
@@ -634,11 +650,11 @@ void Game::DrawDeckBd() {
 		if(deckBuilder.hovered_pos == 3 && deckBuilder.hovered_seq == i)
 			driver->draw2DRectangleOutline(recti(313 + i * dx, 563, 359 + i * dx, 629));
 	}
-	driver->draw2DRectangle(recti(805, 137, 915, 157), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangle(recti(805, 137, 915, 157), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(804, 136, 915, 157));
 	textFont->draw(L"查找结果：", recti(810, 137, 915, 157), 0xffffffff, false, true);
 	numFont->draw(deckBuilder.result_string, recti(875, 137, 935, 157), 0xffffffff, false, true);
-	driver->draw2DRectangle(recti(805, 160, 1020, 630), 0x40ffff00, 0x40ff8000, 0x4020ffc0, 0x40ff00c0);
+	driver->draw2DRectangle(recti(805, 160, 1020, 630), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(804, 159, 1020, 630));
 	for(int i = 0; i < 7 && i + mainGame->scrFilter->getPos() < deckBuilder.results.size(); ++i) {
 		code_pointer ptr = deckBuilder.results[i + mainGame->scrFilter->getPos()];

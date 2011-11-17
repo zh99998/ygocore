@@ -88,6 +88,7 @@ public:
 	std::map<int, int> counters;
 	wchar_t atkstring[16];
 	wchar_t defstring[16];
+	wchar_t lvstring[4];
 
 	ClientCard();
 	void SetCode(int code);
