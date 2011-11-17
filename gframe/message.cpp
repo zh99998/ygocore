@@ -992,7 +992,7 @@ int Game::RecvThread(void* pd) {
 		while(packlen + 2 <= left) {
 			memcpy(mainGame->msgBuffer + pdInfo->msgLen, rbuf - 2, packlen + 2);
 			pdInfo->msgLen += packlen + 2;
-			if(NetManager::ReadUInt8(rbuf) == MSG_WIN)
+			if(NetManager::ReadUInt8(rbuf) == MSG_DUEL_END)
 				mend = true;
 			rbuf += packlen - 1;
 			left -= packlen + 2;
@@ -1201,7 +1201,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		mainGame->stACMessage->setText(textBuffer);
 		mainGame->PopupElement(mainGame->wACMessage, 100);
 		mainGame->WaitFrameSignal(120);
-		mainGame->localResponse.Set();
+		if(mainGame->dInfo.is_local_host)
+			mainGame->localResponse.Set();
 		break;
 	}
 	case MSG_DUEL_END: {
@@ -1216,7 +1217,9 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		memcpy(&mainGame->lastReplay.pheader, pbuf, sizeof(ReplayHeader));
 		pbuf += sizeof(ReplayHeader);
 		memcpy(mainGame->lastReplay.comp_data, pbuf, size - 129);
+		mainGame->lastReplay.comp_size = size - 129;
 		mainGame->PopupElement(mainGame->wReplaySave);
+		mainGame->localAction.Reset();
 		mainGame->localAction.Wait();
 		break;
 	}

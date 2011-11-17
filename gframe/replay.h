@@ -13,14 +13,14 @@ struct ReplayHeader {
 	unsigned int version;
 	wchar_t player1[20];
 	wchar_t player2[20];
-	int flag;
-	int seed;
-	int startlp;
-	int starthand;
-	int drawcount;
-	int option;
-	int datasize;
-	int hash;
+	unsigned int flag;
+	unsigned int seed;
+	unsigned int startlp;
+	unsigned int starthand;
+	unsigned int drawcount;
+	unsigned int option;
+	unsigned int datasize;
+	unsigned int hash;
 	unsigned char props[8];
 };
 

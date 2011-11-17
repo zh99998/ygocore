@@ -3,10 +3,7 @@
 #include "../ocgcore/ocgapi.h"
 #include "../ocgcore/card.h"
 #include <algorithm>
-
-extern "C" {
-#include "7z/LzmaLib.h"
-}
+#include "lzma/LzmaLib.h"
 
 extern ygo::Game* mainGame;
 
@@ -31,13 +28,15 @@ void Replay::BeginRecord() {
 }
 void Replay::WriteHeader(ReplayHeader& header) {
 	pheader = header;
-	WriteData(&header, sizeof(header));
+	fwrite(&header, sizeof(header), 1, fp);
+	fflush(fp);
 }
 void Replay::WriteData(const void* data, unsigned int length, bool flush) {
 	if(!is_recording)
 		return;
 	fwrite(data, length, 1, fp);
 	memcpy(pdata, data, length);
+	pdata += length;
 	if(flush)
 		fflush(fp);
 }
@@ -54,7 +53,7 @@ void Replay::WriteInt16(short data, bool flush) {
 	if(!is_recording)
 		return;
 	fwrite(&data, sizeof(short), 1, fp);
-	*((int*)(pdata)) = data;
+	*((short*)(pdata)) = data;
 	pdata += 2;
 	if(flush)
 		fflush(fp);
@@ -80,7 +79,10 @@ void Replay::EndRecord() {
 	pheader.datasize = pdata - replay_data;
 	pheader.flag |= REPLAY_COMPRESSED;
 	size_t propsize = 5;
-	comp_size = 0x10000;
+	comp_size = 0x1000;
+	FILE* ffp=fopen("raw.yrp","wb");
+	fwrite(replay_data,pheader.datasize,1,ffp);
+	fclose(ffp);
 	LzmaCompress(comp_data, &comp_size, replay_data, pdata - replay_data, pheader.props, &propsize, 5, 1 << 24, 3, 0, 2, 32, 1);
 	is_recording = false;
 }
@@ -109,9 +111,12 @@ bool Replay::OpenReplay(const wchar_t* name) {
 	fseek(fp, 0, SEEK_SET);
 	fread(&pheader, sizeof(pheader), 1, fp);
 	if(pheader.flag & REPLAY_COMPRESSED) {
-		fread(comp_data, 0x20000, 1, fp);
-		replay_size = 0x20000;
+		fread(comp_data, 0x1000, 1, fp);
+		replay_size = pheader.datasize;
 		LzmaUncompress(replay_data, &replay_size, comp_data, &comp_size, pheader.props, 5);
+		FILE* ffp=fopen("rawd.yrp","wb");
+		fwrite(replay_data,replay_size,1,ffp);
+		fclose(ffp);
 	} else {
 		fread(replay_data, 0x20000, 1, fp);
 		replay_size = comp_size;

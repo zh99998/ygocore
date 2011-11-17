@@ -70,21 +70,21 @@
     <File Name="mysignal.h"/>
     <File Name="mythread.h"/>
     <File Name="mytimer.h"/>
-    <VirtualDirectory Name="7z">
-      <File Name="7z/Alloc.c"/>
-      <File Name="7z/Alloc.h"/>
-      <File Name="7z/LzmaDec.c"/>
-      <File Name="7z/LzmaDec.h"/>
-      <File Name="7z/LzmaEnc.c"/>
-      <File Name="7z/LzmaEnc.h"/>
-      <File Name="7z/LzmaLib.c"/>
-      <File Name="7z/LzmaLib.h"/>
-      <File Name="7z/LzFind.c"/>
-      <File Name="7z/LzFind.h"/>
-      <File Name="7z/Types.h"/>
-      <File Name="7z/LzHash.h"/>
-    </VirtualDirectory>
     <File Name="replay.h"/>
+    <VirtualDirectory Name="lzma">
+      <File Name="lzma/Alloc.c"/>
+      <File Name="lzma/Alloc.h"/>
+      <File Name="lzma/LzFind.c"/>
+      <File Name="lzma/LzFind.h"/>
+      <File Name="lzma/LzHash.h"/>
+      <File Name="lzma/LzmaDec.c"/>
+      <File Name="lzma/LzmaDec.h"/>
+      <File Name="lzma/LzmaEnc.c"/>
+      <File Name="lzma/LzmaEnc.h"/>
+      <File Name="lzma/LzmaLib.c"/>
+      <File Name="lzma/LzmaLib.h"/>
+      <File Name="lzma/Types.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

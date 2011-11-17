@@ -338,7 +338,7 @@ struct Materials {
 		mTexture.MaterialType = irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL;
 		mBackLine.ColorMaterial = irr::video::ECM_NONE;
 		mBackLine.AmbientColor = 0xffffffff;
-		mBackLine.DiffuseColor = 0xff000000;
+		mBackLine.DiffuseColor = 0x80000000;
 		mBackLine.AntiAliasing = EAAM_FULL_BASIC;
 		mBackLine.Thickness = 2;
 		mSelField.ColorMaterial = irr::video::ECM_NONE;

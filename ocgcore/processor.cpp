@@ -1375,6 +1375,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 		return FALSE;
 	}
 	case 7: {
+		core.hint_timing[infos.turn_player] = 0;
 		int32 phase_event = EVENT_PHASE + phase;
 		pair<effect_container::iterator, effect_container::iterator> pr;
 		pr = effects.continuous_effect.equal_range(phase_event);

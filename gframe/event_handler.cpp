@@ -180,11 +180,11 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				if(mainGame->ebRSName->getText()[0] == 0)
 					break;
 				mainGame->lastReplay.SaveReplay(mainGame->ebRSName->getText());
-				mainGame->localAction.Set();
+				mainGame->HideElement(mainGame->wReplaySave, true);
 				break;
 			}
 			case BUTTON_REPLAY_CANCEL: {
-				mainGame->localAction.Set();
+				mainGame->HideElement(mainGame->wReplaySave, true);
 				break;
 			}
 			case BUTTON_MSG_OK: {

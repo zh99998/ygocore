@@ -29,7 +29,7 @@ void Game::DrawBackGround() {
 	driver->setTransform(irr::video::ETS_WORLD, im);
 	//dark shade
 	matManager.mSelField.AmbientColor = 0xff000000;
-	matManager.mSelField.DiffuseColor = 0x80000000;
+	matManager.mSelField.DiffuseColor = 0xa0000000;
 	driver->setMaterial(matManager.mSelField);
 	for(int i = 0; i < 120; i += 4)
 		driver->drawVertexPrimitiveList(&matManager.vFields[i], 4, matManager.iRectangle, 2);
@@ -256,16 +256,16 @@ void Game::DrawMisc() {
 			driver->drawVertexPrimitiveList(matManager.vChainNum, 4, matManager.iRectangle, 2);
 		}
 	}
-	driver->draw2DImage(imageManager.tLPFrame, recti(330, 10, 629, 30), recti(0, 0, 200, 20), 0, 0, true);
-	driver->draw2DImage(imageManager.tLPFrame, recti(691, 10, 990, 30), recti(0, 0, 200, 20), 0, 0, true);
 	//lp bar
 	if((dInfo.turn % 2 && dInfo.is_first_turn) || (!(dInfo.turn % 2) && !dInfo.is_first_turn)) {
-		driver->draw2DRectangle(0x80000000, recti(327, 8, 630, 51));
+		driver->draw2DRectangle(0xa0000000, recti(327, 8, 630, 51));
 		driver->draw2DRectangleOutline(recti(327, 8, 630, 51), 0xffff8080);
 	} else {
-		driver->draw2DRectangle(0x80000000, recti(689, 8, 991, 51));
+		driver->draw2DRectangle(0xa0000000, recti(689, 8, 991, 51));
 		driver->draw2DRectangleOutline(recti(689, 8, 991, 51), 0xffff8080);
 	}
+	driver->draw2DImage(imageManager.tLPFrame, recti(330, 10, 629, 30), recti(0, 0, 200, 20), 0, 0, true);
+	driver->draw2DImage(imageManager.tLPFrame, recti(691, 10, 990, 30), recti(0, 0, 200, 20), 0, 0, true);
 	if(dInfo.lp[0] >= 8000)
 		driver->draw2DImage(imageManager.tLPBar, recti(335, 12, 625, 28), recti(0, 0, 16, 16), 0, 0, true);
 	else driver->draw2DImage(imageManager.tLPBar, recti(335, 12, 335 + 290 * dInfo.lp[0] / 8000, 28), recti(0, 0, 16, 16), 0, 0, true);
