@@ -4,12 +4,12 @@
   <Project Name="coredll" Path="coredll/coredll.project"/>
   <Project Name="gframe" Path="gframe/gframe.project" Active="Yes"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="no">
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Project Name="corelib" ConfigName="Debug"/>
       <Project Name="coredll" ConfigName="Debug"/>
       <Project Name="gframe" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Project Name="corelib" ConfigName="Release"/>
       <Project Name="coredll" ConfigName="Release"/>
       <Project Name="gframe" ConfigName="Release"/>

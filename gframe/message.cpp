@@ -152,7 +152,7 @@ bool Game::RefreshGrave(int player, int flag) {
 	       && SendGameMessage(1, netManager.send_buffer_ptr, len + 7);
 }
 bool Game::RefreshExtra(int player, int flag) {
-	int len = query_field_card(dInfo.pDuel, player, LOCATION_EXTRA, flag, (unsigned char*)queryBuffer);
+	int len = query_field_card(dInfo.pDuel, player, LOCATION_EXTRA, QUERY_CODE, (unsigned char*)queryBuffer);
 	char* pbuf = netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_UPDATE_DATA);
 	NetManager::WriteInt8(pbuf, player);

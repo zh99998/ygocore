@@ -52,6 +52,31 @@ struct card_state {
 	effect* reason_effect;
 };
 
+struct card_cache {
+	uint32 cache_id;
+	uint32 cache_flag;
+	uint32 code;
+	uint32 type;
+	uint32 level;
+	uint32 rank;
+	uint32 attack;
+	uint32 defence;
+	uint32 base_attack;
+	uint32 base_defence;
+};
+
+struct query_cache {
+	uint32 code;
+	uint32 alias;
+	uint32 type;
+	uint32 level;
+	uint32 rank;
+	uint32 attack;
+	uint32 defence;
+	uint32 base_attack;
+	uint32 base_defence;
+};
+
 class card {
 public:
 	typedef std::vector<card*> card_vector;
@@ -69,6 +94,8 @@ public:
 	card_state previous;
 	card_state temp;
 	card_state current;
+	card_cache rt_cache;
+	query_cache q_cache;
 	uint8 owner;
 	uint8 summon_player;
 	uint32 summon_type;

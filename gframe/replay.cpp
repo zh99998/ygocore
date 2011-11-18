@@ -20,6 +20,8 @@ Replay::~Replay() {
 	delete comp_data;
 }
 void Replay::BeginRecord() {
+	if(is_recording)
+		fclose(fp);
 	fp = fopen("./replay/_LastReplay.yrp", "wb");
 	if(!fp)
 		return;
@@ -132,7 +134,7 @@ bool Replay::CheckReplay(const wchar_t* name) {
 		return false;
 	fread(&pheader, sizeof(pheader), 1, fp);
 	fclose(fp);
-	return pheader.id==0x31707279 && pheader.version == PROTO_VERSION;
+	return pheader.id == 0x31707279 && pheader.version == PROTO_VERSION;
 }
 bool Replay::ReadNextResponse() {
 	char resType = *pdata++;
