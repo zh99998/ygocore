@@ -44,7 +44,7 @@ card::card() {
 	owner = PLAYER_NONE;
 	operation_param = 0;
 	status = 0;
-	rt_cache.cache_id = 0;
+	memset(&q_cache, 0, sizeof(query_cache));
 	equiping_target = 0;
 	pre_equip_target = 0;
 	overlay_target = 0;

@@ -52,19 +52,6 @@ struct card_state {
 	effect* reason_effect;
 };
 
-struct card_cache {
-	uint32 cache_id;
-	uint32 cache_flag;
-	uint32 code;
-	uint32 type;
-	uint32 level;
-	uint32 rank;
-	int32 attack;
-	int32 defence;
-	int32 base_attack;
-	int32 base_defence;
-};
-
 struct query_cache {
 	uint32 code;
 	uint32 alias;
@@ -75,6 +62,8 @@ struct query_cache {
 	int32 defence;
 	int32 base_attack;
 	int32 base_defence;
+	int32 is_public;
+	int32 is_disabled;
 };
 
 class card {
@@ -94,7 +83,6 @@ public:
 	card_state previous;
 	card_state temp;
 	card_state current;
-	card_cache rt_cache;
 	query_cache q_cache;
 	uint8 owner;
 	uint8 summon_player;
