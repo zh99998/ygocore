@@ -817,15 +817,6 @@ void card::reset(uint32 id, uint32 reset_type) {
 			attacked_count = 0;
 		}
 		if(id & 0x1fe0000) {
-			counter_map::iterator rm;
-			for(rm = counters.begin(); rm != counters.end(); rm++) {
-				pduel->write_buffer8(MSG_REMOVE_COUNTER);
-				pduel->write_buffer16(rm->first);
-				pduel->write_buffer8(current.controler);
-				pduel->write_buffer8(current.location);
-				pduel->write_buffer8(current.sequence);
-				pduel->write_buffer8(rm->second);
-			}
 			battled_cards.clear();
 			counters.clear();
 			reset_effect_count();

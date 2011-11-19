@@ -2161,6 +2161,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 				ClientCard* pcard = mainGame->dField.GetCard(pc, pl, ps);
 				if (code != 0 && pcard->code != code)
 					pcard->SetCode(code);
+				if((pl & LOCATION_ONFIELD) && (cl != pl))
+					pcard->counters.clear();
 				mainGame->gMutex.Lock();
 				mainGame->dField.RemoveCard(pc, pl, ps);
 				pcard->position = cp;
@@ -2202,6 +2204,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 				ClientCard* pcard = mainGame->dField.GetCard(pc, pl, ps);
 				if (code != 0 && pcard->code != code)
 					pcard->SetCode(code);
+				if((pl & LOCATION_ONFIELD) && (cl != pl))
+					pcard->counters.clear();
 				ClientCard* olcard = mainGame->dField.GetCard(cc, cl & 0x7f, cs);
 				mainGame->gMutex.Lock();
 				mainGame->dField.RemoveCard(pc, pl, ps);
@@ -2286,6 +2290,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int pp = NetManager::ReadInt8(pbuf);
 		int cp = NetManager::ReadInt8(pbuf);
 		ClientCard* pcard = mainGame->dField.GetCard(cc, cl, cs);
+		if(cp & POS_FACEDOWN)
+			pcard->counters.clear();
 		if (code != 0 && pcard->code != code)
 			pcard->SetCode(code);
 		pcard->position = cp;
