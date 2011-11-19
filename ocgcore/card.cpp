@@ -104,8 +104,8 @@ uint32 card::get_infos(byte* buf, int32 query_flag) {
 			*p++ = (*cit)->get_info_location();
 	}
 	if(query_flag & QUERY_OVERLAY_CARD) {
-		*p++ = exceed_materials.size();
-		for(auto clit = exceed_materials.begin(); clit != exceed_materials.end(); ++clit)
+		*p++ = xyz_materials.size();
+		for(auto clit = xyz_materials.begin(); clit != xyz_materials.end(); ++clit)
 			*p++ = (*clit)->data.code;
 	}
 	if(query_flag & QUERY_COUNTERS) {
@@ -205,7 +205,7 @@ uint32 card::get_type() {
 	temp.type = 0xffffffff;
 	return type;
 }
-uint32 card::get_base_attack(uint8 swap) {
+int32 card::get_base_attack(uint8 swap) {
 	if (current.location != LOCATION_MZONE)
 		return data.attack;
 	if (temp.base_attack != 0xffffffff)
@@ -229,7 +229,7 @@ uint32 card::get_base_attack(uint8 swap) {
 	temp.base_attack = 0xffffffff;
 	return batk;
 }
-uint32 card::get_attack(uint8 swap) {
+int32 card::get_attack(uint8 swap) {
 	if (current.location != LOCATION_MZONE)
 		return data.attack;
 	if (temp.attack != 0xffffffff)
@@ -291,7 +291,7 @@ uint32 card::get_attack(uint8 swap) {
 	temp.attack = 0xffffffff;
 	return atk;
 }
-uint32 card::get_base_defence(uint8 swap) {
+int32 card::get_base_defence(uint8 swap) {
 	if (current.location != LOCATION_MZONE)
 		return data.defence;
 	if (temp.base_attack != 0xffffffff)
@@ -315,7 +315,7 @@ uint32 card::get_base_defence(uint8 swap) {
 	temp.base_defence = 0xffffffff;
 	return bdef;
 }
-uint32 card::get_defence(uint8 swap) {
+int32 card::get_defence(uint8 swap) {
 	if (current.location != LOCATION_MZONE)
 		return data.defence;
 	if (temp.defence != 0xffffffff)
@@ -532,11 +532,11 @@ int32 card::get_union_count() {
 	}
 	return count;
 }
-void card::exceed_overlay(card_set* materials) {
+void card::xyz_overlay(card_set* materials) {
 	if(materials->size() == 0)
 		return;
 	if(materials->size() == 1) {
-		exceed_add(*materials->begin());
+		xyz_add(*materials->begin());
 		(*materials->begin())->reset(RESET_EVENT, RESET_OVERLAY);
 	} else {
 		field::card_vector cv;
@@ -546,12 +546,12 @@ void card::exceed_overlay(card_set* materials) {
 			cv.push_back(*cit);
 		std::sort(cv.begin(), cv.end(), card::card_operation_sort);
 		for(cvit = cv.begin(); cvit != cv.end(); ++cvit) {
-			exceed_add(*cvit);
+			xyz_add(*cvit);
 			(*cvit)->reset(RESET_EVENT, RESET_OVERLAY);
 		}
 	}
 }
-void card::exceed_add(card* mat) {
+void card::xyz_add(card* mat) {
 	if(mat->overlay_target == this)
 		return;
 	pduel->write_buffer8(MSG_MOVE);
@@ -563,7 +563,7 @@ void card::exceed_add(card* mat) {
 		pduel->write_buffer8(mat->overlay_target->current.location | LOCATION_OVERLAY);
 		pduel->write_buffer8(mat->overlay_target->current.sequence);
 		pduel->write_buffer8(mat->current.sequence);
-		mat->overlay_target->exceed_remove(mat);
+		mat->overlay_target->xyz_remove(mat);
 	} else {
 		pduel->write_buffer8(mat->current.controler);
 		pduel->write_buffer8(mat->current.location);
@@ -576,16 +576,17 @@ void card::exceed_add(card* mat) {
 	pduel->write_buffer8(current.location | LOCATION_OVERLAY);
 	pduel->write_buffer8(current.sequence);
 	pduel->write_buffer8(current.position);
-	exceed_materials.push_back(mat);
+	xyz_materials.push_back(mat);
 	mat->overlay_target = this;
 	mat->current.controler = PLAYER_NONE;
 	mat->current.location = LOCATION_OVERLAY;
-	mat->current.sequence = exceed_materials.size() - 1;
+	mat->current.sequence = xyz_materials.size() - 1;
+	mat->current.reason = REASON_XYZ + REASON_MATERIAL;
 }
-void card::exceed_remove(card* mat) {
+void card::xyz_remove(card* mat) {
 	if(mat->overlay_target != this)
 		return;
-	exceed_materials.erase(exceed_materials.begin() + mat->current.sequence);
+	xyz_materials.erase(xyz_materials.begin() + mat->current.sequence);
 	mat->previous.controler = mat->current.controler;
 	mat->previous.location = mat->current.location;
 	mat->previous.sequence = mat->current.sequence;
@@ -593,8 +594,8 @@ void card::exceed_remove(card* mat) {
 	mat->current.location = 0;
 	mat->current.sequence = 0;
 	mat->overlay_target = 0;
-	for(auto clit = exceed_materials.begin(); clit != exceed_materials.end(); ++clit)
-		(*clit)->current.sequence = clit - exceed_materials.begin();
+	for(auto clit = xyz_materials.begin(); clit != xyz_materials.end(); ++clit)
+		(*clit)->current.sequence = clit - xyz_materials.begin();
 }
 void card::apply_field_effect() {
 	effect_container::iterator it;
@@ -1907,7 +1908,7 @@ int32 card::is_can_be_synchro_material(card* scard) {
 			return FALSE;
 	return TRUE;
 }
-int32 card::is_can_be_exceed_material(card* scard) {
+int32 card::is_can_be_xyz_material(card* scard) {
 	if(data.type & (TYPE_XYZ | TYPE_TOKEN))
 		return FALSE;
 	if(!(get_type()&TYPE_MONSTER))

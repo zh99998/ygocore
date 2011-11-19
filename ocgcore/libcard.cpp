@@ -489,7 +489,7 @@ int32 scriptlib::card_get_overlay_group(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	group* pgroup = pcard->pduel->new_group();
-	for(auto cit = pcard->exceed_materials.begin(); cit != pcard->exceed_materials.end(); ++cit)
+	for(auto cit = pcard->xyz_materials.begin(); cit != pcard->xyz_materials.end(); ++cit)
 		pgroup->container.insert(*cit);
 	interpreter::group2value(L, pgroup);
 	return 1;
@@ -498,7 +498,7 @@ int32 scriptlib::card_get_overlay_count(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->exceed_materials.size());
+	lua_pushinteger(L, pcard->xyz_materials.size());
 	return 1;
 }
 int32 scriptlib::card_check_remove_overlay_card(lua_State *L) {
@@ -1414,7 +1414,7 @@ int32 scriptlib::card_is_can_be_xyz_material(lua_State *L) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**) lua_touserdata(L, 2);
 	}
-	lua_pushboolean(L, pcard->is_can_be_exceed_material(scard));
+	lua_pushboolean(L, pcard->is_can_be_xyz_material(scard));
 	return 1;
 }
 int32 scriptlib::card_check_fusion_material(lua_State *L) {

@@ -966,7 +966,7 @@ int32 scriptlib::duel_shuffle_setcard(lua_State *L) {
 		ms[i]->current.sequence = seq[i];
 	}
 	for(uint32 i = 0; i < ct; ++i) {
-		if(ms[i]->exceed_materials.size())
+		if(ms[i]->xyz_materials.size())
 			pduel->write_buffer32(ms[i]->get_info_location());
 		else
 			pduel->write_buffer32(0);
@@ -2128,9 +2128,9 @@ int32 scriptlib::duel_overlay(lua_State *L) {
 	} else
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 2);
 	if(pcard)
-		target->exceed_add(pcard);
+		target->xyz_add(pcard);
 	else
-		target->exceed_overlay(&pgroup->container);
+		target->xyz_overlay(&pgroup->container);
 	target->pduel->game_field->adjust_all();
 	return lua_yield(L, 0);
 }

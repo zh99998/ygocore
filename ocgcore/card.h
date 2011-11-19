@@ -28,8 +28,8 @@ struct card_data {
 	uint32 level;
 	uint32 attribute;
 	uint32 race;
-	uint32 attack;
-	uint32 defence;
+	int32 attack;
+	int32 defence;
 };
 
 struct card_state {
@@ -38,10 +38,10 @@ struct card_state {
 	uint32 level;
 	uint32 attribute;
 	uint32 race;
-	uint32 attack;
-	uint32 defence;
-	uint32 base_attack;
-	uint32 base_defence;
+	int32 attack;
+	int32 defence;
+	int32 base_attack;
+	int32 base_defence;
 	uint8 controler;
 	uint8 location;
 	uint8 sequence;
@@ -59,10 +59,10 @@ struct card_cache {
 	uint32 type;
 	uint32 level;
 	uint32 rank;
-	uint32 attack;
-	uint32 defence;
-	uint32 base_attack;
-	uint32 base_defence;
+	int32 attack;
+	int32 defence;
+	int32 base_attack;
+	int32 base_defence;
 };
 
 struct query_cache {
@@ -71,10 +71,10 @@ struct query_cache {
 	uint32 type;
 	uint32 level;
 	uint32 rank;
-	uint32 attack;
-	uint32 defence;
-	uint32 base_attack;
-	uint32 base_defence;
+	int32 attack;
+	int32 defence;
+	int32 base_attack;
+	int32 base_defence;
 };
 
 class card {
@@ -119,7 +119,7 @@ public:
 	card_set material_cards;
 	card_set effect_target_owner;
 	card_set effect_target_cards;
-	card_vector exceed_materials;
+	card_vector xyz_materials;
 	effect_container single_effect;
 	effect_container field_effect;
 	effect_container equip_effect;
@@ -136,10 +136,10 @@ public:
 	uint32 get_code();
 	int32 is_set_card(uint32 set_code);
 	uint32 get_type();
-	uint32 get_base_attack(uint8 swap = FALSE);
-	uint32 get_attack(uint8 swap = FALSE);
-	uint32 get_base_defence(uint8 swap = FALSE);
-	uint32 get_defence(uint8 swap = FALSE);
+	int32 get_base_attack(uint8 swap = FALSE);
+	int32 get_attack(uint8 swap = FALSE);
+	int32 get_base_defence(uint8 swap = FALSE);
+	int32 get_defence(uint8 swap = FALSE);
 	uint32 get_level();
 	uint32 get_rank();
 	uint32 get_synchro_level(card* pcard);
@@ -154,9 +154,9 @@ public:
 	void equip(card *target);
 	void unequip();
 	int32 get_union_count();
-	void exceed_overlay(card_set* materials);
-	void exceed_add(card* mat);
-	void exceed_remove(card* mat);
+	void xyz_overlay(card_set* materials);
+	void xyz_add(card* mat);
+	void xyz_remove(card* mat);
 	void apply_field_effect();
 	void cancel_field_effect();
 	void enable_field_effect(int32 enabled);
@@ -232,7 +232,7 @@ public:
 	int32 is_capable_be_effect_target(effect* peffect, uint8 playerid);
 	int32 is_can_be_fusion_material();
 	int32 is_can_be_synchro_material(card* scard);
-	int32 is_can_be_exceed_material(card* scard);
+	int32 is_can_be_xyz_material(card* scard);
 };
 
 //Locations
@@ -332,7 +332,7 @@ public:
 #define REASON_FUSION		0x40000	//
 #define REASON_SYNCHRO		0x80000	//
 #define REASON_RITUAL		0x100000	//
-#define REASON_EXCEED		0x200000	//
+#define REASON_XYZ			0x200000	//
 #define REASON_REPLACE		0x1000000	//
 #define REASON_DRAW			0x2000000	//
 #define REASON_REDIRECT		0x4000000	//
@@ -345,7 +345,7 @@ public:
 #define SUMMON_TYPE_FUSION	0x41000000
 #define SUMMON_TYPE_RITUAL	0x42000000
 #define SUMMON_TYPE_SYNCHRO	0x43000000
-#define SUMMON_TYPE_EXCEED	0x44000000
+#define SUMMON_TYPE_XYZ		0x44000000
 //Status
 #define STATUS_DISABLED				0x0001	//
 #define STATUS_TO_ENABLE			0x0002	//

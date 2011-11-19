@@ -645,7 +645,7 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 
 	case 0: {
 		core.select_options.clear();
 		core.select_effects.clear();
-		if((pcard && pcard->exceed_materials.size() >= min) || (!pcard && get_overlay_count(rplayer, s, o) >= min)) {
+		if((pcard && pcard->xyz_materials.size() >= min) || (!pcard && get_overlay_count(rplayer, s, o) >= min)) {
 			core.select_options.push_back(12);
 			core.select_effects.push_back(0);
 		}
@@ -694,7 +694,7 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 
 		}
 		pduel->game_field->core.select_cards.clear();
 		if(pcard) {
-			for(auto cit = pcard->exceed_materials.begin(); cit != pcard->exceed_materials.end(); ++cit)
+			for(auto cit = pcard->xyz_materials.begin(); cit != pcard->xyz_materials.end(); ++cit)
 				pduel->game_field->core.select_cards.push_back(*cit);
 		} else {
 			card_set cset;
@@ -1152,12 +1152,15 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 	case 16: {
 		pduel->write_buffer8(MSG_SUMMONED);
 		adjust_instant();
-		raise_single_event(target, EVENT_SUMMON_SUCCESS, proc, 0, sumplayer, sumplayer, 0);
 		if(target->material_cards.size()) {
-			card_set::iterator mit;
-			for(mit = target->material_cards.begin(); mit != target->material_cards.end(); ++mit)
+			for(auto mit = target->material_cards.begin(); mit != target->material_cards.end(); ++mit)
 				raise_single_event(*mit, EVENT_BE_MATERIAL, proc, 0, sumplayer, sumplayer, 0);
 		}
+		process_single_event();
+		return false;
+	}
+	case 17: {
+		raise_single_event(target, EVENT_SUMMON_SUCCESS, proc, 0, sumplayer, sumplayer, 0);
 		process_single_event();
 		raise_event(target, EVENT_SUMMON_SUCCESS, proc, 0, sumplayer, sumplayer, 0);
 		process_instant_event();
@@ -1624,12 +1627,15 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card * target) {
 	case 16: {
 		pduel->write_buffer8(MSG_SPSUMMONED);
 		adjust_instant();
-		raise_single_event(target, EVENT_SPSUMMON_SUCCESS, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
 		if(target->material_cards.size()) {
-			card_set::iterator mit;
-			for(mit = target->material_cards.begin(); mit != target->material_cards.end(); ++mit)
+			for(auto mit = target->material_cards.begin(); mit != target->material_cards.end(); ++mit)
 				raise_single_event(*mit, EVENT_BE_MATERIAL, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
 		}
+		process_single_event();
+		return false;
+	}
+	case 17: {
+		raise_single_event(target, EVENT_SPSUMMON_SUCCESS, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
 		process_single_event();
 		raise_event(target, EVENT_SPSUMMON_SUCCESS, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
 		process_instant_event();
@@ -2289,7 +2295,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				pduel->write_buffer8((*cvit)->overlay_target->current.location | LOCATION_OVERLAY);
 				pduel->write_buffer8((*cvit)->overlay_target->current.sequence);
 				pduel->write_buffer8((*cvit)->current.sequence);
-				(*cvit)->overlay_target->exceed_remove(*cvit);
+				(*cvit)->overlay_target->xyz_remove(*cvit);
 			} else {
 				pduel->write_buffer8((*cvit)->current.controler);
 				pduel->write_buffer8((*cvit)->current.location);
@@ -2358,8 +2364,8 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				remove.insert(*cit);
 				raise_single_event(*cit, EVENT_REMOVE, (*cit)->current.reason_effect, (*cit)->current.reason, (*cit)->current.reason_player, 0, 0);
 			}
-			if((*cit)->exceed_materials.size()) {
-				for(auto clit = (*cit)->exceed_materials.begin(); clit != (*cit)->exceed_materials.end(); ++clit)
+			if((*cit)->xyz_materials.size()) {
+				for(auto clit = (*cit)->xyz_materials.begin(); clit != (*cit)->xyz_materials.end(); ++clit)
 					overlays.insert(*clit);
 			}
 		}
@@ -2565,7 +2571,7 @@ int32 field::move_to_field(uint16 step, card * target, uint32 enable, uint32 ret
 			pduel->write_buffer8(target->overlay_target->current.location | LOCATION_OVERLAY);
 			pduel->write_buffer8(target->overlay_target->current.sequence);
 			pduel->write_buffer8(target->current.sequence);
-			target->overlay_target->exceed_remove(target);
+			target->overlay_target->xyz_remove(target);
 		} else {
 			pduel->write_buffer8(target->current.controler);
 			pduel->write_buffer8(target->current.location);
@@ -2588,9 +2594,9 @@ int32 field::move_to_field(uint16 step, card * target, uint32 enable, uint32 ret
 					(*rm)->unequip();
 				}
 			}
-			if(target->exceed_materials.size()) {
+			if(target->xyz_materials.size()) {
 				card_set overlays;
-				for(auto clit = target->exceed_materials.begin(); clit != target->exceed_materials.end(); ++clit)
+				for(auto clit = target->xyz_materials.begin(); clit != target->xyz_materials.end(); ++clit)
 					overlays.insert(*clit);
 				send_to(&overlays, 0, REASON_LOST_TARGET, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 			}
