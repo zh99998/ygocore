@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="ygo" Database="./ygo.tags">
-  <Project Name="corelib" Path="corelib/corelib.project" Active="No"/>
-  <Project Name="coredll" Path="coredll/coredll.project"/>
   <Project Name="gframe" Path="gframe/gframe.project" Active="Yes"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="no">
-      <Project Name="corelib" ConfigName="Debug"/>
-      <Project Name="coredll" ConfigName="Debug"/>
       <Project Name="gframe" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="yes">
-      <Project Name="corelib" ConfigName="Release"/>
-      <Project Name="coredll" ConfigName="Release"/>
       <Project Name="gframe" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
