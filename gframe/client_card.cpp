@@ -33,6 +33,7 @@ ClientCard::ClientCard() {
 	turnCounter = 0;
 	atkstring[0] = 0;
 	defstring[0] = 0;
+	lvstring[0] = 0;
 	overlayTarget = 0;
 	equipTarget = 0;
 }
@@ -57,14 +58,14 @@ void ClientCard::UpdateInfo(char* buf, int flag) {
 		type = NetManager::ReadInt32(buf);
 	if(flag & QUERY_LEVEL) {
 		pdata = NetManager::ReadInt32(buf);
-		if(level != pdata) {
+		if(pdata && level != pdata) {
 			level = pdata;
 			myswprintf(lvstring, L"L%d", level);
 		}
 	}
 	if(flag & QUERY_RANK) {
 		pdata = NetManager::ReadInt32(buf);
-		if(rank != pdata) {
+		if(pdata && rank != pdata) {
 			rank = pdata;
 			myswprintf(lvstring, L"R%d", rank);
 		}

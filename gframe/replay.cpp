@@ -134,7 +134,7 @@ bool Replay::CheckReplay(const wchar_t* name) {
 		return false;
 	fread(&pheader, sizeof(pheader), 1, fp);
 	fclose(fp);
-	return pheader.id == 0x31707279 && pheader.version == PROTO_VERSION;
+	return pheader.id == 0x31707279 && pheader.version >= 0x1008;
 }
 bool Replay::ReadNextResponse() {
 	char resType = *pdata++;

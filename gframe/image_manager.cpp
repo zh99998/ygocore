@@ -35,10 +35,12 @@ void ImageManager::ClearTexture() {
 	mainGame->btnCardSelect[3]->setImage();
 	mainGame->btnCardSelect[4]->setImage();
 	for(auto tit = tMap.begin(); tit != tMap.end(); ++tit) {
-		driver->removeTexture(tit->second);
+		if(tit->second)
+			driver->removeTexture(tit->second);
 	}
 	for(auto tit = tThumb.begin(); tit != tThumb.end(); ++tit) {
-		driver->removeTexture(tit->second);
+		if(tit->second)
+			driver->removeTexture(tit->second);
 	}
 	tMap.clear();
 	tThumb.clear();
@@ -46,7 +48,8 @@ void ImageManager::ClearTexture() {
 void ImageManager::RemoveTexture(int code) {
 	auto tit = tMap.find(code);
 	if(tit != tMap.end()) {
-		driver->removeTexture(tit->second);
+		if(tit->second)
+			driver->removeTexture(tit->second);
 		tMap.erase(tit);
 	}
 }
@@ -55,7 +58,7 @@ irr::video::ITexture* ImageManager::GetTexture(int code) {
 		return 0;
 	auto tit = tMap.find(code);
 	if(tit == tMap.end()) {
-		char file[32];
+		char file[256];
 		sprintf(file, "pics/%d.jpg", code);
 		irr::video::ITexture* img = driver->getTexture(file);
 		tMap[code] = img;

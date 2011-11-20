@@ -5,7 +5,7 @@
 #include <set>
 #include <vector>
 
-#define PROTO_VERSION 0x1009
+#define PROTO_VERSION 0x100a
 
 namespace ygo {
 

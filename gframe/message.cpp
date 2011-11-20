@@ -157,7 +157,7 @@ bool Game::RefreshExtra(int player, int flag) {
 	NetManager::WriteInt8(pbuf, MSG_UPDATE_DATA);
 	NetManager::WriteInt8(pbuf, player);
 	NetManager::WriteInt8(pbuf, LOCATION_EXTRA);
-	NetManager::WriteInt32(pbuf, flag);
+	NetManager::WriteInt32(pbuf, QUERY_CODE);
 	memcpy(pbuf, queryBuffer, len);
 	return SendGameMessage(player, netManager.send_buffer_ptr, len + 7);
 }
