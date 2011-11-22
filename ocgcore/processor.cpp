@@ -678,7 +678,8 @@ int32 field::process() {
 			}
 			core.sub_solving_event.push_back(e);
 			pduel->lua->add_param(it->arg2, PARAM_TYPE_CARD);
-			add_process(PROCESSOR_EXECUTE_OPERATION, 0, it->peffect, 0, it->arg1, 0);
+			pduel->lua->add_param(it->arg1 >> 16, PARAM_TYPE_INT);
+			add_process(PROCESSOR_EXECUTE_OPERATION, 0, it->peffect, 0, it->arg1 & 0xffff, 0);
 			core.units.begin()->step++;
 		} else {
 			group* pgroup = pduel->new_group();

@@ -1765,13 +1765,16 @@ int32 scriptlib::duel_select_fusion_material(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 2);
 	check_param(L, PARAM_TYPE_GROUP, 3);
 	card* cg = 0;
-	if(lua_gettop(L) > 3) {
+	int32 chkf = PLAYER_NONE;
+	if(lua_gettop(L) > 3 && !lua_isnil(L, 4)) {
 		check_param(L, PARAM_TYPE_CARD, 4);
 		cg = *(card**) lua_touserdata(L, 4);
 	}
+	if(lua_gettop(L) > 4)
+		chkf = lua_tointeger(L, 5);
 	card* pcard = *(card**) lua_touserdata(L, 2);
 	group* pgroup = *(group**) lua_touserdata(L, 3);
-	pcard->fution_select(playerid, pgroup, cg);
+	pcard->fusion_select(playerid, pgroup, cg, chkf);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_set_fusion_material(lua_State *L) {
