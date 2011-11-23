@@ -343,7 +343,7 @@ int32 scriptlib::card_is_status(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 tstatus = lua_tointeger(L, 2);
-	if(pcard->is_status(tstatus))
+	if(pcard->status & tstatus)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -1209,6 +1209,28 @@ int32 scriptlib::card_is_level_above(lua_State *L) {
 		lua_pushboolean(L, pcard->get_level() >= lvl);
 	return 1;
 }
+int32 scriptlib::card_is_rank_below(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 rnk = lua_tointeger(L, 2);
+	if(!(pcard->data.type & TYPE_XYZ))
+		lua_pushboolean(L, 0);
+	else
+		lua_pushboolean(L, pcard->get_rank() <= rnk);
+	return 1;
+}
+int32 scriptlib::card_is_rank_above(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 rnk = lua_tointeger(L, 2);
+	if(!(pcard->data.type & TYPE_XYZ))
+		lua_pushboolean(L, 0);
+	else
+		lua_pushboolean(L, pcard->get_rank() >= rnk);
+	return 1;
+}
 int32 scriptlib::card_is_attack_below(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
@@ -1421,17 +1443,20 @@ int32 scriptlib::card_check_fusion_material(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
+	int32 chkf = PLAYER_NONE;
 	group* pgroup = 0;
-	if(lua_gettop(L) > 1) {
+	if(lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 		check_param(L, PARAM_TYPE_GROUP, 2);
 		pgroup = *(group**) lua_touserdata(L, 2);
 	}
 	card* cg = 0;
-	if(lua_gettop(L) > 2) {
+	if(lua_gettop(L) > 2 && !lua_isnil(L, 3)) {
 		check_param(L, PARAM_TYPE_CARD, 3);
 		cg = *(card**) lua_touserdata(L, 3);
 	}
-	lua_pushboolean(L, pcard->fution_check(pgroup, cg));
+	if(lua_gettop(L) > 3)
+		chkf = lua_tointeger(L, 4);
+	lua_pushboolean(L, pcard->fusion_check(pgroup, cg, chkf));
 	return 1;
 }
 int32 scriptlib::card_is_immune_to_effect(lua_State *L) {

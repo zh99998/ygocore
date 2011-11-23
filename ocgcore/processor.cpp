@@ -678,7 +678,8 @@ int32 field::process() {
 			}
 			core.sub_solving_event.push_back(e);
 			pduel->lua->add_param(it->arg2, PARAM_TYPE_CARD);
-			add_process(PROCESSOR_EXECUTE_OPERATION, 0, it->peffect, 0, it->arg1, 0);
+			pduel->lua->add_param(it->arg1 >> 16, PARAM_TYPE_INT);
+			add_process(PROCESSOR_EXECUTE_OPERATION, 0, it->peffect, 0, it->arg1 & 0xffff, 0);
 			core.units.begin()->step++;
 		} else {
 			group* pgroup = pduel->new_group();
@@ -3419,6 +3420,7 @@ int32 field::add_chain(uint16 step) {
 		core.chain_limit = 0;
 		if(!(peffect->flag & EFFECT_FLAG_FIELD_ONLY) && peffect->handler->is_affected_by_effect(EFFECT_DISABLE_EFFECT))
 			clit->flag |= CHAIN_DISABLE_EFFECT;
+		clit->chain_type = peffect->handler->get_type() & 0x7;
 		clit->chain_count = core.current_chain.size() + 1;
 		clit->target_cards = 0;
 		clit->target_player = PLAYER_NONE;

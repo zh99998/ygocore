@@ -180,8 +180,8 @@ public:
 	void filter_spsummon_procedure(uint8 playerid, effect_set* eset);
 	effect* is_affected_by_effect(int32 code);
 	effect* is_affected_by_effect(int32 code, card* target);
-	int32 fution_check(group* fusion_m, card* cg);
-	void fution_select(uint8 playerid, group* fusion_m, card* cg);
+	int32 fusion_check(group* fusion_m, card* cg, int32 chkf);
+	void fusion_select(uint8 playerid, group* fusion_m, card* cg, int32 chkf);
 
 	int32 is_equipable(card* pcard);
 	int32 is_summonable();

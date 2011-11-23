@@ -602,7 +602,9 @@ void Game::DrawDeckBd() {
 	//main deck
 	driver->draw2DRectangle(recti(310, 137, 410, 157), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 136, 410, 157));
+	textFont->draw(L"主卡组：", recti(314, 136, 409, 156), 0xff000000, false, true);
 	textFont->draw(L"主卡组：", recti(315, 137, 410, 157), 0xffffffff, false, true);
+	numFont->draw(dataManager.numStrings[deckManager.deckhost.main.size()], recti(379, 137, 439, 157), 0xff000000, false, true);
 	numFont->draw(dataManager.numStrings[deckManager.deckhost.main.size()], recti(380, 138, 440, 158), 0xffffffff, false, true);
 	driver->draw2DRectangle(recti(310, 160, 797, 436), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 159, 797, 436));
@@ -623,7 +625,9 @@ void Game::DrawDeckBd() {
 	//extra deck
 	driver->draw2DRectangle(recti(310, 440, 410, 460), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 439, 410, 460));
+	textFont->draw(L"额外卡组：", recti(314, 439, 409, 459), 0xff000000, false, true);
 	textFont->draw(L"额外卡组：", recti(315, 440, 410, 460), 0xffffffff, false, true);
+	numFont->draw(dataManager.numStrings[deckManager.deckhost.extra.size()], recti(379, 440, 439, 460), 0xff000000, false, true);
 	numFont->draw(dataManager.numStrings[deckManager.deckhost.extra.size()], recti(380, 441, 440, 461), 0xffffffff, false, true);
 	driver->draw2DRectangle(recti(310, 463, 797, 533), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 462, 797, 533));
@@ -638,7 +642,9 @@ void Game::DrawDeckBd() {
 	//side deck
 	driver->draw2DRectangle(recti(310, 537, 410, 557), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 536, 410, 557));
+	textFont->draw(L"副卡组：", recti(314, 536, 409, 556), 0xff000000, false, true);
 	textFont->draw(L"副卡组：", recti(315, 537, 410, 557), 0xffffffff, false, true);
+	numFont->draw(dataManager.numStrings[deckManager.deckhost.side.size()], recti(379, 537, 439, 557), 0xff000000, false, true);
 	numFont->draw(dataManager.numStrings[deckManager.deckhost.side.size()], recti(380, 538, 440, 558), 0xffffffff, false, true);
 	driver->draw2DRectangle(recti(310, 560, 797, 630), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(309, 559, 797, 630));
@@ -652,7 +658,9 @@ void Game::DrawDeckBd() {
 	}
 	driver->draw2DRectangle(recti(805, 137, 915, 157), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(804, 136, 915, 157));
+	textFont->draw(L"查找结果：", recti(809, 136, 914, 156), 0xff000000, false, true);
 	textFont->draw(L"查找结果：", recti(810, 137, 915, 157), 0xffffffff, false, true);
+	numFont->draw(deckBuilder.result_string, recti(874, 136, 934, 156), 0xff000000, false, true);
 	numFont->draw(deckBuilder.result_string, recti(875, 137, 935, 157), 0xffffffff, false, true);
 	driver->draw2DRectangle(recti(805, 160, 1020, 630), 0x400000ff, 0x400000ff, 0x40000000, 0x40000000);
 	driver->draw2DRectangleOutline(recti(804, 159, 1020, 630));
@@ -663,10 +671,12 @@ void Game::DrawDeckBd() {
 		DrawThumb(ptr->first, position2di(810, 165 + i * 66), deckBuilder.filterList);
 		if(ptr->second.type & TYPE_MONSTER) {
 			myswprintf(textBuffer, L"%ls", dataManager.GetName(ptr->first));
-			textFont->draw(textBuffer, recti(860, 165 + i * 66, 955, 185 + i * 66), 0xffffffff, false, true);
+			textFont->draw(textBuffer, recti(859, 164 + i * 66, 955, 185 + i * 66), 0xff000000, false, false);
+			textFont->draw(textBuffer, recti(860, 165 + i * 66, 955, 185 + i * 66), 0xffffffff, false, false);
 			myswprintf(textBuffer, L"%ls/%ls ★%d", DataManager::FormatAttribute(ptr->second.attribute),
 			           DataManager::FormatRace(ptr->second.race), ptr->second.level);
-			textFont->draw(textBuffer, recti(860, 187 + i * 66, 955, 207 + i * 66), 0xffffffff, false, true);
+			textFont->draw(textBuffer, recti(859, 186 + i * 66, 955, 207 + i * 66), 0xff000000, false, false);
+			textFont->draw(textBuffer, recti(860, 187 + i * 66, 955, 207 + i * 66), 0xffffffff, false, false);
 			if(ptr->second.attack < 0 && ptr->second.defence < 0)
 				myswprintf(textBuffer, L"?/?");
 			else if(ptr->second.attack < 0)
@@ -674,11 +684,15 @@ void Game::DrawDeckBd() {
 			else if(ptr->second.defence < 0)
 				myswprintf(textBuffer, L"%d/?", ptr->second.attack);
 			else myswprintf(textBuffer, L"%d/%d", ptr->second.attack, ptr->second.defence);
-			textFont->draw(textBuffer, recti(860, 209 + i * 66, 955, 229 + i * 66), 0xffffffff, false, true);
+			textFont->draw(textBuffer, recti(859, 208 + i * 66, 955, 229 + i * 66), 0xff000000, false, false);
+			textFont->draw(textBuffer, recti(860, 209 + i * 66, 955, 229 + i * 66), 0xffffffff, false, false);
 		} else {
 			myswprintf(textBuffer, L"%ls", dataManager.GetName(ptr->first));
-			textFont->draw(textBuffer, recti(860, 165 + i * 66, 955, 185 + i * 66), 0xffffffff, false, true);
-			textFont->draw(DataManager::FormatType(ptr->second.type), recti(860, 187 + i * 66, 955, 207 + i * 66), 0xffffffff, false, true);
+			textFont->draw(textBuffer, recti(859, 164 + i * 66, 955, 185 + i * 66), 0xff000000, false, false);
+			textFont->draw(textBuffer, recti(860, 165 + i * 66, 955, 185 + i * 66), 0xffffffff, false, false);
+			const wchar_t* ptype = DataManager::FormatType(ptr->second.type);
+			textFont->draw(ptype, recti(859, 186 + i * 66, 955, 207 + i * 66), 0xff000000, false, false);
+			textFont->draw(ptype, recti(860, 187 + i * 66, 955, 207 + i * 66), 0xffffffff, false, false);
 		}
 	}
 	if(deckBuilder.is_draging) {

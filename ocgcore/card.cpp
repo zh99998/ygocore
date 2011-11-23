@@ -1263,7 +1263,7 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 	}
 	return 0;
 }
-int32 card::fution_check(group* fusion_m, card* cg) {
+int32 card::fusion_check(group* fusion_m, card* cg, int32 chkf) {
 	effect_container::iterator ecit;
 	ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
 	if(ecit == single_effect.end())
@@ -1274,15 +1274,16 @@ int32 card::fution_check(group* fusion_m, card* cg) {
 	pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
 	pduel->lua->add_param(fusion_m, PARAM_TYPE_GROUP);
 	pduel->lua->add_param(cg, PARAM_TYPE_CARD);
-	return pduel->lua->check_condition(peffect->condition, 3);
+	pduel->lua->add_param(chkf, PARAM_TYPE_INT);
+	return pduel->lua->check_condition(peffect->condition, 4);
 }
-void card::fution_select(uint8 playerid, group* fusion_m, card* cg) {
+void card::fusion_select(uint8 playerid, group* fusion_m, card* cg, int32 chkf) {
 	effect_container::iterator ecit;
 	effect* peffect = 0;
 	ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
 	if(ecit != single_effect.end())
 		peffect = ecit->second;
-	pduel->game_field->add_process(PROCESSOR_SELECT_FUSION, 0, peffect, fusion_m, playerid, (ptr)cg);
+	pduel->game_field->add_process(PROCESSOR_SELECT_FUSION, 0, peffect, fusion_m, playerid + (chkf << 16), (ptr)cg);
 }
 int32 card::is_equipable(card* pcard) {
 	effect_set eset;
