@@ -151,6 +151,8 @@ public:
 	static int32 card_is_pre_location(lua_State *L);
 	static int32 card_is_level_below(lua_State *L);
 	static int32 card_is_level_above(lua_State *L);
+	static int32 card_is_rank_below(lua_State *L);
+	static int32 card_is_rank_above(lua_State *L);
 	static int32 card_is_attack_below(lua_State *L);
 	static int32 card_is_attack_above(lua_State *L);
 	static int32 card_is_defence_below(lua_State *L);

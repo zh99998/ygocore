@@ -124,8 +124,8 @@ public:
 #define EFFECT_TYPE_TRIGGER_F		0x0200	//
 #define EFFECT_TYPE_QUICK_F			0x0400	//
 #define EFFECT_TYPE_CONTINUOUS		0x0800	//
-//========== Flags ==========
 
+//========== Flags ==========
 #define EFFECT_FLAG_INITIAL			0x0001	//
 #define EFFECT_FLAG_FUNC_VALUE		0x0002	//
 #define EFFECT_FLAG_COUNT_LIMIT		0x0004	//

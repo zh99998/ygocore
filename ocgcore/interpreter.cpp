@@ -146,6 +146,8 @@ static const struct luaL_reg cardlib[] = {
 	{ "IsPreviousLocation", scriptlib::card_is_pre_location },
 	{ "IsLevelBelow", scriptlib::card_is_level_below },
 	{ "IsLevelAbove", scriptlib::card_is_level_above },
+	{ "IsRankBelow", scriptlib::card_is_rank_below },
+	{ "IsRankAbove", scriptlib::card_is_rank_above },
 	{ "IsAttackBelow", scriptlib::card_is_attack_below },
 	{ "IsAttackAbove", scriptlib::card_is_attack_above },
 	{ "IsDefenceBelow", scriptlib::card_is_defence_below },
