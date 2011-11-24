@@ -767,7 +767,7 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 			switch(id) {
 			case TAB_MODES: {
 				if(mainGame->wModes->getActiveTab() == 1) {
-					if(mainGame->is_refreshing)
+					if(mainGame->is_refreshing || mainGame->netManager.is_creating_host)
 						break;
 					if(mainGame->netManager.RefreshHost()) {
 						mainGame->btnLanStartServer->setEnabled(false);

@@ -2690,6 +2690,7 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		core.sub_attacker = 0;
 		core.sub_attack_target = (card*)0xffffffff;
+		core.attacker->temp.position = core.attacker->current.position;
 		core.attack_target->temp.position = core.attack_target->current.position;
 		if(core.attack_target->is_position(POS_FACEDOWN)) {
 			change_position(core.attack_target, 0, PLAYER_NONE, core.attack_target->current.position >> 1, 0, TRUE);

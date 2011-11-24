@@ -164,7 +164,7 @@ int NetManager::BroadcastServer(void* np) {
 	sockTo.sin_port = htons(7912);
 	int recvLen = recvfrom(net->sBHost, (char*)&net->hReq, sizeof(HostRequest), 0, 0, 0);
 	while(recvLen != 0 && recvLen != SOCKET_ERROR) {
-		if(recvLen == sizeof(HostRequest) && net->hReq.identifier != NETWORK_CLIENT_ID)
+		if(recvLen == sizeof(HostRequest) && net->hReq.identifier == NETWORK_CLIENT_ID)
 			sendto(net->sBHost, (const char*)&net->hInfo, sizeof(HostInfo), 0, (sockaddr*)&sockTo, sizeof(sockaddr));
 		recvLen = recvfrom(net->sBHost, (char*)&net->hReq, sizeof(HostRequest), 0, 0, 0);
 	}
