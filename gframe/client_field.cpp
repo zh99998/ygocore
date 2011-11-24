@@ -234,12 +234,12 @@ ClientCard* ClientField::RemoveCard(int controler, int location, int sequence) {
 	pcard->location = 0;
 	return pcard;
 }
-void ClientField::UpdateCard(int controler, int location, int sequence, char* data, int flag) {
+void ClientField::UpdateCard(int controler, int location, int sequence, char* data) {
 	ClientCard* pcard = GetCard(controler, location, sequence);
 	if(pcard)
-		pcard->UpdateInfo(data + 4, flag);
+		pcard->UpdateInfo(data + 4);
 }
-void ClientField::UpdateFieldCard(int controler, int location, char* data, int flag) {
+void ClientField::UpdateFieldCard(int controler, int location, char* data) {
 	std::vector<ClientCard*>* lst = 0;
 	std::vector<ClientCard*>::iterator cit;
 	switch(location) {
@@ -270,8 +270,8 @@ void ClientField::UpdateFieldCard(int controler, int location, char* data, int f
 	int len;
 	for(cit = lst->begin(); cit != lst->end(); ++cit) {
 		len = NetManager::ReadInt32(data);
-		if(len > 4)
-			(*cit)->UpdateInfo(data, flag);
+		if(len > 8)
+			(*cit)->UpdateInfo(data);
 		data += len - 4;
 	}
 }

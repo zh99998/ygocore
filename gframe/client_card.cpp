@@ -42,7 +42,10 @@ void ClientCard::SetCode(int code) {
 		mainGame->dField.MoveCard(this, 5);
 	this->code = code;
 }
-void ClientCard::UpdateInfo(char* buf, int flag) {
+void ClientCard::UpdateInfo(char* buf) {
+	int flag = NetManager::ReadInt32(buf);
+	if(flag == 0)
+		return;
 	int pdata;
 	if(flag & QUERY_CODE) {
 		pdata = NetManager::ReadInt32(buf);

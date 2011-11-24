@@ -78,125 +78,109 @@ void Game::SetResponseB(int len) {
 		netManager.SendtoRemote(netManager.send_buf, 2 + len);
 	}
 }
-bool Game::RefreshMzone(int player, int flag) {
-	int len = query_field_card(dInfo.pDuel, player, LOCATION_MZONE, flag, (unsigned char*)queryBuffer);
+bool Game::RefreshMzone(int player, int flag, int use_cache) {
+	int len = query_field_card(dInfo.pDuel, player, LOCATION_MZONE, flag, (unsigned char*)queryBuffer, use_cache);
 	char* pbuf = netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_UPDATE_DATA);
 	NetManager::WriteInt8(pbuf, player);
 	NetManager::WriteInt8(pbuf, LOCATION_MZONE);
-	NetManager::WriteInt32(pbuf, flag);
 	memcpy(pbuf, queryBuffer, len);
-	if(!SendGameMessage(player, netManager.send_buffer_ptr, len + 7))
+	if(!SendGameMessage(player, netManager.send_buffer_ptr, len + 3))
 		return false;
-	pbuf = netManager.send_buffer_ptr + 7;
+	pbuf = netManager.send_buffer_ptr + 3;
 	for (int i = 0; i < 5; ++i) {
 		int clen = NetManager::ReadInt32(pbuf);
 		if (clen == 4)
 			continue;
-		pbuf += 7;
-		byte pos = NetManager::ReadInt8(pbuf);
-		if (pos & POS_FACEDOWN) {
-			pbuf -= 8;
-			NetManager::WriteInt32(pbuf, 0);
-			pbuf += clen - 8;
-		} else
-			pbuf += clen - 12;
+		if (pbuf[11] & POS_FACEDOWN)
+			memset(pbuf, 0, clen - 4);
+		pbuf += clen - 4;
 	}
-	return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 7);
+	return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 3);
 }
-bool Game::RefreshSzone(int player, int flag) {
-	int len = query_field_card(dInfo.pDuel, player, LOCATION_SZONE, flag, (unsigned char*)queryBuffer);
+bool Game::RefreshSzone(int player, int flag, int use_cache) {
+	int len = query_field_card(dInfo.pDuel, player, LOCATION_SZONE, flag, (unsigned char*)queryBuffer, use_cache);
 	char* pbuf = netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_UPDATE_DATA);
 	NetManager::WriteInt8(pbuf, player);
 	NetManager::WriteInt8(pbuf, LOCATION_SZONE);
-	NetManager::WriteInt32(pbuf, flag);
 	memcpy(pbuf, queryBuffer, len);
-	if(!SendGameMessage(player, netManager.send_buffer_ptr, len + 7))
+	if(!SendGameMessage(player, netManager.send_buffer_ptr, len + 3))
 		return false;
-	pbuf = netManager.send_buffer_ptr + 7;
+	pbuf = netManager.send_buffer_ptr + 3;
 	for (int i = 0; i < 6; ++i) {
 		int clen = NetManager::ReadInt32(pbuf);
 		if (clen == 4)
 			continue;
-		pbuf += 7;
-		byte pos = NetManager::ReadInt8(pbuf);
-		if (pos & POS_FACEDOWN) {
-			pbuf -= 8;
-			NetManager::WriteInt32(pbuf, 0);
-			pbuf += clen - 8;
-		} else
-			pbuf += clen - 12;
+		if (pbuf[11] & POS_FACEDOWN)
+			memset(pbuf, 0, clen - 4);
+		pbuf += clen - 4;
 	}
-	return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 7);
+	return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 3);
 }
-bool Game::RefreshHand(int player, int flag) {
-	int len = query_field_card(dInfo.pDuel, player, LOCATION_HAND, flag, (unsigned char*)queryBuffer);
+bool Game::RefreshHand(int player, int flag, int use_cache) {
+	int len = query_field_card(dInfo.pDuel, player, LOCATION_HAND, flag, (unsigned char*)queryBuffer, use_cache);
 	char* pbuf = netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_UPDATE_DATA);
 	NetManager::WriteInt8(pbuf, player);
 	NetManager::WriteInt8(pbuf, LOCATION_HAND);
-	NetManager::WriteInt32(pbuf, flag);
 	memcpy(pbuf, queryBuffer, len);
-	return SendGameMessage(player, netManager.send_buffer_ptr, len + 7);
+	return SendGameMessage(player, netManager.send_buffer_ptr, len + 3);
 }
-bool Game::RefreshGrave(int player, int flag) {
-	int len = query_field_card(dInfo.pDuel, player, LOCATION_GRAVE, flag, (unsigned char*)queryBuffer);
+bool Game::RefreshGrave(int player, int flag, int use_cache) {
+	int len = query_field_card(dInfo.pDuel, player, LOCATION_GRAVE, flag, (unsigned char*)queryBuffer, use_cache);
 	char* pbuf = netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_UPDATE_DATA);
 	NetManager::WriteInt8(pbuf, player);
 	NetManager::WriteInt8(pbuf, LOCATION_GRAVE);
-	NetManager::WriteInt32(pbuf, flag);
 	memcpy(pbuf, queryBuffer, len);
-	return SendGameMessage(0, netManager.send_buffer_ptr, len + 7)
-	       && SendGameMessage(1, netManager.send_buffer_ptr, len + 7);
+	return SendGameMessage(0, netManager.send_buffer_ptr, len + 3)
+	       && SendGameMessage(1, netManager.send_buffer_ptr, len + 3);
 }
-bool Game::RefreshExtra(int player, int flag) {
-	int len = query_field_card(dInfo.pDuel, player, LOCATION_EXTRA, QUERY_CODE, (unsigned char*)queryBuffer);
+bool Game::RefreshExtra(int player, int flag, int use_cache) {
+	int len = query_field_card(dInfo.pDuel, player, LOCATION_EXTRA, flag, (unsigned char*)queryBuffer, use_cache);
 	char* pbuf = netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_UPDATE_DATA);
 	NetManager::WriteInt8(pbuf, player);
 	NetManager::WriteInt8(pbuf, LOCATION_EXTRA);
-	NetManager::WriteInt32(pbuf, QUERY_CODE);
 	memcpy(pbuf, queryBuffer, len);
-	return SendGameMessage(player, netManager.send_buffer_ptr, len + 7);
+	return SendGameMessage(player, netManager.send_buffer_ptr, len + 3);
 }
 bool Game::RefreshSingle(int player, int location, int sequence, int flag) {
-	int len = query_card(dInfo.pDuel, player, location, sequence, flag, (unsigned char*)queryBuffer);
+	int len = query_card(dInfo.pDuel, player, location, sequence, flag, (unsigned char*)queryBuffer, 0);
 	char* pbuf = netManager.send_buffer_ptr;
 	NetManager::WriteInt8(pbuf, MSG_UPDATE_CARD);
 	NetManager::WriteInt8(pbuf, player);
 	NetManager::WriteInt8(pbuf, location);
 	NetManager::WriteInt8(pbuf, sequence);
-	NetManager::WriteInt32(pbuf, flag);
 	memcpy(pbuf, queryBuffer, len);
-	if(!SendGameMessage(player, netManager.send_buffer_ptr, len + 8))
+	if(!SendGameMessage(player, netManager.send_buffer_ptr, len + 4))
 		return false;
-	if ((location & 0x90) || ((location & 0x2c) && (queryBuffer[7] & POS_FACEUP)))
-		return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 8);
+	if ((location & 0x90) || ((location & 0x2c) && (queryBuffer[11] & POS_FACEUP)))
+		return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 4);
 	return true;
 }
 void Game::ReplayRefresh(int flag) {
-	int len = query_field_card(dInfo.pDuel, 0, LOCATION_MZONE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(mainGame->LocalPlayer(0), LOCATION_MZONE, queryBuffer, flag);
-	len = query_field_card(dInfo.pDuel, 1, LOCATION_MZONE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_MZONE, queryBuffer, flag);
-	len = query_field_card(dInfo.pDuel, 0, LOCATION_SZONE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(mainGame->LocalPlayer(0), LOCATION_SZONE, queryBuffer, flag);
-	len = query_field_card(dInfo.pDuel, 1, LOCATION_SZONE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_SZONE, queryBuffer, flag);
-	len = query_field_card(dInfo.pDuel, 0, LOCATION_HAND, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(mainGame->LocalPlayer(0), LOCATION_HAND, queryBuffer, flag);
-	len = query_field_card(dInfo.pDuel, 1, LOCATION_HAND, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_HAND, queryBuffer, flag);
+	int len = query_field_card(dInfo.pDuel, 0, LOCATION_MZONE, flag, (unsigned char*)queryBuffer, 0);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(0), LOCATION_MZONE, queryBuffer);
+	len = query_field_card(dInfo.pDuel, 1, LOCATION_MZONE, flag, (unsigned char*)queryBuffer, 0);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_MZONE, queryBuffer);
+	len = query_field_card(dInfo.pDuel, 0, LOCATION_SZONE, flag, (unsigned char*)queryBuffer, 0);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(0), LOCATION_SZONE, queryBuffer);
+	len = query_field_card(dInfo.pDuel, 1, LOCATION_SZONE, flag, (unsigned char*)queryBuffer, 0);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_SZONE, queryBuffer);
+	len = query_field_card(dInfo.pDuel, 0, LOCATION_HAND, flag, (unsigned char*)queryBuffer, 0);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(0), LOCATION_HAND, queryBuffer);
+	len = query_field_card(dInfo.pDuel, 1, LOCATION_HAND, flag, (unsigned char*)queryBuffer, 0);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_HAND, queryBuffer);
 }
 void Game::ReplayRefreshGrave(int player, int flag) {
-	int len = query_field_card(dInfo.pDuel, 0, LOCATION_GRAVE, flag, (unsigned char*)queryBuffer);
-	dField.UpdateFieldCard(mainGame->LocalPlayer(player), LOCATION_GRAVE, queryBuffer, flag);
+	int len = query_field_card(dInfo.pDuel, 0, LOCATION_GRAVE, flag, (unsigned char*)queryBuffer, 0);
+	dField.UpdateFieldCard(mainGame->LocalPlayer(player), LOCATION_GRAVE, queryBuffer);
 }
 void Game::ReplayRefreshSingle(int player, int location, int sequence, int flag) {
-	int len = query_card(dInfo.pDuel, player, location, sequence, flag, (unsigned char*)queryBuffer);
-	dField.UpdateCard(mainGame->LocalPlayer(player), location, sequence, queryBuffer, flag);
+	int len = query_card(dInfo.pDuel, player, location, sequence, flag, (unsigned char*)queryBuffer, 0);
+	dField.UpdateCard(mainGame->LocalPlayer(player), location, sequence, queryBuffer);
 }
 int Game::CardReader(int code, void* pData) {
 	mainGame->dataManager.GetData(code, (CardData*)pData);
@@ -385,7 +369,7 @@ void Game::Proceed(void* pd) {
 		mainGame->gMutex.Lock();
 		mainGame->ShowElement(mainGame->wACMessage, 60);
 		mainGame->gMutex.Unlock();
-		mainGame->WaitFrameSignal(80);
+		mainGame->WaitFrameSignal(90);
 	}
 }
 void Game::Analyze(void* pd, char* engbuf) {
@@ -612,7 +596,7 @@ void Game::Analyze(void* pd, char* engbuf) {
 			player = NetManager::ReadInt8(pbuf);
 			mainGame->SendGameMessage(0, offset, pbuf - offset);
 			mainGame->SendGameMessage(1, offset, pbuf - offset);
-			mainGame->RefreshHand(player);
+			mainGame->RefreshHand(player, 0x181fff, 0);
 			break;
 		}
 		case MSG_REFRESH_DECK: {
@@ -633,6 +617,8 @@ void Game::Analyze(void* pd, char* engbuf) {
 			pbuf += count * 8;
 			mainGame->SendGameMessage(0, offset, pbuf - offset);
 			mainGame->SendGameMessage(1, offset, pbuf - offset);
+			mainGame->RefreshMzone(0, 0x181fff, 0);
+			mainGame->RefreshMzone(1, 0x181fff, 0);
 			break;
 		}
 		case MSG_NEW_TURN: {
@@ -1032,7 +1018,7 @@ int Game::RecvThread(void* pd) {
 			mainGame->gMutex.Unlock();
 		}
 		mainGame->ShowElement(mainGame->wACMessage, 60);
-		mainGame->WaitFrameSignal(80);
+		mainGame->WaitFrameSignal(90);
 	}
 	if(mend) {
 		mainGame->localResponse.Reset();
@@ -1267,9 +1253,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 	case MSG_UPDATE_DATA: {
 		int player = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
 		int location = NetManager::ReadInt8(pbuf);
-		int flag = NetManager::ReadInt32(pbuf);
 		mainGame->gMutex.Lock();
-		mainGame->dField.UpdateFieldCard(player, location, pbuf, flag);
+		mainGame->dField.UpdateFieldCard(player, location, pbuf);
 		mainGame->gMutex.Unlock();
 		if (location == LOCATION_HAND && pdInfo->is_shuffling) {
 			pdInfo->is_shuffling = false;
@@ -1285,9 +1270,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int player = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
 		int loc = NetManager::ReadInt8(pbuf);
 		int seq = NetManager::ReadInt8(pbuf);
-		int flag = NetManager::ReadInt32(pbuf);
 		mainGame->gMutex.Lock();
-		mainGame->dField.UpdateCard(player, loc, seq, pbuf, flag);
+		mainGame->dField.UpdateCard(player, loc, seq, pbuf);
 		mainGame->gMutex.Unlock();
 		break;
 	}

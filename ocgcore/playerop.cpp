@@ -207,7 +207,7 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max) {
 	if(step == 0) {
 		returns.bvalue[0] = 0;
-		if(core.select_cards.empty())
+		if(max == 0 || core.select_cards.empty())
 			return TRUE;
 		if(max > 63)
 			max = 63;
@@ -353,7 +353,7 @@ int32 field::select_position(uint16 step, uint8 playerid, uint32 code, uint8 pos
 int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max) {
 	if(step == 0) {
 		returns.bvalue[0] = 0;
-		if(core.select_cards.empty())
+		if(max == 0 || core.select_cards.empty())
 			return TRUE;
 		uint8 tm = 0;
 		for(uint32 i = 0; i < core.select_cards.size(); ++i)
