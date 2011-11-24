@@ -82,11 +82,11 @@ public:
 	bool WaitforResponse(int player);
 	void SetResponseI();
 	void SetResponseB(int len);
-	bool RefreshMzone(int player, int flag = 0x181fff);
-	bool RefreshSzone(int player, int flag = 0x181fff);
-	bool RefreshHand(int player, int flag = 0x181fff);
-	bool RefreshGrave(int player, int flag = 0x181fff);
-	bool RefreshExtra(int player, int flag = 0x181fff);
+	bool RefreshMzone(int player, int flag = 0x181fff, int use_cache = 1);
+	bool RefreshSzone(int player, int flag = 0x181fff, int use_cache = 1);
+	bool RefreshHand(int player, int flag = 0x181fff, int use_cache = 1);
+	bool RefreshGrave(int player, int flag = 0x181fff, int use_cache = 1);
+	bool RefreshExtra(int player, int flag = 0x181fff, int use_cache = 1);
 	bool RefreshSingle(int player, int location, int sequence, int flag = 0x181fff);
 	void ReplayRefresh(int flag = 0x181fff);
 	void ReplayRefreshGrave(int player, int flag = 0x181fff);

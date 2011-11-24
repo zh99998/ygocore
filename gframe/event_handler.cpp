@@ -195,29 +195,52 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 				break;
 			}
 			case BUTTON_YES: {
-				if(mainGame->dInfo.curMsg == MSG_SELECT_YESNO || mainGame->dInfo.curMsg == MSG_SELECT_EFFECTYN) {
+				switch(mainGame->dInfo.curMsg) {
+				case MSG_SELECT_YESNO:
+				case MSG_SELECT_EFFECTYN: {
 					mainGame->dInfo.responseI = 1;
 					mainGame->SetResponseI();
 					mainGame->HideElement(mainGame->wQuery, true);
-				} else if(mainGame->dInfo.curMsg == MSG_SELECT_CHAIN) {
-					mainGame->HideElement(mainGame->wQuery);
-				} else {
-					mainGame->HideElement(mainGame->wQuery);
+					break;
 				}
+				case MSG_SELECT_CHAIN:
+				case MSG_SELECT_CARD:
+				case MSG_SELECT_TRIBUTE:
+				case MSG_SELECT_SUM: {
+					mainGame->HideElement(mainGame->wQuery);
+					break;
+				}
+				}
+				mainGame->HideElement(mainGame->wQuery);
 				break;
 			}
 			case BUTTON_NO: {
-				if(mainGame->dInfo.curMsg == MSG_SELECT_YESNO || mainGame->dInfo.curMsg == MSG_SELECT_EFFECTYN) {
+				switch(mainGame->dInfo.curMsg) {
+				case MSG_SELECT_YESNO:
+				case MSG_SELECT_EFFECTYN: {
 					mainGame->dInfo.responseI = 0;
 					mainGame->SetResponseI();
 					mainGame->HideElement(mainGame->wQuery, true);
-				} else if(mainGame->dInfo.curMsg == MSG_SELECT_CHAIN) {
+					break;
+				}
+				case MSG_SELECT_CHAIN: {
 					mainGame->dInfo.responseI = -1;
 					mainGame->SetResponseI();
 					mainGame->HideElement(mainGame->wQuery, true);
-				} else {
-					mainGame->HideElement(mainGame->wQuery);
+					break;
 				}
+				case MSG_SELECT_CARD:
+				case MSG_SELECT_TRIBUTE:
+				case MSG_SELECT_SUM: {
+					mainGame->dInfo.responseB[0] = selected_cards.size();
+					for (int i = 0; i < selected_cards.size(); ++i)
+						mainGame->dInfo.responseB[i + 1] = selected_cards[i]->select_seq;
+					mainGame->SetResponseB(selected_cards.size() + 1);
+					mainGame->HideElement(mainGame->wQuery, true);
+					break;
+				}
+				}
+				mainGame->HideElement(mainGame->wQuery);
 				break;
 			}
 			case BUTTON_POS_AU: {
@@ -767,7 +790,7 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 			switch(id) {
 			case TAB_MODES: {
 				if(mainGame->wModes->getActiveTab() == 1) {
-					if(mainGame->is_refreshing)
+					if(mainGame->is_refreshing || mainGame->netManager.is_creating_host)
 						break;
 					if(mainGame->netManager.RefreshHost()) {
 						mainGame->btnLanStartServer->setEnabled(false);
@@ -1047,6 +1070,8 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 						mainGame->localAction.Set();
 					} else {
 						select_ready = true;
+						mainGame->stQMessage->setText(L"当前所选的卡已选择条件\n是否要继续选择？");
+						mainGame->PopupElement(mainGame->wQuery);
 					}
 				} else {
 					select_ready = false;
@@ -1082,12 +1107,19 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					selected_cards.push_back(clicked_card);
 				else break;
 				if (CheckSelectSum()) {
-					mainGame->dInfo.responseB[0] = selected_cards.size();
-					for (int i = 0; i < selected_cards.size(); ++i)
-						mainGame->dInfo.responseB[i + 1] = selected_cards[i]->select_seq;
-					mainGame->SetResponseB(selected_cards.size() + 1);
-					mainGame->localAction.Set();
-				}
+					if(selectable_cards.size() == 0) {
+						mainGame->dInfo.responseB[0] = selected_cards.size();
+						for (int i = 0; i < selected_cards.size(); ++i)
+							mainGame->dInfo.responseB[i + 1] = selected_cards[i]->select_seq;
+						mainGame->SetResponseB(selected_cards.size() + 1);
+						mainGame->localAction.Set();
+					} else {
+						select_ready = true;
+						mainGame->stQMessage->setText(L"当前所选的卡已选择条件\n是否要继续选择？");
+						mainGame->PopupElement(mainGame->wQuery);
+					}
+				} else
+					select_ready = false;
 				break;
 			}
 			}
@@ -1143,6 +1175,14 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					}
 					break;
 				}
+				if(mainGame->wQuery->isVisible()) {
+					mainGame->dInfo.responseB[0] = selected_cards.size();
+					for (int i = 0; i < selected_cards.size(); ++i)
+						mainGame->dInfo.responseB[i + 1] = selected_cards[i]->select_seq;
+					mainGame->SetResponseB(selected_cards.size() + 1);
+					mainGame->HideElement(mainGame->wQuery, true);
+					break;
+				}
 				if(select_ready) {
 					mainGame->dInfo.responseB[0] = selected_cards.size();
 					for (int i = 0; i < selected_cards.size(); ++i)
@@ -1152,6 +1192,18 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 						mainGame->HideElement(mainGame->wCardSelect, true);
 					else
 						mainGame->localAction.Set();
+				}
+				break;
+			}
+			case MSG_SELECT_TRIBUTE:
+			case MSG_SELECT_SUM: {
+				if(mainGame->wQuery->isVisible()) {
+					mainGame->dInfo.responseB[0] = selected_cards.size();
+					for (int i = 0; i < selected_cards.size(); ++i)
+						mainGame->dInfo.responseB[i + 1] = selected_cards[i]->select_seq;
+					mainGame->SetResponseB(selected_cards.size() + 1);
+					mainGame->HideElement(mainGame->wQuery, true);
+					break;
 				}
 				break;
 			}
@@ -1334,6 +1386,11 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 		}
 		case irr::KEY_KEY_S: {
 			mainGame->ignore_chain = event.KeyInput.PressedDown;
+			break;
+		}
+		case irr::KEY_KEY_R: {
+			if(!event.KeyInput.PressedDown)
+				mainGame->textFont->setTransparency(true);
 			break;
 		}
 		}

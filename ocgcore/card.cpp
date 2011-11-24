@@ -64,35 +64,70 @@ card::~card() {
 	equip_effect.clear();
 	relate_effect.clear();
 }
-uint32 card::get_infos(byte* buf, int32 query_flag) {
+uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache) {
 	int32* p = (int32*)buf;
-	p++;
-	if(query_flag & QUERY_CODE)
-		*p++ = data.code;
-	if(query_flag & QUERY_POSITION)
-		*p++ = get_info_location();
-	if(query_flag & QUERY_ALIAS)
-		*p++ = get_code();
-	if(query_flag & QUERY_TYPE)
-		*p++ = get_type();
-	if(query_flag & QUERY_LEVEL)
-		*p++ = get_level();
-	if(query_flag & QUERY_RANK)
-		*p++ = get_rank();
-	if(query_flag & QUERY_ATTRIBUTE)
-		*p++ = get_attribute();
-	if(query_flag & QUERY_RACE)
-		*p++ = get_race();
-	if(query_flag & QUERY_ATTACK)
-		*p++ = get_attack();
-	if(query_flag & QUERY_DEFENCE)
-		*p++ = get_defence();
-	if(query_flag & QUERY_BASE_ATTACK)
-		*p++ = get_base_attack();
-	if(query_flag & QUERY_BASE_DEFENCE)
-		*p++ = get_base_defence();
-	if(query_flag & QUERY_REASON)
-		*p++ = current.reason;
+	int32 tdata = 0;
+	p += 2;
+	if(query_flag & QUERY_CODE) *p++ = data.code;
+	if(query_flag & QUERY_POSITION) *p++ = get_info_location();
+	if(!use_cache) {
+		if(query_flag & QUERY_ALIAS) *p++ = get_code();
+		if(query_flag & QUERY_TYPE) *p++ = get_type();
+		if(query_flag & QUERY_LEVEL) *p++ = get_level();
+		if(query_flag & QUERY_RANK) *p++ = get_rank();
+		if(query_flag & QUERY_ATTRIBUTE) *p++ = get_attribute();
+		if(query_flag & QUERY_RACE) *p++ = get_race();
+		if(query_flag & QUERY_ATTACK) *p++ = get_attack();
+		if(query_flag & QUERY_DEFENCE) *p++ = get_defence();
+		if(query_flag & QUERY_BASE_ATTACK) *p++ = get_base_attack();
+		if(query_flag & QUERY_BASE_DEFENCE) *p++ = get_base_defence();
+		if(query_flag & QUERY_REASON) *p++ = current.reason;
+	} else {
+		if((query_flag & QUERY_ALIAS) && ((tdata = get_code()) != q_cache.alias)) {
+			q_cache.alias = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_ALIAS;
+		if((query_flag & QUERY_TYPE) && ((tdata = get_type()) != q_cache.type)) {
+			q_cache.type = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_TYPE;
+		if((query_flag & QUERY_LEVEL) && ((tdata = get_level()) != q_cache.level)) {
+			q_cache.level = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_LEVEL;
+		if((query_flag & QUERY_RANK) && ((tdata = get_rank()) != q_cache.rank)) {
+			q_cache.rank = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_RANK;
+		if((query_flag & QUERY_ATTRIBUTE) && ((tdata = get_attribute()) != q_cache.attribute)) {
+			q_cache.attribute = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_ATTRIBUTE;
+		if((query_flag & QUERY_RACE) && ((tdata = get_race()) != q_cache.race)) {
+			q_cache.race = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_RACE;
+		if((query_flag & QUERY_ATTACK) && ((tdata = get_attack()) != q_cache.attack)) {
+			q_cache.attack = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_ATTACK;
+		if((query_flag & QUERY_DEFENCE) && ((tdata = get_defence()) != q_cache.defence)) {
+			q_cache.defence = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_DEFENCE;
+		if((query_flag & QUERY_BASE_ATTACK) && ((tdata = get_base_attack()) != q_cache.base_attack)) {
+			q_cache.base_attack = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_BASE_ATTACK;
+		if((query_flag & QUERY_BASE_DEFENCE) && ((tdata = get_base_defence()) != q_cache.base_defence)) {
+			q_cache.base_defence = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_BASE_DEFENCE;
+		if((query_flag & QUERY_REASON) && ((tdata = current.reason) != q_cache.reason)) {
+			q_cache.reason = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_REASON;
+	}
 	if(query_flag & QUERY_REASON_CARD)
 		*p++ = current.reason_card ? current.reason_card->get_info_location() : 0;
 	if(query_flag & QUERY_EQUIP_CARD)
@@ -116,12 +151,22 @@ uint32 card::get_infos(byte* buf, int32 query_flag) {
 	}
 	if(query_flag & QUERY_OWNER)
 		*p++ = owner;
-	if(query_flag & QUERY_IS_DISABLED)
-		*p++ = (status & STATUS_DISABLED) ? 1 : 0;
-	if(query_flag & QUERY_IS_PUBLIC)
-		*p++ = is_affected_by_effect(EFFECT_PUBLIC) ? 1 : 0;
+	if(!use_cache) {
+		if(query_flag & QUERY_IS_DISABLED) *p++ = (status & STATUS_DISABLED) ? 1 : 0;
+		if(query_flag & QUERY_IS_PUBLIC) *p++ = is_affected_by_effect(EFFECT_PUBLIC) ? 1 : 0;
+	} else {
+		if((query_flag & QUERY_IS_DISABLED) && ((tdata = (status & STATUS_DISABLED) ? 1 : 0) != q_cache.is_disabled)) {
+			q_cache.is_disabled = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_IS_DISABLED;
+		if((query_flag & QUERY_IS_PUBLIC) && ((tdata = is_affected_by_effect(EFFECT_PUBLIC) ? 1 : 0) != q_cache.is_public)) {
+			q_cache.is_public = tdata;
+			*p++ = tdata;
+		} else query_flag &= ~QUERY_IS_PUBLIC;
+	}
 	*(uint32*)buf = (byte*)p - buf;
-	return *(uint32*)buf;
+	*(uint32*)(buf + 4) = query_flag;
+	return (byte*)p - buf;
 }
 uint32 card::get_info_location() {
 	if(overlay_target) {

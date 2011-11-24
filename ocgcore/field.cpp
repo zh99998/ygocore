@@ -468,10 +468,9 @@ void field::add_effect(effect* peffect, uint8 owner_player) {
 	}
 }
 void field::remove_effect(effect* peffect) {
-	effect_container::iterator it;
 	if (effects.indexer.find(peffect) == effects.indexer.end())
 		return;
-	it = effects.indexer[peffect];
+	auto it = effects.indexer[peffect];
 	if (!(peffect->type & EFFECT_TYPE_ACTIONS))
 		effects.aura_effect.erase(it);
 	else {
@@ -504,15 +503,15 @@ void field::remove_effect(effect* peffect) {
 	}
 }
 void field::remove_oath_effect(effect* reason_effect) {
-	oath_effects::iterator oeit, rm;
-	for(oeit = effects.oath.begin(); oeit != effects.oath.end();) {
-		rm = oeit++;
+	for(auto oeit = effects.oath.begin(); oeit != effects.oath.end();) {
+		auto rm = oeit++;
 		if(rm->second == reason_effect) {
+			effect* peffect=rm->first;
 			effects.oath.erase(rm);
-			if(rm->first->flag & EFFECT_FLAG_FIELD_ONLY)
-				remove_effect(rm->first);
+			if(peffect->flag & EFFECT_FLAG_FIELD_ONLY)
+				remove_effect(peffect);
 			else
-				rm->first->handler->remove_effect(rm->first);
+				peffect->handler->remove_effect(peffect);
 		}
 	}
 }

@@ -5,13 +5,13 @@
 #include <set>
 #include <vector>
 
-#define PROTO_VERSION 0x100b
+#define PROTO_VERSION 0x100c
 
 namespace ygo {
 
 struct HostInfo {
-	short identifier;
-	short version;
+	unsigned short identifier;
+	unsigned short version;
 	unsigned int address;
 	unsigned short port;
 	wchar_t name[20];
@@ -30,7 +30,7 @@ struct HostInfo {
 };
 
 struct HostRequest {
-	short identifier;
+	unsigned short identifier;
 };
 
 class NetManager {

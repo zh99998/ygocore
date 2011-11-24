@@ -92,7 +92,7 @@ public:
 
 	ClientCard();
 	void SetCode(int code);
-	void UpdateInfo(char* buf, int flag);
+	void UpdateInfo(char* buf);
 	static bool client_card_sort(ClientCard* c1, ClientCard* c2);
 	static bool deck_sort_atk(code_pointer p1, code_pointer p2);
 	static bool deck_sort_def(code_pointer def, code_pointer p2);

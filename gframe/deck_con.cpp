@@ -634,6 +634,16 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 		}
 		break;
 	}
+	case irr::EET_KEY_INPUT_EVENT: {
+		switch(event.KeyInput.Key) {
+		case irr::KEY_KEY_R: {
+			if(!event.KeyInput.PressedDown)
+				mainGame->textFont->setTransparency(true);
+			break;
+		}
+		}
+		break;
+	}
 	}
 	return false;
 }

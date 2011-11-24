@@ -1792,11 +1792,11 @@ int32 field::special_summon(uint16 step, effect * reason_effect, uint8 reason_pl
 }
 int32 field::destroy(uint16 step, group * targets, card * target, uint8 battle) {
 	if(target->current.location & (LOCATION_GRAVE | LOCATION_REMOVED)) {
-		targets->container.erase(target);
 		target->current.reason = target->temp.reason;
 		target->current.reason_effect = target->temp.reason_effect;
 		target->current.reason_player = target->temp.reason_player;
 		target->set_status(STATUS_DESTROY_CONFIRMED, FALSE);
+		targets->container.erase(target);
 		return TRUE;
 	}
 	if(targets->container.find(target) == targets->container.end())
@@ -1825,11 +1825,11 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 			if (!((*rm)->current.reason & REASON_RULE)) {
 				if (!(*rm)->is_destructable() || !(*rm)->is_affect_by_effect(reason_effect)
 				        || !(*rm)->is_destructable_by_effect(reason_effect, reason_player)) {
-					targets->container.erase(*rm);
 					(*rm)->current.reason = (*rm)->temp.reason;
 					(*rm)->current.reason_effect = (*rm)->temp.reason_effect;
 					(*rm)->current.reason_player = (*rm)->temp.reason_player;
 					(*rm)->set_status(STATUS_DESTROY_CONFIRMED, FALSE);
+					targets->container.erase(*rm);
 					continue;
 				}
 			}
@@ -1846,11 +1846,11 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 					}
 				}
 				if(sub) {
-					targets->container.erase(*rm);
 					(*rm)->current.reason = (*rm)->temp.reason;
 					(*rm)->current.reason_effect = (*rm)->temp.reason_effect;
 					(*rm)->current.reason_player = (*rm)->temp.reason_player;
 					core.destroy_canceled.insert(*rm);
+					targets->container.erase(*rm);
 				}
 			}
 			eset.clear();
@@ -1906,10 +1906,10 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 			std::sort(cv.begin(), cv.end(), card::card_operation_sort);
 		for (cvit = cv.begin(); cvit != cv.end(); ++cvit) {
 			if((*cvit)->current.location & (LOCATION_GRAVE | LOCATION_REMOVED)) {
-				targets->container.erase((*cvit));
 				(*cvit)->current.reason = (*cvit)->temp.reason;
 				(*cvit)->current.reason_effect = (*cvit)->temp.reason_effect;
 				(*cvit)->current.reason_player = (*cvit)->temp.reason_player;
+				targets->container.erase((*cvit));
 				continue;
 			}
 			(*cvit)->current.reason |= REASON_DESTROY;
@@ -1966,11 +1966,11 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 			rm = cit++;
 			if (!((*rm)->current.reason & REASON_RULE)) {
 				if (!(*rm)->is_destructable()) {
-					targets->container.erase(*rm);
 					(*rm)->current.reason = (*rm)->temp.reason;
 					(*rm)->current.reason_effect = (*rm)->temp.reason_effect;
 					(*rm)->current.reason_player = (*rm)->temp.reason_player;
 					(*rm)->set_status(STATUS_DESTROY_CONFIRMED, FALSE);
+					targets->container.erase(*rm);
 					continue;
 				}
 			}
@@ -1987,11 +1987,11 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 					}
 				}
 				if(sub) {
-					targets->container.erase(*rm);
 					(*rm)->current.reason = (*rm)->temp.reason;
 					(*rm)->current.reason_effect = (*rm)->temp.reason_effect;
 					(*rm)->current.reason_player = (*rm)->temp.reason_player;
 					core.destroy_canceled.insert(*rm);
+					targets->container.erase(*rm);
 				}
 			}
 			eset.clear();
@@ -2021,10 +2021,10 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 }
 int32 field::release(uint16 step, group * targets, card * target) {
 	if(!(target->current.location & (LOCATION_ONFIELD | LOCATION_HAND))) {
-		targets->container.erase(target);
 		target->current.reason = target->temp.reason;
 		target->current.reason_effect = target->temp.reason_effect;
 		target->current.reason_player = target->temp.reason_player;
+		targets->container.erase(target);
 		return TRUE;
 	}
 	if(targets->container.find(target) == targets->container.end())
@@ -2049,10 +2049,10 @@ int32 field::release(uint16 step, group * targets, effect * reason_effect, uint3
 			        || ((reason & REASON_SUMMON) && !(*rm)->is_releaseable_by_summon(reason_player, (*rm)->current.reason_card))
 			        || (!((*rm)->current.reason & (REASON_RULE | REASON_SUMMON | REASON_COST))
 			            && (!(*rm)->is_affect_by_effect((*rm)->current.reason_effect) || !(*rm)->is_releaseable_by_nonsummon(reason_player)))) {
-				targets->container.erase(*rm);
 				(*rm)->current.reason = (*rm)->temp.reason;
 				(*rm)->current.reason_effect = (*rm)->temp.reason_effect;
 				(*rm)->current.reason_player = (*rm)->temp.reason_player;
+				targets->container.erase(*rm);
 				continue;
 			}
 		}
@@ -2087,10 +2087,10 @@ int32 field::release(uint16 step, group * targets, effect * reason_effect, uint3
 			std::sort(cv.begin(), cv.end(), card::card_operation_sort);
 		for (cvit = cv.begin(); cvit != cv.end(); ++cvit) {
 			if(!((*cvit)->current.location & (LOCATION_ONFIELD | LOCATION_HAND))) {
-				targets->container.erase((*cvit));
 				(*cvit)->current.reason = (*cvit)->temp.reason;
 				(*cvit)->current.reason_effect = (*cvit)->temp.reason_effect;
 				(*cvit)->current.reason_player = (*cvit)->temp.reason_player;
+				targets->container.erase((*cvit));
 				continue;
 			}
 			(*cvit)->current.reason |= REASON_RELEASE;
@@ -2137,10 +2137,10 @@ int32 field::send_to(uint16 step, group * targets, card * target) {
 	if(targets->container.find(target) == targets->container.end())
 		return TRUE;
 	if(target->current.location == dest) {
-		targets->container.erase(target);
 		target->current.reason = target->temp.reason;
 		target->current.reason_effect = target->temp.reason_effect;
 		target->current.reason_player = target->temp.reason_player;
+		targets->container.erase(target);
 		return TRUE;
 	}
 	if(!(target->current.reason & REASON_RULE)) {
@@ -2167,10 +2167,10 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 			         || (dest == LOCATION_DECK && !(*rm)->is_capable_send_to_deck(core.reason_player))
 			         || (dest == LOCATION_REMOVED && !(*rm)->is_removeable(core.reason_player))
 			         || (dest == LOCATION_GRAVE && !(*rm)->is_capable_send_to_grave(core.reason_player)))) {
-				targets->container.erase(*rm);
 				(*rm)->current.reason = (*rm)->temp.reason;
 				(*rm)->current.reason_player = (*rm)->temp.reason_player;
 				(*rm)->current.reason_effect = (*rm)->temp.reason_effect;
+				targets->container.erase(*rm);
 				continue;
 			}
 		}
@@ -2810,12 +2810,12 @@ int32 field::operation_replace(uint16 step, effect * replace_effect, group * tar
 			for (cit = targets->container.begin(); cit != targets->container.end();) {
 				rm = cit++;
 				if (!((*rm)->current.reason & REASON_RULE) && replace_effect->get_value(*rm)) {
-					targets->container.erase(rm);
 					(*rm)->current.reason = (*rm)->temp.reason;
 					(*rm)->current.reason_effect = (*rm)->temp.reason_effect;
 					(*rm)->current.reason_player = (*rm)->temp.reason_player;
 					if(is_destroy)
 						core.destroy_canceled.insert(*rm);
+					targets->container.erase(rm);
 				}
 			}
 			replace_effect->dec_count();
@@ -2926,12 +2926,12 @@ int32 field::operation_replace(uint16 step, effect * replace_effect, group * tar
 			for (cit = targets->container.begin(); cit != targets->container.end();) {
 				rm = cit++;
 				if (!((*rm)->current.reason & REASON_RULE) && replace_effect->get_value(*rm)) {
-					targets->container.erase(rm);
 					(*rm)->current.reason = (*rm)->temp.reason;
 					(*rm)->current.reason_effect = (*rm)->temp.reason_effect;
 					(*rm)->current.reason_player = (*rm)->temp.reason_player;
 					if(is_destroy)
 						core.destroy_canceled.insert(*rm);
+					targets->container.erase(rm);
 				}
 			}
 			replace_effect->dec_count();
