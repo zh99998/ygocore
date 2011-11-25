@@ -1803,14 +1803,14 @@ int32 field::destroy(uint16 step, group * targets, card * target, uint8 battle) 
 		return TRUE;
 	if(!(target->current.reason & REASON_RULE)) {
 		returns.ivalue[0] = FALSE;
-		pair<effect_container::iterator, effect_container::iterator> pr;
-		pr = target->single_effect.equal_range(EFFECT_DESTROY_REPLACE);
+		effect_set eset;
+		target->filter_single_continuous_effect(EFFECT_DESTROY_REPLACE, &eset);
 		if(!battle)
-			for (; pr.first != pr.second; ++pr.first)
-				add_process(PROCESSOR_OPERATION_REPLACE, 0, pr.first->second, targets, (ptr)target, 1);
+			for (int32 i = 0; i < eset.count; ++i)
+				add_process(PROCESSOR_OPERATION_REPLACE, 0, eset[i], targets, (ptr)target, 1);
 		else
-			for (; pr.first != pr.second; ++pr.first)
-				add_process(PROCESSOR_OPERATION_REPLACE, 10, pr.first->second, targets, (ptr)target, 1);
+			for (int32 i = 0; i < eset.count; ++i)
+				add_process(PROCESSOR_OPERATION_REPLACE, 10, eset[i], targets, (ptr)target, 1);
 	}
 	return TRUE;
 }
@@ -1870,8 +1870,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 		}
 		if(reason & REASON_RULE)
 			return FALSE;
-		pair<effect_container::iterator, effect_container::iterator> pr;
-		pr = effects.continuous_effect.equal_range(EFFECT_DESTROY_REPLACE);
+		auto pr = effects.continuous_effect.equal_range(EFFECT_DESTROY_REPLACE);
 		for (; pr.first != pr.second; ++pr.first)
 			add_process(PROCESSOR_OPERATION_REPLACE, 5, pr.first->second, targets, 0, 1);
 		return FALSE;
@@ -2031,10 +2030,10 @@ int32 field::release(uint16 step, group * targets, card * target) {
 		return TRUE;
 	if(!(target->current.reason & REASON_RULE)) {
 		returns.ivalue[0] = FALSE;
-		pair<effect_container::iterator, effect_container::iterator> pr;
-		pr = target->single_effect.equal_range(EFFECT_RELEASE_REPLACE);
-		for (; pr.first != pr.second; ++pr.first)
-			add_process(PROCESSOR_OPERATION_REPLACE, 0, pr.first->second, targets, (ptr)target, 0);
+		effect_set eset;
+		target->filter_single_continuous_effect(EFFECT_RELEASE_REPLACE, &eset);
+		for (int32 i = 0; i < eset.count; ++i)
+			add_process(PROCESSOR_OPERATION_REPLACE, 0, eset[i], targets, (ptr)target, 0);
 	}
 	return TRUE;
 }
@@ -2145,10 +2144,10 @@ int32 field::send_to(uint16 step, group * targets, card * target) {
 	}
 	if(!(target->current.reason & REASON_RULE)) {
 		returns.ivalue[0] = FALSE;
-		pair<effect_container::iterator, effect_container::iterator> pr;
-		pr = target->single_effect.equal_range(EFFECT_SEND_REPLACE);
-		for (; pr.first != pr.second; ++pr.first)
-			add_process(PROCESSOR_OPERATION_REPLACE, 0, pr.first->second, targets, (ptr)target, 0);
+		effect_set eset;
+		target->filter_single_continuous_effect(EFFECT_SEND_REPLACE, &eset);
+		for (int32 i = 0; i < eset.count; ++i)
+			add_process(PROCESSOR_OPERATION_REPLACE, 0, eset[i], targets, (ptr)target, 0);
 	}
 	return TRUE;
 }
@@ -2271,21 +2270,14 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				continue;
 			}
 			if(dest == LOCATION_GRAVE) {
-				(*cvit)->reset(RESET_TOGRAVE, RESET_EVENT);
 				core.hint_timing[(*cvit)->current.controler] |= TIMING_TOGRAVE;
 			} else if(dest == LOCATION_HAND) {
-				(*cvit)->reset(RESET_TOHAND, RESET_EVENT);
 				(*cvit)->set_status(STATUS_PROC_COMPLETE, FALSE);
 				core.hint_timing[(*cvit)->current.controler] |= TIMING_TOHAND;
 			} else if(dest == LOCATION_DECK) {
-				(*cvit)->reset(RESET_TODECK, RESET_EVENT);
 				(*cvit)->set_status(STATUS_PROC_COMPLETE, FALSE);
 				core.hint_timing[(*cvit)->current.controler] |= TIMING_TODECK;
 			} else if(dest == LOCATION_REMOVED) {
-				if((*cvit)->current.reason & REASON_TEMPORARY)
-					(*cvit)->reset(RESET_TEMP_REMOVE, RESET_EVENT);
-				else
-					(*cvit)->reset(RESET_REMOVE, RESET_EVENT);
 				core.hint_timing[(*cvit)->current.controler] |= TIMING_REMOVE;
 			}
 			pduel->write_buffer8(MSG_MOVE);
@@ -2353,15 +2345,22 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 			(*cit)->enable_field_effect(TRUE);
 			if(nloc == LOCATION_HAND) {
 				tohand.insert(*cit);
+				(*cit)->reset(RESET_TOHAND, RESET_EVENT);
 				raise_single_event(*cit, EVENT_TO_HAND, (*cit)->current.reason_effect, (*cit)->current.reason, (*cit)->current.reason_player, 0, 0);
 			} else if(nloc == LOCATION_DECK || nloc == LOCATION_EXTRA) {
 				todeck.insert(*cit);
+				(*cit)->reset(RESET_TODECK, RESET_EVENT);
 				raise_single_event(*cit, EVENT_TO_DECK, (*cit)->current.reason_effect, (*cit)->current.reason, (*cit)->current.reason_player, 0, 0);
 			} else if(nloc == LOCATION_GRAVE) {
 				tograve.insert(*cit);
+				(*cit)->reset(RESET_TOGRAVE, RESET_EVENT);
 				raise_single_event(*cit, EVENT_TO_GRAVE, (*cit)->current.reason_effect, (*cit)->current.reason, (*cit)->current.reason_player, 0, 0);
 			} else if(nloc == LOCATION_REMOVED) {
 				remove.insert(*cit);
+				if((*cit)->current.reason & REASON_TEMPORARY)
+					(*cit)->reset(RESET_TEMP_REMOVE, RESET_EVENT);
+				else
+					(*cit)->reset(RESET_REMOVE, RESET_EVENT);
 				raise_single_event(*cit, EVENT_REMOVE, (*cit)->current.reason_effect, (*cit)->current.reason, (*cit)->current.reason_player, 0, 0);
 			}
 			if((*cit)->xyz_materials.size()) {

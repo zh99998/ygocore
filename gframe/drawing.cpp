@@ -178,6 +178,10 @@ void Game::DrawCard(ClientCard* pcard) {
 		matManager.mTexture.setTexture(0, imageManager.tEquip);
 		driver->setMaterial(matManager.mTexture);
 		driver->drawVertexPrimitiveList(matManager.vSymbol, 4, matManager.iRectangle, 2);
+	} else if(pcard->is_showtarget) {
+		matManager.mTexture.setTexture(0, imageManager.tTarget);
+		driver->setMaterial(matManager.mTexture);
+		driver->drawVertexPrimitiveList(matManager.vSymbol, 4, matManager.iRectangle, 2);
 	} else if(pcard->is_disabled && (pcard->location & LOCATION_ONFIELD) && (pcard->position & POS_FACEUP)) {
 		matManager.mTexture.setTexture(0, imageManager.tNegated);
 		driver->setMaterial(matManager.mTexture);

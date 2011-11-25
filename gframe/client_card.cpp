@@ -104,6 +104,14 @@ void ClientCard::UpdateInfo(char* buf) {
 	if(flag & QUERY_IS_PUBLIC)
 		is_public = NetManager::ReadInt32(buf);
 }
+void ClientCard::ClearTarget() {
+	for(auto cit = cardTarget.begin(); cit != cardTarget.end(); ++cit)
+		(*cit)->ownerTarget.erase(this);
+	for(auto cit = ownerTarget.begin(); cit != ownerTarget.end(); ++cit)
+		(*cit)->cardTarget.erase(this);
+	cardTarget.clear();
+	ownerTarget.clear();
+}
 bool ClientCard::client_card_sort(ClientCard* c1, ClientCard* c2) {
 	int32 cp1 = c1->overlayTarget ? c1->overlayTarget->controler : c1->controler;
 	int32 cp2 = c2->overlayTarget ? c2->overlayTarget->controler : c2->controler;

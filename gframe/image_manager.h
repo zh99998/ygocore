@@ -31,6 +31,7 @@ public:
 	irr::video::ITexture* tLPBar;
 	irr::video::ITexture* tMask;
 	irr::video::ITexture* tEquip;
+	irr::video::ITexture* tTarget;
 	irr::video::ITexture* tLim;
 	irr::video::ITexture* tBackGround;
 };

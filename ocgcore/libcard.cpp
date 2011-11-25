@@ -600,8 +600,7 @@ int32 scriptlib::card_set_card_target(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 2);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* ocard = *(card**) lua_touserdata(L, 2);
-	pcard->effect_target_cards.insert(ocard);
-	ocard->effect_target_owner.insert(pcard);
+	pcard->add_card_target(ocard);
 	return 0;
 }
 int32 scriptlib::card_get_card_target(lua_State *L) {
@@ -611,6 +610,15 @@ int32 scriptlib::card_get_card_target(lua_State *L) {
 	group* pgroup = pcard->pduel->new_group();
 	pgroup->container = pcard->effect_target_cards;
 	interpreter::group2value(L, pgroup);
+	return 1;
+}
+int32 scriptlib::card_get_first_card_target(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	if(pcard->effect_target_cards.size())
+		interpreter::card2value(L, *pcard->effect_target_cards.begin());
+	else lua_pushnil(L);
 	return 1;
 }
 int32 scriptlib::card_get_card_target_count(lua_State *L) {
@@ -628,6 +636,15 @@ int32 scriptlib::card_is_has_card_target(lua_State *L) {
 	card* rcard = *(card**) lua_touserdata(L, 2);
 	lua_pushboolean(L, pcard->effect_target_cards.count(rcard));
 	return 1;
+}
+int32 scriptlib::card_cancel_card_target(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 2);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	card* rcard = *(card**) lua_touserdata(L, 2);
+	pcard->cancel_card_target(rcard);
+	return 0;
 }
 int32 scriptlib::card_get_owner_target(lua_State *L) {
 	check_param_count(L, 1);

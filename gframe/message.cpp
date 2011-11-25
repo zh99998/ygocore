@@ -855,6 +855,18 @@ void Game::Analyze(void* pd, char* engbuf) {
 			mainGame->SendGameMessage(1, offset, pbuf - offset);
 			break;
 		}
+		case MSG_CARD_TARGET: {
+			pbuf += 8;
+			mainGame->SendGameMessage(0, offset, pbuf - offset);
+			mainGame->SendGameMessage(1, offset, pbuf - offset);
+			break;
+		}
+		case MSG_CANCEL_TARGET: {
+			pbuf += 8;
+			mainGame->SendGameMessage(0, offset, pbuf - offset);
+			mainGame->SendGameMessage(1, offset, pbuf - offset);
+			break;
+		}
 		case MSG_PAY_LPCOST: {
 			pbuf += 5;
 			mainGame->SendGameMessage(0, offset, pbuf - offset);
@@ -2134,6 +2146,7 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 			ClientCard* pcard = mainGame->dField.GetCard(pc, pl, ps);
 			if (code != 0 && pcard->code != code)
 				pcard->SetCode(code);
+			pcard->ClearTarget();
 			mainGame->dField.FadeCard(pcard, 5, 20);
 			mainGame->WaitFrameSignal(20);
 			mainGame->gMutex.Lock();
@@ -2147,6 +2160,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 					pcard->SetCode(code);
 				if((pl & LOCATION_ONFIELD) && (cl != pl))
 					pcard->counters.clear();
+				if(cl != pl)
+					pcard->ClearTarget();
 				mainGame->gMutex.Lock();
 				mainGame->dField.RemoveCard(pc, pl, ps);
 				pcard->position = cp;
@@ -2190,6 +2205,8 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 					pcard->SetCode(code);
 				if((pl & LOCATION_ONFIELD) && (cl != pl))
 					pcard->counters.clear();
+				if(cl != pl)
+					pcard->ClearTarget();
 				ClientCard* olcard = mainGame->dField.GetCard(cc, cl & 0x7f, cs);
 				mainGame->gMutex.Lock();
 				mainGame->dField.RemoveCard(pc, pl, ps);
@@ -2274,8 +2291,10 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		int pp = NetManager::ReadInt8(pbuf);
 		int cp = NetManager::ReadInt8(pbuf);
 		ClientCard* pcard = mainGame->dField.GetCard(cc, cl, cs);
-		if(cp & POS_FACEDOWN)
+		if((pp & POS_FACEUP) && (cp & POS_FACEDOWN)) {
 			pcard->counters.clear();
+			pcard->ClearTarget();
+		}
 		if (code != 0 && pcard->code != code)
 			pcard->SetCode(code);
 		pcard->position = cp;
@@ -2638,6 +2657,48 @@ bool Game::SolveMessage(void* pd, char* msg, int len) {
 		pc->equipTarget = 0;
 		mainGame->gMutex.Unlock();
 		return true;
+	}
+	case MSG_CARD_TARGET: {
+		int c1 = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
+		int l1 = NetManager::ReadInt8(pbuf);
+		int s1 = NetManager::ReadInt8(pbuf);
+		NetManager::ReadInt8(pbuf);
+		int c2 = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
+		int l2 = NetManager::ReadInt8(pbuf);
+		int s2 = NetManager::ReadInt8(pbuf);
+		NetManager::ReadInt8(pbuf);
+		ClientCard* pc1 = mainGame->dField.GetCard(c1, l1, s1);
+		ClientCard* pc2 = mainGame->dField.GetCard(c2, l2, s2);
+		mainGame->gMutex.Lock();
+		pc1->cardTarget.insert(pc2);
+		pc2->ownerTarget.insert(pc1);
+		if (mainGame->dField.hovered_card == pc1)
+			pc2->is_showtarget = true;
+		else if (mainGame->dField.hovered_card == pc2)
+			pc1->is_showtarget = true;
+		mainGame->gMutex.Unlock();
+		break;
+	}
+	case MSG_CANCEL_TARGET: {
+		int c1 = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
+		int l1 = NetManager::ReadInt8(pbuf);
+		int s1 = NetManager::ReadInt8(pbuf);
+		NetManager::ReadInt8(pbuf);
+		int c2 = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
+		int l2 = NetManager::ReadInt8(pbuf);
+		int s2 = NetManager::ReadInt8(pbuf);
+		NetManager::ReadInt8(pbuf);
+		ClientCard* pc1 = mainGame->dField.GetCard(c1, l1, s1);
+		ClientCard* pc2 = mainGame->dField.GetCard(c2, l2, s2);
+		mainGame->gMutex.Lock();
+		pc1->cardTarget.erase(pc2);
+		pc2->ownerTarget.erase(pc1);
+		if (mainGame->dField.hovered_card == pc1)
+			pc2->is_showtarget = false;
+		else if (mainGame->dField.hovered_card == pc2)
+			pc1->is_showtarget = false;
+		mainGame->gMutex.Unlock();
+		break;
 	}
 	case MSG_PAY_LPCOST: {
 		int player = mainGame->LocalPlayer(NetManager::ReadInt8(pbuf));
@@ -3402,6 +3463,18 @@ bool Game::AnalyzeReplay(void* pd, char* engbuf) {
 		}
 		case MSG_UNEQUIP: {
 			pbuf += 4;
+			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
+			break;
+		}
+		case MSG_CARD_TARGET: {
+			pbuf += 8;
+			SolveMessage(pd, offset, pbuf - offset);
+			pauseable = false;
+			break;
+		}
+		case MSG_CANCEL_TARGET: {
+			pbuf += 8;
 			SolveMessage(pd, offset, pbuf - offset);
 			pauseable = false;
 			break;
