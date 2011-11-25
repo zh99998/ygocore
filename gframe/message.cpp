@@ -1,4 +1,5 @@
 #include "game.h"
+#include "tracking.h"
 #include "../ocgcore/ocgapi.h"
 #include "../ocgcore/card.h"
 #include <sys/time.h>
@@ -1058,6 +1059,8 @@ int Game::GameThread(void* pd) {
 	bool result = true;
 	char* pbuf = mainGame->msgBuffer;
 	mainGame->dInfo.netError = false;
+	if(mainGame->dInfo.is_local_host)
+		tracking.startGame();
 	do {
 		mainGame->gBuffer.Lock();
 		if (pbuf - mainGame->msgBuffer >= pdInfo->msgLen) {
@@ -1073,6 +1076,8 @@ int Game::GameThread(void* pd) {
 		result = SolveMessage(pd, pbuf, packlen);
 		pbuf += packlen;
 	} while (result && pdInfo->isStarted && !pdInfo->netError && !mainGame->is_closing);
+	if(mainGame->dInfo.is_local_host)
+		tracking.cancelGame();
 	return 0;
 }
 bool Game::SolveMessage(void* pd, char* msg, int len) {
@@ -2926,6 +2931,9 @@ int Game::ReplayThread(void* pd) {
 	pdInfo->is_host_player[0] = true;
 	pdInfo->is_host_player[1] = false;
 	pdInfo->is_first_turn = true;
+	
+	tracking.clearHost();
+
 	mainGame->lastReplay.ReadData(pdInfo->hostname, 40);
 	mainGame->lastReplay.ReadData(pdInfo->clientname, 40);
 

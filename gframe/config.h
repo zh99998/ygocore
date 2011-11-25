@@ -3,28 +3,12 @@
 
 #pragma once
 
-#define _IRR_STATIC_LIB_
-
-#include <irrlicht.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include "CGUITTFont.h"
-#include "CGUIImageButton.h"
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <memory.h>
-#include "mytimer.h"
-#include "mymutex.h"
-#include "mysignal.h"
-#include "mythread.h"
-#include "../ocgcore/ocgapi.h"
-#include "../ocgcore/card.h"
-
 #ifdef _WIN32
 
+#include <winsock2.h>
 #include <windows.h>
 #define myswprintf swprintf
+#define socklen_t int
 
 #else
 
@@ -51,6 +35,24 @@ inline int _wtoi(const wchar_t * s) {
 	return (int)wcstol(s, &endptr, 10);
 }
 #endif
+
+#define _IRR_STATIC_LIB_
+
+#include <irrlicht.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include "CGUITTFont.h"
+#include "CGUIImageButton.h"
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <memory.h>
+#include "mytimer.h"
+#include "mymutex.h"
+#include "mysignal.h"
+#include "mythread.h"
+#include "../ocgcore/ocgapi.h"
+#include "../ocgcore/card.h"
 
 using namespace irr;
 using namespace core;

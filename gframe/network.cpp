@@ -1,5 +1,6 @@
 #include "network.h"
 #include "game.h"
+#include "tracking.h"
 
 extern ygo::Game* mainGame;
 
@@ -64,6 +65,7 @@ bool NetManager::CancelHost() {
 	closesocket(sBHost);
 	closesocket(sListen);
 	is_creating_host = false;
+	tracking.cancelGame();
 }
 bool NetManager::RefreshHost() {
 	sBClient = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -148,16 +150,17 @@ bool NetManager::WaitClientResponse() {
 	} while(retry);
 	return true;
 }
-int NetManager::GetLocalAddress() {
+unsigned int NetManager::GetLocalAddress() {
 	char hname[256];
 	gethostname(hname, 256);
 	hostent* host = gethostbyname(hname);
 	if(!host)
 		return 0;
-	return *(int*)host->h_addr_list[0];
+	return *(unsigned int*)host->h_addr_list[0];
 }
 int NetManager::BroadcastServer(void* np) {
 	NetManager* net = (NetManager*)np;
+	tracking.createGame(&net->hInfo);
 	SOCKADDR_IN sockTo;
 	sockTo.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 	sockTo.sin_family = AF_INET;
@@ -198,7 +201,7 @@ int NetManager::BroadcastClient(void* np) {
 	sendto(net->sBClient, (const char*)&net->hReq, sizeof(HostRequest), 0, (sockaddr*)&sockTo, sizeof(sockaddr));
 	mainGame->lstServerList->clear();
 	mainGame->is_refreshing = true;
-	int result = select(0, &fds, 0, 0, &tv);
+	int result = select(net->sBClient + 1, &fds, 0, 0, &tv);
 	std::set<int> addrset;
 	net->hosts.clear();
 	while(result != 0 && result != SOCKET_ERROR) {
@@ -207,7 +210,7 @@ int NetManager::BroadcastClient(void* np) {
 		        && net->hInfo.version == PROTO_VERSION && addrset.find(net->hInfo.address) == addrset.end()) {
 			net->hosts.push_back(net->hInfo);
 		}
-		result = select(0, &fds, 0, 0, &tv);
+		result = select(net->sBClient, &fds, 0, 0, &tv);
 	}
 	if(mainGame->is_closing)
 		return 0;
@@ -215,12 +218,14 @@ int NetManager::BroadcastClient(void* np) {
 	const wchar_t* mode;
 	std::vector<HostInfo>::iterator it;
 	mainGame->gMutex.Lock();
+	tracking.clearHost();
+	mainGame->lstServerList->clear();
 	for(it = net->hosts.begin(); it != net->hosts.end(); ++it) {
 		if(!it->no_check_deck && !it->no_shuffle_deck && !it->no_shuffle_deck && !it->attack_ft && !it->no_chain_hint
 		        && it->start_lp == 8000 && it->start_hand == 5 && it->draw_count == 1)
 			mode = L"标准设定";
 		else mode = L"自定义设定";
-		myswprintf(tbuf, L"[%ls][%ls]%ls", mode, it->lflist, it->name);
+		myswprintf(tbuf, L"[L] [%ls] [%ls] %ls", mode, it->lflist, it->name);
 		mainGame->lstServerList->addItem(tbuf);
 	}
 	mainGame->btnLanStartServer->setEnabled(true);
@@ -231,6 +236,7 @@ int NetManager::BroadcastClient(void* np) {
 	mainGame->gMutex.Unlock();
 	mainGame->is_refreshing = false;
 	closesocket(net->sBClient);
+	tracking.queryList();
 	return 0;
 }
 int NetManager::ListenThread(void* np) {
@@ -398,8 +404,9 @@ int NetManager::JoinThread(void* adr) {
 		mainGame->dInfo.clientname[pi] = pn[pi];
 		pi++;
 	}
-	mainGame->dInfo.clientname[pi] = 0;
 	mainGame->gMutex.Lock();
+	tracking.clearHost();
+	mainGame->dInfo.clientname[pi] = 0;
 	mainGame->imgCard->setImage(mainGame->imageManager.tCover);
 	mainGame->wCardImg->setVisible(true);
 	mainGame->wInfos->setVisible(true);

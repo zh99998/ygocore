@@ -196,6 +196,8 @@ inline core::array<u8> getUnicodeBOM(EUTF_ENCODE mode) {
 	case EUTFE_UTF32_LE:
 		COPY_ARRAY(BOM_ENCODE_UTF32_LE, BOM_ENCODE_UTF32_LEN);
 		break;
+	default:
+		break;
 	}
 	return ret;
 
@@ -649,7 +651,6 @@ public:
 
 		//! Moves the iterator to the end of the string.
 		void toEnd() {
-			const uchar16_t* a = ref->c_str();
 			pos = ref->size_raw();
 		}
 

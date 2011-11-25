@@ -91,7 +91,7 @@ public:
 		p++;
 	}
 
-	static int GetLocalAddress();
+	static unsigned int GetLocalAddress();
 	static int BroadcastServer(void*);
 	static int BroadcastClient(void*);
 	static int ListenThread(void*);

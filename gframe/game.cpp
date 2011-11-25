@@ -1,6 +1,7 @@
 #include "config.h"
 #include "game.h"
 #include "network.h"
+#include "tracking.h"
 
 #ifndef WIN32
 #include <sys/types.h>
@@ -397,6 +398,7 @@ bool Game::Initialize() {
 	return true;
 }
 void Game::MainLoop() {
+	tracking.init();
 	int fps = 0;
 	wchar_t cap[256];
 	gTimer.Reset();
@@ -450,6 +452,7 @@ void Game::MainLoop() {
 			}
 		}
 		driver->endScene();
+		tracking.loopCheck();
 		fps++;
 		ed = gTimer.GetElapsedTime();
 		if(ed - st < 16900) {
