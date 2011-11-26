@@ -696,7 +696,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, uint32 ret_count) 
 }
 int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, uint32 ret_count) {
 	if (param_count != params.size()) {
-		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): incorrect parameter count", pcard->current.code, f);
+		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): incorrect parameter count", pcard->data.code, f);
 		handle_message(pduel, 1);
 		params.clear();
 		return OPERATION_FAIL;
@@ -704,7 +704,7 @@ int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, 
 	card2value(current_state, pcard);
 	lua_getfield(current_state, -1, f);
 	if (!lua_isfunction(current_state, -1)) {
-		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): attempt to call an error function", pcard->current.code, f);
+		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): attempt to call an error function", pcard->data.code, f);
 		handle_message(pduel, 1);
 		lua_pop(current_state, 2);
 		params.clear();

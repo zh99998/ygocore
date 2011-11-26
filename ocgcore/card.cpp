@@ -580,8 +580,9 @@ int32 card::get_union_count() {
 void card::xyz_overlay(card_set* materials) {
 	if(materials->size() == 0)
 		return;
+	card_set des;
 	if(materials->size() == 1) {
-		xyz_add(*materials->begin());
+		xyz_add(*materials->begin(), &des);
 		(*materials->begin())->reset(RESET_EVENT, RESET_OVERLAY);
 	} else {
 		field::card_vector cv;
@@ -591,12 +592,14 @@ void card::xyz_overlay(card_set* materials) {
 			cv.push_back(*cit);
 		std::sort(cv.begin(), cv.end(), card::card_operation_sort);
 		for(cvit = cv.begin(); cvit != cv.end(); ++cvit) {
-			xyz_add(*cvit);
+			xyz_add(*cvit, &des);
 			(*cvit)->reset(RESET_EVENT, RESET_OVERLAY);
 		}
 	}
+	if(des.size())
+		pduel->game_field->destroy(&des, 0, REASON_LOST_TARGET, PLAYER_NONE);
 }
-void card::xyz_add(card* mat) {
+void card::xyz_add(card* mat, card_set* des) {
 	if(mat->overlay_target == this)
 		return;
 	pduel->write_buffer8(MSG_MOVE);
@@ -622,6 +625,11 @@ void card::xyz_add(card* mat) {
 	pduel->write_buffer8(current.sequence);
 	pduel->write_buffer8(current.position);
 	xyz_materials.push_back(mat);
+	for(auto cit = mat->equiping_cards.begin(); cit != mat->equiping_cards.end();) {
+		auto rm = cit++;
+		(*rm)->unequip();
+		des->insert(*rm);
+	}
 	mat->overlay_target = this;
 	mat->current.controler = PLAYER_NONE;
 	mat->current.location = LOCATION_OVERLAY;

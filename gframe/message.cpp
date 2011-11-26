@@ -156,7 +156,7 @@ bool Game::RefreshSingle(int player, int location, int sequence, int flag) {
 	memcpy(pbuf, queryBuffer, len);
 	if(!SendGameMessage(player, netManager.send_buffer_ptr, len + 4))
 		return false;
-	if ((location & 0x90) || ((location & 0x2c) && (queryBuffer[11] & POS_FACEUP)))
+	if ((location & 0x90) || ((location & 0x2c) && (queryBuffer[15] & POS_FACEUP)))
 		return SendGameMessage(1 - player, netManager.send_buffer_ptr, len + 4);
 	return true;
 }
@@ -643,15 +643,15 @@ void Game::Analyze(void* pd, char* engbuf) {
 		}
 		case MSG_MOVE: {
 			pbufw = pbuf;
-			int code = NetManager::ReadInt32(pbuf);
-			int pc = NetManager::ReadInt8(pbuf);
-			int pl = NetManager::ReadInt8(pbuf);
-			int ps = NetManager::ReadInt8(pbuf);
-			int pp = NetManager::ReadInt8(pbuf);
-			int cc = NetManager::ReadInt8(pbuf);
-			int cl = NetManager::ReadInt8(pbuf);
-			int cs = NetManager::ReadInt8(pbuf);
-			int cp = NetManager::ReadInt8(pbuf);
+			int pc = pbuf[4];
+			int pl = pbuf[5];
+			int ps = pbuf[6];
+			int pp = pbuf[7];
+			int cc = pbuf[8];
+			int cl = pbuf[9];
+			int cs = pbuf[10];
+			int cp = pbuf[11];
+			pbuf += 12;
 			mainGame->SendGameMessage(cc, offset, pbuf - offset);
 			if (!(cl & 0x90) && !((cl & 0x2c) && (cp & POS_FACEUP)))
 				NetManager::WriteInt32(pbufw, 0);
@@ -673,9 +673,16 @@ void Game::Analyze(void* pd, char* engbuf) {
 			break;
 		}
 		case MSG_POS_CHANGE: {
+			int cc = pbuf[4];
+			int cl = pbuf[5];
+			int cs = pbuf[6];
+			int pp = pbuf[7];
+			int cp = pbuf[8];
 			pbuf += 9;
 			mainGame->SendGameMessage(0, offset, pbuf - offset);
 			mainGame->SendGameMessage(1, offset, pbuf - offset);
+			if((pp & POS_FACEDOWN) && (cp & POS_FACEUP))
+				mainGame->RefreshSingle(cc, cl, cs);
 			break;
 		}
 		case MSG_SET: {
@@ -728,6 +735,7 @@ void Game::Analyze(void* pd, char* engbuf) {
 			break;
 		}
 		case MSG_FLIPSUMMONING: {
+			mainGame->RefreshSingle(pbuf[4], pbuf[5], pbuf[6]);
 			pbuf += 8;
 			mainGame->SendGameMessage(0, offset, pbuf - offset);
 			mainGame->SendGameMessage(1, offset, pbuf - offset);
