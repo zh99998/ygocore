@@ -261,32 +261,32 @@ const wchar_t* DataManager::FormatLocation(int location) {
 const wchar_t* DataManager::FormatAttribute(int attribute) {
 	wchar_t* p = attBuffer;
 	if(attribute & ATTRIBUTE_EARTH) {
-		wcscpy(p, L"地属性|");
-		p += 4;
+		wcscpy(p, L"地|");
+		p += 2;
 	}
 	if(attribute & ATTRIBUTE_WATER) {
-		wcscpy(p, L"水属性|");
-		p += 4;
+		wcscpy(p, L"水|");
+		p += 2;
 	}
 	if(attribute & ATTRIBUTE_FIRE) {
-		wcscpy(p, L"炎属性|");
-		p += 4;
+		wcscpy(p, L"炎|");
+		p += 2;
 	}
 	if(attribute & ATTRIBUTE_WIND) {
-		wcscpy(p, L"风属性|");
-		p += 4;
+		wcscpy(p, L"风|");
+		p += 2;
 	}
 	if(attribute & ATTRIBUTE_LIGHT) {
-		wcscpy(p, L"光属性|");
-		p += 4;
+		wcscpy(p, L"光|");
+		p += 2;
 	}
 	if(attribute & ATTRIBUTE_DARK) {
-		wcscpy(p, L"暗属性|");
-		p += 4;
+		wcscpy(p, L"暗|");
+		p += 2;
 	}
 	if(attribute & ATTRIBUTE_DEVINE) {
-		wcscpy(p, L"神属性|");
-		p += 4;
+		wcscpy(p, L"神|");
+		p += 2;
 	}
 	if(p != attBuffer)
 		*(p - 1) = 0;

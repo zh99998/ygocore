@@ -580,8 +580,9 @@ int32 card::get_union_count() {
 void card::xyz_overlay(card_set* materials) {
 	if(materials->size() == 0)
 		return;
+	card_set des;
 	if(materials->size() == 1) {
-		xyz_add(*materials->begin());
+		xyz_add(*materials->begin(), &des);
 		(*materials->begin())->reset(RESET_EVENT, RESET_OVERLAY);
 	} else {
 		field::card_vector cv;
@@ -591,12 +592,14 @@ void card::xyz_overlay(card_set* materials) {
 			cv.push_back(*cit);
 		std::sort(cv.begin(), cv.end(), card::card_operation_sort);
 		for(cvit = cv.begin(); cvit != cv.end(); ++cvit) {
-			xyz_add(*cvit);
+			xyz_add(*cvit, &des);
 			(*cvit)->reset(RESET_EVENT, RESET_OVERLAY);
 		}
 	}
+	if(des.size())
+		pduel->game_field->destroy(&des, 0, REASON_LOST_TARGET, PLAYER_NONE);
 }
-void card::xyz_add(card* mat) {
+void card::xyz_add(card* mat, card_set* des) {
 	if(mat->overlay_target == this)
 		return;
 	pduel->write_buffer8(MSG_MOVE);
@@ -622,6 +625,11 @@ void card::xyz_add(card* mat) {
 	pduel->write_buffer8(current.sequence);
 	pduel->write_buffer8(current.position);
 	xyz_materials.push_back(mat);
+	for(auto cit = mat->equiping_cards.begin(); cit != mat->equiping_cards.end();) {
+		auto rm = cit++;
+		(*rm)->unequip();
+		des->insert(*rm);
+	}
 	mat->overlay_target = this;
 	mat->current.controler = PLAYER_NONE;
 	mat->current.location = LOCATION_OVERLAY;
@@ -865,16 +873,18 @@ void card::reset(uint32 id, uint32 reset_type) {
 			battled_cards.clear();
 			counters.clear();
 			reset_effect_count();
+			pr = field_effect.equal_range(EFFECT_DISABLE_FIELD);
+			for(; pr.first != pr.second; ++pr.first)
+				pr.first->second->value = 0;
+			set_status(STATUS_UNION, FALSE);
+		}
+		if(id & 0x57e0000) {
 			for(cit = effect_target_owner.begin(); cit != effect_target_owner.end(); ++cit)
 				(*cit)->effect_target_cards.erase(this);
 			for(cit = effect_target_cards.begin(); cit != effect_target_cards.end(); ++cit)
 				(*cit)->effect_target_owner.erase(this);
 			effect_target_owner.clear();
 			effect_target_cards.clear();
-			pr = field_effect.equal_range(EFFECT_DISABLE_FIELD);
-			for(; pr.first != pr.second; ++pr.first)
-				pr.first->second->value = 0;
-			set_status(STATUS_UNION, FALSE);
 		}
 		if(id & 0x3fe0000) {
 			pr = field_effect.equal_range(EFFECT_USE_EXTRA_MZONE);
@@ -1093,11 +1103,27 @@ void card::set_material(card_set* materials) {
 		eset[i]->get_value(this);
 	}
 }
+void card::add_card_target(card* pcard) {
+	effect_target_cards.insert(pcard);
+	pcard->effect_target_owner.insert(this);
+	pduel->write_buffer8(MSG_CARD_TARGET);
+	pduel->write_buffer32(get_info_location());
+	pduel->write_buffer32(pcard->get_info_location());
+}
+void card::cancel_card_target(card* pcard) {
+	auto cit = effect_target_cards.find(pcard);
+	if(cit != effect_target_cards.end()) {
+		effect_target_cards.erase(cit);
+		pcard->effect_target_owner.erase(this);
+		pduel->write_buffer8(MSG_CANCEL_TARGET);
+		pduel->write_buffer32(get_info_location());
+		pduel->write_buffer32(pcard->get_info_location());
+	}
+}
 void card::filter_effect(int32 code, effect_set* eset, uint8 sort) {
 	card_set::iterator cit;
 	effect* peffect;
-	pair<effect_container::iterator, effect_container::iterator> rg;
-	rg = single_effect.equal_range(code);
+	auto rg = single_effect.equal_range(code);
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
 		if (peffect->is_available() && (!(peffect->flag & EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect)))
@@ -1117,6 +1143,18 @@ void card::filter_effect(int32 code, effect_set* eset, uint8 sort) {
 		if (!(peffect->flag & EFFECT_FLAG_PLAYER_TARGET) && peffect->is_available()
 		        && peffect->is_target(this) && is_affect_by_effect(peffect))
 			eset->add_item(peffect);
+	}
+	if(sort)
+		eset->sort();
+}
+void card::filter_single_continuous_effect(int32 code, effect_set* eset, uint8 sort) {
+	auto rg = single_effect.equal_range(code);
+	for (; rg.first != rg.second; ++rg.first)
+		eset->add_item(rg.first->second);
+	for (auto cit = equiping_cards.begin(); cit != equiping_cards.end(); ++cit) {
+		rg = (*cit)->equip_effect.equal_range(code);
+		for (; rg.first != rg.second; ++rg.first)
+			eset->add_item(rg.first->second);
 	}
 	if(sort)
 		eset->sort();

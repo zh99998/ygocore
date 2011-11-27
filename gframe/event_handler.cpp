@@ -1266,10 +1266,14 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					if(hovered_card->equipTarget)
 						hovered_card->equipTarget->is_showequip = false;
 					if(hovered_card->equipped.size())
-						for(std::set<ClientCard*>::iterator cit = hovered_card->equipped.begin();
-						        cit != hovered_card->equipped.end();
-						        ++cit)
+						for(auto cit = hovered_card->equipped.begin(); cit != hovered_card->equipped.end(); ++cit)
 							(*cit)->is_showequip = false;
+					if(hovered_card->cardTarget.size())
+						for(auto cit = hovered_card->cardTarget.begin(); cit != hovered_card->cardTarget.end(); ++cit)
+							(*cit)->is_showtarget = false;
+					if(hovered_card->ownerTarget.size())
+						for(auto cit = hovered_card->ownerTarget.begin(); cit != hovered_card->ownerTarget.end(); ++cit)
+							(*cit)->is_showtarget = false;
 				}
 				if(mcard) {
 					if(mcard != clicked_card)
@@ -1281,8 +1285,14 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					if(mcard->equipTarget)
 						mcard->equipTarget->is_showequip = true;
 					if(mcard->equipped.size())
-						for(std::set<ClientCard*>::iterator cit = mcard->equipped.begin(); cit != mcard->equipped.end(); ++cit)
+						for(auto cit = mcard->equipped.begin(); cit != mcard->equipped.end(); ++cit)
 							(*cit)->is_showequip = true;
+					if(mcard->cardTarget.size())
+						for(auto cit = mcard->cardTarget.begin(); cit != mcard->cardTarget.end(); ++cit)
+							(*cit)->is_showtarget = true;
+					if(mcard->ownerTarget.size())
+						for(auto cit = mcard->ownerTarget.begin(); cit != mcard->ownerTarget.end(); ++cit)
+							(*cit)->is_showtarget = true;
 					if(mcard->code) {
 						CardData cd;
 						mainGame->dataManager.GetData(mcard->code, &cd);

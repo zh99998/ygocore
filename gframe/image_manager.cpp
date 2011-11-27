@@ -16,6 +16,7 @@ bool ImageManager::Initial() {
 	tLPFrame = driver->getTexture("textures/lpf.png");
 	tMask = driver->getTexture("textures/mask.png");
 	tEquip = driver->getTexture("textures/equip.png");
+	tTarget = driver->getTexture("textures/target.png");
 	tLim = driver->getTexture("textures/lim.png");
 	tBackGround = driver->getTexture("textures/bg.jpg");
 	return true;

@@ -2133,9 +2133,11 @@ int32 scriptlib::duel_overlay(lua_State *L) {
 		pgroup = *(group**) lua_touserdata(L, 2);
 	} else
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 2);
-	if(pcard)
-		target->xyz_add(pcard);
-	else
+	if(pcard) {
+		card::card_set cset;
+		cset.insert(pcard);
+		target->xyz_overlay(&cset);
+	} else
 		target->xyz_overlay(&pgroup->container);
 	target->pduel->game_field->adjust_all();
 	return lua_yield(L, 0);

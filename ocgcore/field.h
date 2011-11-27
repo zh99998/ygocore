@@ -674,6 +674,8 @@ public:
 #define MSG_EQUIP				93
 #define MSG_LPUPDATE			94
 #define MSG_UNEQUIP				95
+#define MSG_CARD_TARGET			96
+#define MSG_CANCEL_TARGET		97
 #define MSG_PAY_LPCOST			100
 #define MSG_ADD_COUNTER			101
 #define MSG_REMOVE_COUNTER		102

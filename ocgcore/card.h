@@ -146,7 +146,7 @@ public:
 	void unequip();
 	int32 get_union_count();
 	void xyz_overlay(card_set* materials);
-	void xyz_add(card* mat);
+	void xyz_add(card* mat, card_set* des);
 	void xyz_remove(card* mat);
 	void apply_field_effect();
 	void cancel_field_effect();
@@ -174,8 +174,11 @@ public:
 	int32 is_can_add_counter(uint16 countertype, uint16 count);
 	int32 get_counter(uint16 countertype);
 	void set_material(card_set* materials);
-
+	void add_card_target(card* pcard);
+	void cancel_card_target(card* pcard);
+	
 	void filter_effect(int32 code, effect_set* eset, uint8 sort = TRUE);
+	void filter_single_continuous_effect(int32 code, effect_set* eset, uint8 sort = TRUE);
 	void filter_immune_effect();
 	void filter_disable_related_cards();
 	int32 filter_summon_procedure(uint8 playerid, effect_set* eset, uint8 ignore_count);

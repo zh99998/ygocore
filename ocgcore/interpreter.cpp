@@ -91,8 +91,10 @@ static const struct luaL_reg cardlib[] = {
 	{ "IsDirectAttacked", scriptlib::card_is_direct_attacked },
 	{ "SetCardTarget", scriptlib::card_set_card_target },
 	{ "GetCardTarget", scriptlib::card_get_card_target },
+	{ "GetFirstCardTarget", scriptlib::card_get_first_card_target },
 	{ "GetCardTargetCount", scriptlib::card_get_card_target_count },
 	{ "IsHasCardTarget", scriptlib::card_is_has_card_target },
+	{ "CancelCardTarget", scriptlib::card_cancel_card_target },
 	{ "GetOwnerTarget", scriptlib::card_get_owner_target },
 	{ "GetOwnerTargetCount", scriptlib::card_get_owner_target_count },
 	{ "GetActivateEffect", scriptlib::card_get_activate_effect },
@@ -694,7 +696,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, uint32 ret_count) 
 }
 int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, uint32 ret_count) {
 	if (param_count != params.size()) {
-		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): incorrect parameter count", pcard->current.code, f);
+		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): incorrect parameter count", pcard->data.code, f);
 		handle_message(pduel, 1);
 		params.clear();
 		return OPERATION_FAIL;
@@ -702,7 +704,7 @@ int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, 
 	card2value(current_state, pcard);
 	lua_getfield(current_state, -1, f);
 	if (!lua_isfunction(current_state, -1)) {
-		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): attempt to call an error function", pcard->current.code, f);
+		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): attempt to call an error function", pcard->data.code, f);
 		handle_message(pduel, 1);
 		lua_pop(current_state, 2);
 		params.clear();
